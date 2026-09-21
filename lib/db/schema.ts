@@ -82,6 +82,14 @@ export const users = pgTable(
       { onDelete: "set null" },
     ),
     status: userStatus("status").notNull().default("eingeladen"),
+
+    /**
+     * Screen 12a: a password an admin set and handed over personally is not the
+     * person's own yet, so the next sign-in leads to the account page and no
+     * further until they have replaced it.
+     */
+    mustChangePassword: boolean("must_change_password").notNull().default(false),
+
     invitedAt: timestamp("invited_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
@@ -144,6 +152,10 @@ export const articles = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
     status: articleStatus("status").notNull().default("draft"),
+
+    /** What the review list's "Wartet seit" counts from, and no edit moves it. */
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+
     publishAt: timestamp("publish_at", { withTimezone: true }),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     wordCount: integer("word_count").notNull().default(0),

@@ -112,7 +112,8 @@ the deployment webhook.
 The interface follows a fixed design specification, kept outside the repository
 as the client's source of record. Where the implementation departs from it, or
 fills a gap it leaves open, the decision and its origin are recorded in
-`EXTRAPOLATION.md`.
+[`EXTRAPOLATION.md`](./EXTRAPOLATION.md) — in German, because that is the
+language of the specification it answers to.
 
 ## Licence
 

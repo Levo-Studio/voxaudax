@@ -22,6 +22,13 @@
       "when": 1790018981206,
       "tag": "0002_invited_user_has_no_account",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790019386693,
+      "tag": "0003_review_clock_and_forced_password_change",
+      "breakpoints": true
     }
   ]
 }

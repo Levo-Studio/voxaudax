@@ -2,13 +2,14 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { databaseCheck } from "@/lib/checks/database";
+import { mailCheck } from "@/lib/checks/mail";
 import { httpStatusFor, inspectDependencies } from "@/lib/health";
 import { SERVICE_NAME, nowAsIso8601 } from "@/lib/service-identity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DEPENDENCIES = [databaseCheck];
+const DEPENDENCIES = [databaseCheck, mailCheck];
 
 /**
  * Read directly rather than through the validated environment, so that the one

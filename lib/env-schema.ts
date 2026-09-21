@@ -1,7 +1,28 @@
 import { z } from "zod";
 
-const senderMustNotBeUnattended = (address: string) =>
-  !/no-?reply/i.test(address);
+/**
+ * "kein noreply als Absendername" is about the display name, not the mailbox.
+ * A verified sending subdomain usually has no inbox at all, so the address may
+ * well be noreply@ — what must not happen is a mail that presents itself as
+ * unattended. The name has to read as a person or a desk, and lib/mail sets
+ * Reply-To to MAIL_TO_EDITORIAL so an answer reaches one.
+ */
+const displayNameOf = (sender: string) => {
+  const angled = /^\s*(.*?)\s*<[^>]+>\s*$/.exec(sender);
+  return angled === null ? "" : angled[1].replace(/^"|"$/g, "");
+};
+
+const senderMustNotBeUnattended = (sender: string) => {
+  const name = displayNameOf(sender);
+  return name === "" ? true : !/no-?reply|do-?not-?reply/i.test(name);
+};
+
+const isCanonicalBase64Url = (value: string) =>
+  /^[A-Za-z0-9_-]+={0,2}$/.test(value) &&
+  (value.includes("=") ? value.length % 4 === 0 : true);
+
+const decodedByteLength = (value: string) =>
+  Buffer.from(value, "base64url").byteLength;
 
 const namesAKnownTimeZone = (zone: string) => {
   try {
@@ -29,21 +50,38 @@ export const environmentSchema = z.object({
     .enum(["true", "false"])
     .transform((value) => value === "true"),
 
-  RESEND_API_KEY: z.string().min(1),
+  /**
+   * Allowed to be empty. Sending is one subsystem, and signing in is not it —
+   * demanding a mail key before anyone can log in would make a missing key look
+   * like a broken deployment. lib/mail refuses at send time and names it, and
+   * the detailed health route reports its absence as degraded rather than down.
+   */
+  RESEND_API_KEY: z.string(),
   MAIL_FROM: z
     .string()
     .min(1)
     .refine(
       senderMustNotBeUnattended,
-      "must not be a noreply address — replies go to a person",
+      'the display name must not read as unattended; write it as "Vox Audax Redaktion <noreply@mail.voxaudax.de>"',
     ),
   MAIL_TO_EDITORIAL: z.email(),
 
+  /**
+   * @velve/auth reads this as canonical base64url and needs 32 decoded bytes.
+   * Measuring the string instead would pass a 32-character value carrying 24
+   * bytes of entropy, and `openssl rand -base64 32` — which produces "+", "/"
+   * and padding — is rejected outright as root_key_malformed rather than being
+   * decoded. Both mistakes are caught here rather than at first sign-in.
+   */
   AUTH_SECRET: z
     .string()
+    .refine(isCanonicalBase64Url, {
+      message:
+        'must be canonical base64url. Generate it with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64url\'))"',
+    })
     .refine(
-      (value) => Buffer.byteLength(value, "utf8") >= 32,
-      "must be at least 32 bytes; @velve/auth refuses to start below that",
+      (value) => decodedByteLength(value) >= 32,
+      "must decode to at least 32 bytes; @velve/auth refuses to start below that",
     ),
   HEALTH_TOKEN: z.string().min(32),
 

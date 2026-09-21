@@ -52,3 +52,19 @@ export const mailEnvironment = () =>
     mailSchema,
     "Mail is not configured on this server, so nothing was sent",
   );
+
+ * The connection string on its own, validated on its own.
+ *
+ * The pool is built while the module graph is being evaluated, and validating
+ * the whole environment there makes every unrelated key a reason the database
+ * cannot be reached — an unusable mail key would stop the build of a page that
+ * sends nothing. This is the same argument `scripts/check-connections.mts`
+ * already makes for its own reads; everything that actually needs a mail key or
+ * a root key still asks `environment()` and still fails without one.
+ */
+export const databaseUrl = () =>
+  environmentSchema.shape.DATABASE_URL.parse(process.env.DATABASE_URL);
+
+/** Read on its own for the same reason `databaseUrl` is: the pool needs it. */
+export const timeZone = () =>
+  environmentSchema.shape.TZ.parse(process.env.TZ);
