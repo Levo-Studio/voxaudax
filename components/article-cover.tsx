@@ -42,7 +42,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
     panel:
       "aspect-[4/3] rounded-[14px] p-5 [--cover-grid:44px] md:aspect-auto md:h-full md:rounded-none md:p-[34px] md:[--cover-grid:58px]",
     eyebrow:
-      "top-4 left-5 text-[10px] tracking-[0.16em] opacity-[0.85] md:top-[22px] md:left-[34px] md:text-[11px] md:opacity-80",
+      "top-4 left-5 text-[10px] tracking-[0.16em] md:top-[22px] md:left-[34px] md:text-[11px]",
     word: WIDE_WORD,
     line: "mt-2.5 text-[13px] md:mt-3.5 md:text-sm",
     wrap: "whitespace-nowrap",
@@ -53,7 +53,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
     panel:
       "aspect-[4/3] p-5 [--cover-grid:44px] md:aspect-[21/8] md:px-10 md:py-[34px] md:[--cover-grid:58px]",
     eyebrow:
-      "top-4 left-5 text-[10px] tracking-[0.16em] opacity-[0.85] md:top-[26px] md:left-10 md:text-[11px] md:opacity-80",
+      "top-4 left-5 text-[10px] tracking-[0.16em] md:top-[26px] md:left-10 md:text-[11px]",
     word: WIDE_WORD,
     line: "mt-2.5 text-[13px] md:mt-3 md:text-sm",
     wrap: "whitespace-nowrap",
@@ -68,7 +68,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
   card: {
     panel:
       "aspect-square justify-end rounded-[10px] p-[11px] md:aspect-[16/9] md:justify-between md:rounded-[10px] md:p-5",
-    eyebrow: "hidden md:block text-[10.5px] tracking-[0.14em] opacity-[0.85]",
+    eyebrow: "hidden md:block text-[10.5px] tracking-[0.14em]",
     word: "text-base leading-none tracking-[-0.035em] md:text-[26px]",
     line: "mt-2.5 text-[13px]",
     wrap: "whitespace-normal md:whitespace-nowrap",
@@ -78,7 +78,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
   related: {
     panel:
       "aspect-square justify-end rounded-[9px] p-2.5 md:aspect-[16/9] md:rounded-[10px] md:justify-between md:p-[18px]",
-    eyebrow: "hidden md:block text-[10.5px] tracking-[0.14em] opacity-[0.85]",
+    eyebrow: "hidden md:block text-[10.5px] tracking-[0.14em]",
     word: "text-sm leading-none tracking-[-0.03em] md:text-2xl md:tracking-[-0.035em]",
     line: "mt-2.5 text-[13px]",
     wrap: "whitespace-normal md:whitespace-nowrap",
@@ -92,6 +92,11 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
  * cover sat on the one dark violet. The palette made the panel variable, so the
  * lines follow the ink instead: on Signalgelb and Bernstein a white grid is
  * 1.03:1 against the panel and simply is not there.
+ *
+ * The same template faded the category and the cover line to .85 and .82, and
+ * for the same reason that is gone: the ink is chosen per panel to clear 4.5:1
+ * exactly, so any fade at all drops it under. Both are small type — the
+ * category is 10px — and `pnpm check:contrast` now measures what composites.
  */
 const gridOverlay = (ink: string) => {
   const line = `color-mix(in srgb, ${ink} 14%, transparent)`;
@@ -146,7 +151,7 @@ export function ArticleCover({
         {word}
       </span>
       {showLine ? (
-        <span className={`relative font-semibold opacity-[0.82] ${styles.line}`}>
+        <span className={`relative font-semibold ${styles.line}`}>
           {line}
         </span>
       ) : null}
