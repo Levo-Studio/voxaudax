@@ -34,12 +34,13 @@ the interface.
 | Database | PostgreSQL via Drizzle ORM, reached through one `DATABASE_URL` |
 | Authentication | [`@velve/auth`](https://github.com/velve-dev/velve-auth) — runs in process, users live in this database |
 | Object storage | RustFS, S3-compatible, addressed with `forcePathStyle` |
-| Images | Delivered from `cdn.levo-studio.com`; the database stores object keys, never URLs |
+| Images | Private. The database stores object keys; the server reads them from storage and serves them from this origin |
 | Mail | Resend, templates written with `react-email` |
 | Fonts | Bricolage Grotesque, Inter Tight and JetBrains Mono, self-hosted |
 
-No runtime request leaves the server except to Resend and the object storage.
-There is no tracking, no analytics and no third-party font or script.
+No runtime request leaves the server except to Resend and the object storage,
+and the browser talks to neither. There is no tracking, no analytics and no
+third-party font or script.
 
 ## Requirements
 
@@ -71,11 +72,11 @@ nothing else; the values below say what each one expects.
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | The only database connection. Migrations use it too. |
-| `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | RustFS object storage. `pnpm rustfs:key` builds a bucket-scoped policy and a credential pair |
+| `S3_ENDPOINT` | `https://cdn.levo-studio.com` — the object storage API, read from the server only |
+| `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | `pnpm rustfs:key` builds a bucket-scoped policy and a credential pair |
 | `S3_BUCKET` | `voxaudax` |
 | `S3_REGION` | `eu-central-1`. RustFS ignores it; the S3 client insists on one |
 | `S3_FORCE_PATH_STYLE` | `true` — RustFS addresses buckets by path, not by subdomain |
-| `CDN_BASE_URL` | `https://cdn.levo-studio.com` — prefix an object key is joined to in order to build an image URL |
 | `RESEND_API_KEY`, `MAIL_FROM`, `MAIL_TO_EDITORIAL` | Transactional mail and the contact form recipient |
 | `AUTH_SECRET` | Root key for `@velve/auth`; at least 32 bytes |
 | `HEALTH_TOKEN` | Bearer token guarding the detailed health route |
