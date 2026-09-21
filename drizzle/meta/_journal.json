@@ -15,6 +15,13 @@
       "when": 1790018879111,
       "tag": "0001_velve_user_link",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790018981206,
+      "tag": "0002_invited_user_has_no_account",
+      "breakpoints": true
     }
   ]
 }

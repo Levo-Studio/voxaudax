@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "velve_user_id" DROP NOT NULL;

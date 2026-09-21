@@ -63,11 +63,12 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
 
     /**
-     * The account in the `velve` schema. The foreign key onto `velve.user(id)`
-     * is added by its own migration: drizzle-kit manages `public` only, and a
-     * schema it managed would be a schema it could also drop.
+     * The account in the `velve` schema, null until the invited person sets a
+     * password and one exists — which is what `status` reports. The foreign key
+     * onto `velve.user(id)` is added by its own migration: drizzle-kit manages
+     * `public` only, and a schema it managed would be a schema it could drop.
      */
-    velveUserId: uuid("velve_user_id").notNull().unique(),
+    velveUserId: uuid("velve_user_id").unique(),
 
     email: text("email").notNull().unique(),
     name: text("name").notNull(),
