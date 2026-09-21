@@ -21,9 +21,25 @@ const STANDING_PAGES = [
   "/datenschutz",
 ] as const;
 
+/**
+ * Built where the database is unreachable, so an absent article list yields a
+ * sitemap of the standing pages rather than a failed build; the revalidate
+ * window fills the articles in on the first request after deployment.
+ */
+const publishedArticlesOrNoneAtBuildTime = async () => {
+  try {
+    return await everyPublishedArticle();
+  } catch {
+    return [];
+  }
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = environment().NEXT_PUBLIC_SITE_URL;
-  const articles = await everyPublishedArticle();
+  // Built where the database is unreachable, so an absent article list yields a
+  // sitemap of the standing pages rather than a failed build; the revalidate
+  // window above fills in the articles on the first request after deployment.
+  const articles = await publishedArticlesOrNoneAtBuildTime();
   const url = (path: string) => new URL(path, site).toString();
 
   return [

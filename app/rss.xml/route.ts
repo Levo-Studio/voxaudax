@@ -14,9 +14,24 @@ const escape = (value: string) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+/**
+ * Built where the database is unreachable: an empty feed beats a failed build,
+ * and the revalidate window fills it on the first request after deployment.
+ */
+const recentArticlesOrNoneAtBuildTime = async () => {
+  try {
+    return await everyPublishedArticle();
+  } catch {
+    return [];
+  }
+};
+
 export const GET = async () => {
   const site = environment().NEXT_PUBLIC_SITE_URL;
-  const articles = (await everyPublishedArticle()).slice(0, FEED_LENGTH);
+  const articles = (await recentArticlesOrNoneAtBuildTime()).slice(
+    0,
+    FEED_LENGTH,
+  );
   const url = (path: string) => new URL(path, site).toString();
 
   const items = articles

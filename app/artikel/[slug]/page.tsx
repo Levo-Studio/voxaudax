@@ -28,8 +28,22 @@ type ArticleParams = { params: Promise<{ slug: string }> };
  * has only just appeared — is rendered on first request and cached from then
  * on, so a new article never waits for a deploy.
  */
-export const generateStaticParams = async () =>
-  (await everyPublishedArticle()).map((article) => ({ slug: article.slug }));
+/**
+ * The image is built where the database is not reachable — CI has no route to
+ * it, and handing a build a DATABASE_URL would bake a credential into a layer.
+ * So nothing is prerendered from content at build time: the first request for
+ * an article renders it and the revalidate window above keeps it cached from
+ * then on, which is the same end state one request later.
+ */
+export const generateStaticParams = async () => {
+  try {
+    return (await everyPublishedArticle()).map((article) => ({
+      slug: article.slug,
+    }));
+  } catch {
+    return [];
+  }
+};
 
 export const generateMetadata = async ({
   params,
