@@ -38,6 +38,9 @@ jobs:
       - name: The env example must match the schema
         run: pnpm check:env
 
+      - name: Cover colours must meet WCAG AA
+        run: pnpm check:contrast
+
   build-and-push:
     needs: check
     if: github.ref == 'refs/heads/main'
