@@ -16,6 +16,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import { toSlug } from "@/lib/format";
+import { LIKE_ESCAPE, likeContains } from "@/lib/search";
 
 /**
  * Every public read of the database lives here. The pages are server
@@ -218,14 +219,14 @@ export const archiveResults = async (
   const conditions = [live()];
 
   if (filters.query !== undefined && filters.query.length > 0) {
-    const pattern = `%${filters.query}%`;
+    const pattern = likeContains(filters.query);
     // The index answers whole words the German dictionary stems; the two
     // patterns answer the reader who stopped typing after four letters.
     conditions.push(sql`(
       to_tsvector('german', ${articles.title} || ' ' || ${articles.teaser})
         @@ plainto_tsquery('german', ${filters.query})
-      or ${articles.title} ilike ${pattern}
-      or ${articles.teaser} ilike ${pattern}
+      or ${articles.title} ilike ${pattern} escape ${LIKE_ESCAPE}
+      or ${articles.teaser} ilike ${pattern} escape ${LIKE_ESCAPE}
     )`);
   }
 
