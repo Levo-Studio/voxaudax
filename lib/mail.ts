@@ -37,9 +37,12 @@ const mailConfiguration = () => {
 
   if (!result.success) {
     throw new MailNotConfigured(
-      result.error.issues.map(
-        (issue) => `${issue.path.join(".")} ${issue.message}`,
-      ),
+      result.error.issues.map((issue) => {
+        const key = String(issue.path[0]);
+        return process.env[key] === undefined
+          ? `${key} is not set`
+          : `${key} ${issue.message}`;
+      }),
     );
   }
 
