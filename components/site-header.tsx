@@ -49,7 +49,9 @@ export function SiteHeader({
 
   return (
     <header className="border-b border-bd">
-      <div className="flex items-center gap-[18px] px-[18px] pt-[3px] pb-[3px] md:gap-[30px] md:px-10 md:pt-[18px] md:pb-4">
+      {/* 3px, not the template's 14px: the 44px touch targets inside supply the
+          rest of the row height, so raising this would overshoot it. */}
+      <div className="flex items-center gap-[18px] px-[18px] py-[3px] md:gap-[30px] md:px-10 md:pt-[18px] md:pb-4">
         {/* next/link cannot address the routes this nav points at until they
             exist, so the whole header stays on plain anchors for now. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -94,7 +96,7 @@ export function SiteHeader({
       <nav
         id={MOBILE_NAV_ID}
         aria-label="Hauptnavigation"
-        className="flex gap-5 overflow-x-auto px-[18px] pb-2 text-sm font-bold whitespace-nowrap md:hidden"
+        className="flex gap-5 overflow-x-auto px-[18px] pb-3 text-sm font-bold whitespace-nowrap md:hidden"
       >
         {navLinks}
       </nav>
