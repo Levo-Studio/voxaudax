@@ -24,6 +24,15 @@ type VariantStyles = {
 };
 
 /**
+ * 88px is the size the template draws at its own width, and the word never
+ * wraps. Holding it fixed makes a seven-letter word wider than the column the
+ * hero gets at 768px, which pushes the whole page sideways — so it is tied to
+ * the viewport and reaches exactly 88px where the template measured it.
+ */
+const WIDE_WORD =
+  "text-[46px] leading-[0.9] tracking-[-0.05em] md:text-[clamp(46px,6.6vw,88px)] md:tracking-[-0.055em]";
+
+/**
  * The grid line size is handed down as a custom property because it changes at
  * the md breakpoint and background-size cannot be written twice in one inline
  * style.
@@ -34,7 +43,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
       "aspect-[4/3] rounded-[14px] p-5 [--cover-grid:44px] md:aspect-auto md:h-full md:rounded-none md:p-[34px] md:[--cover-grid:58px]",
     eyebrow:
       "top-4 left-5 text-[10px] tracking-[0.16em] opacity-[0.85] md:top-[22px] md:left-[34px] md:text-[11px] md:opacity-80",
-    word: "text-[46px] leading-[0.9] tracking-[-0.05em] md:text-[88px] md:tracking-[-0.055em]",
+    word: WIDE_WORD,
     line: "mt-2.5 text-[13px] md:mt-3.5 md:text-sm",
     wrap: "whitespace-nowrap",
     hasGrid: true,
@@ -45,7 +54,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
       "aspect-[4/3] p-5 [--cover-grid:44px] md:aspect-[21/8] md:px-10 md:py-[34px] md:[--cover-grid:58px]",
     eyebrow:
       "top-4 left-5 text-[10px] tracking-[0.16em] opacity-[0.85] md:top-[26px] md:left-10 md:text-[11px] md:opacity-80",
-    word: "text-[46px] leading-[0.9] tracking-[-0.05em] md:text-[88px] md:tracking-[-0.055em]",
+    word: WIDE_WORD,
     line: "mt-2.5 text-[13px] md:mt-3 md:text-sm",
     wrap: "whitespace-nowrap",
     hasGrid: true,

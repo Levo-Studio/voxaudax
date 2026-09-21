@@ -46,7 +46,7 @@ export default async function ContactPage() {
             <div className="mt-2 flex flex-col gap-1.5">
               <a
                 href={`mailto:${editorialEmail}`}
-                className="text-[15px] font-semibold text-ac"
+                className="inline-flex min-h-11 items-center text-[15px] font-semibold text-ac md:min-h-0"
               >
                 {editorialEmail}
               </a>
@@ -66,7 +66,7 @@ export default async function ContactPage() {
                   <a
                     key={member.email}
                     href={`mailto:${member.email}`}
-                    className="flex items-center gap-2.5 text-[14.5px] font-semibold"
+                    className="flex min-h-11 items-center gap-2.5 text-[14.5px] font-semibold md:min-h-0"
                   >
                     <Avatar
                       initials={member.initials}

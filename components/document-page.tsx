@@ -32,7 +32,7 @@ export function DocumentPage({
 
         <a
           href={trailing.href}
-          className="mt-6 inline-block text-[13.5px] font-bold text-ac"
+          className="mt-4 inline-flex min-h-11 items-center text-[13.5px] font-bold text-ac md:mt-6 md:min-h-0"
         >
           {trailing.label}
         </a>

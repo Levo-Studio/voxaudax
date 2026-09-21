@@ -133,7 +133,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
           <div className="mt-4 flex flex-wrap items-center gap-2.5 border-y border-bd px-[18px] py-3.5 md:mt-6 md:gap-4 md:px-10 md:py-[18px]">
             <a
               href={archiveHref({ author: article.authorSlug })}
-              className="flex items-center gap-2.5 md:gap-3"
+              className="flex min-h-11 items-center gap-2.5 md:min-h-0 md:gap-3"
             >
               <Avatar initials={article.authorInitials} size="strip" />
               <span>
@@ -165,7 +165,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
                 )}
                 <a
                   href={archiveHref({ author: article.authorSlug })}
-                  className="mt-2 inline-block text-[12.5px] font-bold text-ac"
+                  className="mt-1 inline-flex min-h-11 items-center text-[12.5px] font-bold text-ac md:mt-2 md:min-h-0"
                 >
                   Alle Beiträge von {article.authorName.split(" ")[0]} →
                 </a>

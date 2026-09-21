@@ -60,7 +60,7 @@ export default async function HomePage() {
               <div>
                 <a
                   href={archiveHref({ category: lead.categorySlug })}
-                  className="mt-4 block text-[11px] font-bold tracking-[0.12em] text-ac uppercase md:hidden"
+                  className="mt-2 inline-flex min-h-11 items-center text-[11px] font-bold tracking-[0.12em] text-ac uppercase md:hidden"
                 >
                   {lead.categoryName}
                 </a>
@@ -94,7 +94,7 @@ export default async function HomePage() {
             <a
               href={articleHref(lead.slug)}
               aria-label={`Artikel öffnen: ${lead.title}`}
-              className="order-first block px-[18px] pb-4 md:order-none md:h-full md:px-0 md:pb-0"
+              className="order-first block min-w-0 px-[18px] pb-4 md:order-none md:h-full md:px-0 md:pb-0"
             >
               <ArticleCover
                 variant="hero"
@@ -130,7 +130,7 @@ export default async function HomePage() {
             </div>
             <a
               href={archiveHref()}
-              className="mt-3 inline-block text-[13px] font-bold text-ac md:mt-[22px]"
+              className="mt-1.5 inline-flex min-h-11 items-center text-[13px] font-bold text-ac md:mt-[22px] md:min-h-0"
             >
               Alle {formatNumber(total)} Artikel
               <span className="hidden md:inline"> im Archiv</span> →
@@ -150,7 +150,7 @@ export default async function HomePage() {
                 <a
                   key={member.email}
                   href={archiveHref({ author: toSlug(member.name) })}
-                  className="flex items-center gap-[9px] rounded-full border border-bd py-[7px] pr-[13px] pl-[7px] text-[13px] font-semibold"
+                  className="flex min-h-11 items-center gap-[9px] rounded-full border border-bd py-[7px] pr-[13px] pl-[7px] text-[13px] font-semibold md:min-h-0"
                 >
                   <Avatar
                     initials={member.initials}
@@ -174,7 +174,7 @@ export default async function HomePage() {
             </p>
             <a
               href="/kontakt"
-              className="mt-3.5 inline-block rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 md:mt-4"
+              className="mt-3.5 inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 md:mt-4 md:min-h-0"
             >
               Kontakt aufnehmen
             </a>

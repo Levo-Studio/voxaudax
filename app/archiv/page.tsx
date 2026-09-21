@@ -250,7 +250,7 @@ export default async function ArchivePage({
         {filtered ? (
           <a
             href={archiveHref()}
-            className="mt-5 inline-block text-[13px] font-bold text-tm md:mt-6"
+            className="mt-3.5 inline-flex min-h-11 items-center text-[13px] font-bold text-tm md:mt-6 md:min-h-0"
           >
             Filter zurücksetzen
           </a>

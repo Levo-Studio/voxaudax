@@ -96,12 +96,15 @@ export default async function EditorialPage() {
                   {member.ressorts.length === 0 ? null : (
                     <span className="text-tm">{member.ressorts.join(" · ")}</span>
                   )}
-                  <a href={`mailto:${member.email}`} className="text-ac">
+                  <a
+                    href={`mailto:${member.email}`}
+                    className="inline-flex min-h-11 items-center text-ac md:min-h-0"
+                  >
                     {member.email}
                   </a>
                   <a
                     href={archiveHref({ author: toSlug(member.name) })}
-                    className="text-tm"
+                    className="inline-flex min-h-11 items-center text-tm md:min-h-0"
                   >
                     Alle Beiträge →
                   </a>
@@ -122,7 +125,7 @@ export default async function EditorialPage() {
             <div className="mt-3.5 flex flex-wrap gap-2.5 md:mt-4">
               <a
                 href="/kontakt"
-                className="rounded-[10px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1"
+                className="inline-flex min-h-11 items-center rounded-[10px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 md:min-h-0"
               >
                 Kontakt aufnehmen
               </a>
