@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+/**
+ * The template sets one stack on the page — Bricolage Grotesque with Inter
+ * Tight behind it — and reaches for Inter Tight explicitly on controls and
+ * JetBrains Mono on slugs and code.
+ */
+@theme {
+  --font-sans: var(--font-bricolage), var(--font-inter-tight), system-ui, sans-serif;
+  --font-control: var(--font-inter-tight), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+}
