@@ -159,9 +159,22 @@ const problemsWith = (
   if (!rendered.text.includes(linkIn(mail))) {
     problems.push("the plaintext part does not spell out the link");
   }
+  // The subject and the preheader are the two places a leak would be most
+  // visible and the only two that never reach the rendered files, so they are
+  // scanned from the rendered object rather than from what was written out.
+  const everythingTheRecipientSees = [
+    rendered.html,
+    rendered.text,
+    rendered.subject,
+    rendered.preheader,
+  ];
+
   for (const secret of NEVER_IN_A_MAIL) {
-    if (rendered.html.includes(secret) || rendered.text.includes(secret)) {
-      problems.push(`it contains "${secret}"`);
+    const where = ["the markup", "the plaintext", "the subject", "the preheader"]
+      .filter((_, index) => everythingTheRecipientSees[index].includes(secret));
+
+    if (where.length > 0) {
+      problems.push(`it contains "${secret}" in ${where.join(" and ")}`);
     }
   }
 
