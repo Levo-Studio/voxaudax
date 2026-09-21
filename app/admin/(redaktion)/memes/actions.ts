@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireCapability, requireMember } from "@/lib/authorize";
+import { requireCapability } from "@/lib/authorize";
 import { createMeme, editMeme, setMemeVisibility } from "@/lib/editorial/memes";
 import { readDimensions } from "@/lib/image-dimensions";
 import { MAXIMUM_UPLOAD_BYTES, MEME_IMAGE_TYPES, storeObject } from "@/lib/storage";
@@ -62,15 +62,21 @@ export const uploadMemeAction = async (
   return { problem: null, uploaded: true };
 };
 
+/**
+ * Screen 11c files memes under the same row as articles: a redakteur or an
+ * admin decides whether one is online, and an autor does not. Both of these
+ * asked only for a member, so an autor could take somebody else's published
+ * meme offline and rewrite its caption.
+ */
 export const toggleMemeVisibilityAction = async (form: FormData) => {
-  await requireMember();
+  await requireCapability("approveArticlesAndMemes");
   const memeId = String(form.get("memeId") ?? "");
   await setMemeVisibility(memeId, form.get("visible") === "on");
   revalidatePath("/admin/memes");
 };
 
 export const editMemeAction = async (form: FormData) => {
-  await requireMember();
+  await requireCapability("approveArticlesAndMemes");
   const alt = String(form.get("alt") ?? "").trim();
   if (alt.length === 0) return;
 
@@ -78,7 +84,6 @@ export const editMemeAction = async (form: FormData) => {
 
   await editMeme({
     memeId: String(form.get("memeId") ?? ""),
-    imageId: String(form.get("imageId") ?? ""),
     alt,
     caption: caption.length === 0 ? null : caption,
     visible: form.get("visible") === "on",

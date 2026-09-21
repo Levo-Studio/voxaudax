@@ -108,15 +108,28 @@ export const createMeme = async (input: {
 export const setMemeVisibility = (memeId: string, visible: boolean) =>
   db.update(memes).set({ visible }).where(eq(memes.id, memeId));
 
+/**
+ * The image is not a parameter. It was, and a posted `imageId` meant the alt
+ * text of any row in `images` could be rewritten through this form — including
+ * the cover of somebody else's unpublished draft, which is the field approval
+ * is blocked on. What may be edited follows from the meme, so it is read from
+ * the meme, inside the transaction that writes it.
+ */
 export const editMeme = (input: {
   readonly memeId: string;
-  readonly imageId: string;
   readonly caption: string | null;
   readonly alt: string;
   readonly visible: boolean;
 }) =>
   db.transaction(async (tx) => {
-    await tx.update(images).set({ alt: input.alt }).where(eq(images.id, input.imageId));
+    const [meme] = await tx
+      .select({ imageId: memes.imageId })
+      .from(memes)
+      .where(eq(memes.id, input.memeId));
+
+    if (meme === undefined) return;
+
+    await tx.update(images).set({ alt: input.alt }).where(eq(images.id, meme.imageId));
     await tx
       .update(memes)
       .set({ caption: input.caption, visible: input.visible })

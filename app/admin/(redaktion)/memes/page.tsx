@@ -4,6 +4,7 @@ import { toggleMemeVisibilityAction } from "@/app/admin/(redaktion)/memes/action
 import { MemeUploadForm } from "@/app/admin/(redaktion)/memes/upload-form";
 import { requireMember } from "@/lib/authorize";
 import { countMemes, isMemeFilter, listMemes, MEME_FILTERS } from "@/lib/editorial/memes";
+import { may } from "@/lib/roles";
 
 export const metadata = { title: "Memes · Vox Audax Redaktion" };
 
@@ -14,11 +15,16 @@ export default async function MemesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireMember();
+  const member = await requireMember();
   const parameters = await searchParams;
   const filter = isMemeFilter(parameters.filter) ? parameters.filter : "alle";
 
   const [memes, counts] = await Promise.all([listMemes(filter), countMemes()]);
+
+  // The switch is drawn for the people whose switch it is. The action asks the
+  // same question again before it writes, so this hides a control rather than
+  // holding a permission.
+  const mayDecide = may(member.role, "approveArticlesAndMemes");
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_330px]">
@@ -65,14 +71,16 @@ export default async function MemesPage({
                       <span className={`h-[7px] w-[7px] rounded-full ${online ? "bg-ac" : "bg-bd"}`} />
                       {meme.status === "review" ? "Wartet auf Freigabe" : online ? "Online" : "Ausgeblendet"}
                     </span>
-                    <form action={toggleMemeVisibilityAction} className="ml-auto">
-                      <input type="hidden" name="memeId" value={meme.id} />
-                      <ToggleSwitch
-                        name="visible"
-                        checked={meme.visible}
-                        label={`Sichtbarkeit von Meme vom ${DAY.format(meme.createdAt)}`}
-                      />
-                    </form>
+                    {mayDecide ? (
+                      <form action={toggleMemeVisibilityAction} className="ml-auto">
+                        <input type="hidden" name="memeId" value={meme.id} />
+                        <ToggleSwitch
+                          name="visible"
+                          checked={meme.visible}
+                          label={`Sichtbarkeit von Meme vom ${DAY.format(meme.createdAt)}`}
+                        />
+                      </form>
+                    ) : null}
                   </figcaption>
                   {meme.caption === null ? null : (
                     <p className="mt-1 text-xs font-medium text-tm">{meme.caption}</p>
