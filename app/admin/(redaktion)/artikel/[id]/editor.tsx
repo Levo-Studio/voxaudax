@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { ArticleBody } from "@/components/article-body";
 import { ArticleCover } from "@/components/article-cover";
@@ -92,13 +92,26 @@ export function Editor({
   const [uploadProblem, setUploadProblem] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  const document_: TipTapDocument = useMemo(
-    () =>
+  /**
+   * Deriving the document from the blocks needs a DOM: `htmlToInline` walks
+   * what `contentEditable` left in the element. React runs a `useMemo` during
+   * the server render as well, where there is no `document` — which took every
+   * load of this screen down with a `ReferenceError` before the page had a
+   * chance to hydrate.
+   *
+   * So the stored body is the first answer, verbatim, and the derivation runs
+   * in an effect: the server pass reads the row, and the browser takes over
+   * from there.
+   */
+  const [document_, setDocument] = useState<TipTapDocument>(article.body);
+
+  useEffect(() => {
+    setDocument(
       markdown === null
         ? blocksToDocument(blocks, htmlToInline)
         : markdownToDocument(markdown),
-    [blocks, markdown],
-  );
+    );
+  }, [blocks, markdown]);
 
   const wordCount = countWords(document_);
   const dirty = useRef(false);
