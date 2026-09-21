@@ -14,6 +14,7 @@ import { approvalMailScope, CAPABILITIES, may, roleLabel } from "@/lib/roles";
  */
 
 const ADMIN = join(process.cwd(), "app", "admin");
+const API = join(process.cwd(), "app", "api");
 
 const GATE = /requireMember|requireCapability/;
 
@@ -161,5 +162,42 @@ describe("the role matrix answers screen 11c row for row", () => {
     assert.equal(roleLabel("autor", "neutral"), "Redaktionsmitglied");
     assert.equal(roleLabel("redakteur", "weiblich"), "Redakteurin");
     assert.equal(roleLabel("redakteur", "neutral"), "Redaktion");
+  });
+});
+
+/**
+ * Accounts exist because an admin invited somebody. The library's own HTTP
+ * router was mounted once as a catch-all and the two sign-up paths were refused
+ * by comparing the raw pathname against a set — which the router then
+ * re-normalised past, folding case on its literal segments and percent-decoding
+ * each one, so `/api/auth/SIGN-UP` and `/api/auth/sign-%75p` both reached
+ * `signUp.withPassword`.
+ *
+ * Nothing in the back office needs that surface: every flow calls a server
+ * method. So the fix is that it is not mounted, and this reads that back — a
+ * list of exceptions is only as good as the normalisation it is compared under,
+ * and there is no normalisation to get wrong when there is no route.
+ */
+describe("the library's own HTTP surface is not mounted", () => {
+  it("has no route under app/api that hands a request to @velve/auth's router", async () => {
+    const files = await walk(API);
+    const mounting: string[] = [];
+
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      if (/@velve\/auth\/http|toWebHandler|toNodeHandler/.test(source)) {
+        mounting.push(relative(API, file));
+      }
+    }
+
+    assert.deepEqual(mounting, []);
+  });
+
+  it("has no route segment named for the catch-all at all", async () => {
+    const files = await walk(API);
+    assert.deepEqual(
+      files.map((file) => relative(API, file)).filter((name) => name.includes("velve")),
+      [],
+    );
   });
 });

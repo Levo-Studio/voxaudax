@@ -6,10 +6,10 @@ import { environment } from "@/lib/env";
 
 /**
  * The name and the attributes @velve/auth writes itself when its own HTTP
- * handler answers. The back office calls the server methods instead — they
- * return the token rather than setting a cookie — so the cookie is written
- * here, under the same name, and the mounted handler and this module cannot
- * disagree about which cookie is the session.
+ * handler answers. That handler is not mounted: the back office calls the
+ * server methods, which return the token rather than setting a cookie, so this
+ * module is the only thing that writes a session cookie. The name is still the
+ * library's own, so a token this file wrote is a token the library reads.
  */
 const SESSION_COOKIE = "__Host-velve_session";
 
