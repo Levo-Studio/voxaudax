@@ -79,29 +79,62 @@ export const changePasswordAction = async (
   return { problem: null, done: true };
 };
 
-export const revokeSessionAction = async (form: FormData) => {
-  await requireMember({ allowForcedPasswordChange: true });
-  const sessionToken = await readSessionToken();
-  if (sessionToken === undefined) return;
+export type RevokeState = { readonly problem: string | null };
 
-  await velveAuth().session.revoke({
-    targetSessionId: String(form.get("sessionId") ?? ""),
-    sessionToken,
-    ...(await callFields("mutation")),
-  });
+/**
+ * Ending a session needs a **fresh** one, the same fifteen-minute window
+ * `password.change` is held to. Both of these let the refusal out as an
+ * exception, so "Beenden" and "Überall abmelden" threw an unhandled error for
+ * anybody who had been signed in for longer than that — which is almost
+ * everybody who goes looking at their devices.
+ */
+const revokeRefusal = (cause: unknown): RevokeState => {
+  if ((cause as { code?: unknown }).code === "freshness_required") {
+    return {
+      problem:
+        "Diese Sitzung ist zu alt, um Geräte abzumelden. Melde dich neu an und versuch es direkt danach.",
+    };
+  }
 
-  revalidatePath("/admin/konto");
+  return { problem: "Das Gerät ließ sich gerade nicht abmelden." };
 };
 
-export const revokeOtherSessionsAction = async () => {
+export const revokeSessionAction = async (
+  _state: RevokeState,
+  form: FormData,
+): Promise<RevokeState> => {
   await requireMember({ allowForcedPasswordChange: true });
   const sessionToken = await readSessionToken();
-  if (sessionToken === undefined) return;
+  if (sessionToken === undefined) return { problem: "Die Sitzung ist abgelaufen." };
 
-  await velveAuth().session.revokeAllOther({
-    sessionToken,
-    ...(await callFields("mutation")),
-  });
+  try {
+    await velveAuth().session.revoke({
+      targetSessionId: String(form.get("sessionId") ?? ""),
+      sessionToken,
+      ...(await callFields("mutation")),
+    });
+  } catch (cause) {
+    return revokeRefusal(cause);
+  }
 
   revalidatePath("/admin/konto");
+  return { problem: null };
+};
+
+export const revokeOtherSessionsAction = async (): Promise<RevokeState> => {
+  await requireMember({ allowForcedPasswordChange: true });
+  const sessionToken = await readSessionToken();
+  if (sessionToken === undefined) return { problem: "Die Sitzung ist abgelaufen." };
+
+  try {
+    await velveAuth().session.revokeAllOther({
+      sessionToken,
+      ...(await callFields("mutation")),
+    });
+  } catch (cause) {
+    return revokeRefusal(cause);
+  }
+
+  revalidatePath("/admin/konto");
+  return { problem: null };
 };

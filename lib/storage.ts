@@ -65,10 +65,36 @@ export const storeObject = async (input: {
   return key;
 };
 
-export const readObject = async (key: string) => {
-  const object = await client().send(
-    new GetObjectCommand({ Bucket: environment().S3_BUCKET, Key: key }),
+/**
+ * A key the bucket does not hold is an answer and not a failure: the S3 client
+ * raises `NoSuchKey`, and letting it out turned a missing object into a 500
+ * about the storage host — while the caller's own `object === null` branch,
+ * which answers 404, could never be reached.
+ */
+const objectIsMissing = (cause: unknown) => {
+  const error = cause as {
+    readonly name?: unknown;
+    readonly $metadata?: { readonly httpStatusCode?: number };
+  };
+
+  return (
+    error.name === "NoSuchKey" ||
+    error.name === "NotFound" ||
+    error.$metadata?.httpStatusCode === 404
   );
+};
+
+export const readObject = async (key: string) => {
+  let object;
+
+  try {
+    object = await client().send(
+      new GetObjectCommand({ Bucket: environment().S3_BUCKET, Key: key }),
+    );
+  } catch (cause) {
+    if (objectIsMissing(cause)) return null;
+    throw cause;
+  }
 
   const body = object.Body;
   if (body === undefined) return null;

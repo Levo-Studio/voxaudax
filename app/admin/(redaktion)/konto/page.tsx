@@ -1,10 +1,10 @@
-import { Avatar, FIELD_CLASS, LABEL_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS, PRIMARY_BUTTON_CLASS, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
-import {
-  revokeOtherSessionsAction,
-  revokeSessionAction,
-  saveProfileAction,
-} from "@/app/admin/(redaktion)/konto/actions";
+import { Avatar, FIELD_CLASS, LABEL_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
+import { saveProfileAction } from "@/app/admin/(redaktion)/konto/actions";
 import { ChangePasswordForm } from "@/app/admin/(redaktion)/konto/change-password-form";
+import {
+  EndOtherSessionsButton,
+  EndSessionButton,
+} from "@/app/admin/(redaktion)/konto/session-forms";
 import { velveAuth } from "@/lib/auth";
 import { requireMember } from "@/lib/authorize";
 import { roleLabel } from "@/lib/roles";
@@ -105,12 +105,7 @@ export default async function AccountPage() {
                   ) : (
                     <>
                       <span className="text-tm">{WHEN.format(session.lastUsedAt)}</span>
-                      <form action={revokeSessionAction}>
-                        <input type="hidden" name="sessionId" value={session.id} />
-                        <button type="submit" className="cursor-pointer border-none bg-transparent p-1 font-control text-xs font-bold text-ac2">
-                          Beenden
-                        </button>
-                      </form>
+                      <EndSessionButton sessionId={session.id} />
                     </>
                   )}
                 </span>
@@ -118,9 +113,7 @@ export default async function AccountPage() {
             ))
           )}
 
-          <form action={revokeOtherSessionsAction} className="px-5 py-3.5">
-            <button type="submit" className={`${QUIET_BUTTON_CLASS} py-2.5`}>Überall abmelden</button>
-          </form>
+          <EndOtherSessionsButton />
         </div>
       </div>
     </div>

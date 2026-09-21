@@ -70,12 +70,27 @@ export const callFields = async (kind: "render" | "mutation") => {
   };
 };
 
+/**
+ * A disabled account is not an error this application has anything to say
+ * about: the library refuses to resolve the session, and the answer the back
+ * office wants is that there is nobody signed in — `requireMember` then sends
+ * the browser to the login. Uncaught, it turned every page into a 500 the
+ * moment an account was switched off.
+ *
+ * Only that one code is swallowed. Anything else is a real failure and stays
+ * one, because a login screen is a bad way to report a broken database.
+ */
 export const resolveSession = async () => {
   const sessionToken = await readSessionToken();
   if (sessionToken === undefined) return null;
 
-  return velveAuth().session.resolve({
-    sessionToken,
-    ...(await callFields("render")),
-  });
+  try {
+    return await velveAuth().session.resolve({
+      sessionToken,
+      ...(await callFields("render")),
+    });
+  } catch (cause) {
+    if ((cause as { code?: unknown }).code === "account_disabled") return null;
+    throw cause;
+  }
 };
