@@ -1,44 +1,41 @@
-import { eq } from "drizzle-orm";
-
 import { currentMember } from "@/lib/authorize";
-import { db } from "@/lib/db/client";
-import { images, memes } from "@/lib/db/schema";
+import { imageAccess, mayReadImage } from "@/lib/editorial/images";
 import { readObject } from "@/lib/storage";
 
 /**
- * The bucket is private and the storage host never reaches a browser, so the
- * bytes are read here and served from this origin.
+ * Transport only: what may be read is decided in `lib/editorial/images`, so a
+ * second reader of these bytes cannot decide it differently.
  *
- * An image that belongs to a published meme is public; everything else needs a
- * member, because a cover uploaded to a draft is part of that draft.
+ * Every refusal is the same 404, whether the image is unknown or merely out of
+ * reach — a 403 about an image would still be an answer about it.
  */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const missing = () => new Response(null, { status: 404 });
+
 export const GET = async (
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) => {
   const { id } = await params;
 
-  const [image] = await db
-    .select({ key: images.key, mime: images.mime, memeStatus: memes.status, memeVisible: memes.visible })
-    .from(images)
-    .leftJoin(memes, eq(memes.imageId, images.id))
-    .where(eq(images.id, id));
+  // The column is a uuid, so anything else names no image — and asking the
+  // database about it is an error rather than an empty answer.
+  if (!UUID.test(id)) return missing();
 
-  if (image === undefined) return new Response(null, { status: 404 });
+  const access = await imageAccess(id);
+  if (access === null) return missing();
 
-  const publiclyVisible = image.memeStatus === "published" && image.memeVisible === true;
+  const member = access.publiclyVisible ? null : await currentMember();
+  if (!(await mayReadImage(access, member))) return missing();
 
-  if (!publiclyVisible && (await currentMember()) === null) {
-    return new Response(null, { status: 404 });
-  }
-
-  const object = await readObject(image.key);
-  if (object === null) return new Response(null, { status: 404 });
+  const object = await readObject(access.key);
+  if (object === null) return missing();
 
   return new Response(new Uint8Array(object.bytes), {
     headers: {
-      "Content-Type": image.mime,
-      "Cache-Control": publiclyVisible
+      "Content-Type": access.mime,
+      "Cache-Control": access.publiclyVisible
         ? "public, max-age=31536000, immutable"
         : "private, no-store",
     },

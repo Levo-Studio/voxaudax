@@ -136,6 +136,21 @@ export const articleForEditor = async (member: Member, articleId: string) => {
   return row ?? null;
 };
 
+/**
+ * The same expression, asked about one row. The image route asks it about the
+ * article a cover belongs to, so a cover can never be reachable where its
+ * article is not — and there is still only one place that says what an author
+ * may reach.
+ */
+export const mayReachArticle = async (member: Member, articleId: string) => {
+  const [row] = await db
+    .select({ id: articles.id })
+    .from(articles)
+    .where(and(eq(articles.id, articleId), reachableBy(member)));
+
+  return row !== undefined;
+};
+
 export const coverImageOf = async (cover: ArticleCover) => {
   if (cover.imageId === undefined) return null;
 
