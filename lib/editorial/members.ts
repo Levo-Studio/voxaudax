@@ -11,13 +11,21 @@ import type { Form, Role } from "@/lib/roles";
  * and are read and never written here; `auth.session.list` answers for the
  * caller's own account only, which is the right shape for screen 8c and the
  * wrong one for a list of everybody.
+ *
+ * Typed as the text it is. Drizzle decodes a column it knows from the schema,
+ * but a raw expression it hands back exactly as the driver produced it — and
+ * the driver is told to leave `timestamptz` as the string Postgres sent. A
+ * `sql<Date>` here would have been an assertion and not a conversion, and the
+ * page calling `getTime()` on it threw the moment any member had ever signed
+ * in. `listMembers` converts instead, which is also the only place that knows
+ * the row may have no session at all.
  */
-const lastSeen = sql<Date | null>`(
+const lastSeen = sql<string | null>`(
   select max(s.last_used_at) from velve.session s where s.user_id = ${users.velveUserId}
 )`;
 
-export const listMembers = () =>
-  db
+export const listMembers = async () => {
+  const rows = await db
     .select({
       id: users.id,
       email: users.email,
@@ -32,6 +40,12 @@ export const listMembers = () =>
     })
     .from(users)
     .orderBy(asc(users.name));
+
+  return rows.map((row) => ({
+    ...row,
+    lastSeenAt: row.lastSeenAt === null ? null : new Date(row.lastSeenAt),
+  }));
+};
 
 export type MemberRow = Awaited<ReturnType<typeof listMembers>>[number];
 
