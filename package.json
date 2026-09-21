@@ -11,7 +11,8 @@
     "rustfs:key": "node scripts/rustfs-access-key.mts",
     "check:env": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-env-example.mts",
     "check:connections": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/check-connections.mts",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/migrate.mts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1137.0",

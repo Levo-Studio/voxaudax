@@ -16,8 +16,10 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
-import type { ArticleCover, TipTapDocument } from "@/lib/content";
-import { COVER_COLORS } from "@/lib/cover";
+import type { ArticleCover, TipTapDocument } from "../content.ts";
+// Relative and extensioned so the seed and migration scripts, which run on
+// node without a bundler, resolve the same module the application does.
+import { COVER_COLORS } from "../cover.ts";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType: () => "bytea",
