@@ -9,7 +9,7 @@ export const COVER_COLORS = [
   { id: "azur", name: "Azur", value: "#0f6fd4", text: "#ffffff" },
   { id: "petrol", name: "Petrol", value: "#0d7f74", text: "#ffffff" },
   { id: "tanne", name: "Tanne", value: "#177a3c", text: "#ffffff" },
-  { id: "oliv", name: "Oliv", value: "#6b8f12", text: "#ffffff" },
+  { id: "oliv", name: "Oliv", value: "#6b8f12", text: "#16180a" },
   { id: "signalgelb", name: "Signalgelb", value: "#d8f24a", text: "#16180a" },
   { id: "bernstein", name: "Bernstein", value: "#f0a81c", text: "#1d1403" },
   { id: "rost", name: "Rost", value: "#c8410c", text: "#ffffff" },
@@ -38,8 +38,8 @@ const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 
 /**
- * FNV-1a leaves its lowest bits barely mixed, and fourteen is even — without
- * this avalanche a dozen real headlines land on two or three colours.
+ * Keeps the modulo off FNV-1a's lowest bits, which it mixes least and which a
+ * divisor of fourteen leans on hardest.
  */
 const avalanche = (hash: number) => {
   let mixed = hash;

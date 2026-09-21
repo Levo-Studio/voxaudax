@@ -46,9 +46,9 @@ export function ThemeSwitcher() {
           type="button"
           onClick={() => choose(option)}
           aria-pressed={choice === option}
-          className={`cursor-pointer rounded-[5px] px-2.5 py-1 font-control text-[11.5px] font-semibold transition-colors ${
+          className={`min-h-11 cursor-pointer rounded-[5px] px-2.5 py-1 md:min-h-0 font-control text-[11.5px] font-semibold transition-colors ${
             choice === option
-              ? "bg-ac text-white"
+              ? "bg-ac text-s1"
               : "text-tm hover:text-tx"
           }`}
         >

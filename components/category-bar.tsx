@@ -29,7 +29,7 @@ export function CategoryBar({ active }: { active?: CategorySlug }) {
           aria-current={category.slug === active ? "page" : undefined}
           className={`inline-flex min-h-11 items-center rounded-full px-[11px] whitespace-nowrap md:min-h-0 md:px-3 md:py-1.5 ${
             category.slug === active
-              ? "bg-ac text-white"
+              ? "bg-ac text-s1"
               : "border border-bd text-tx"
           }`}
         >

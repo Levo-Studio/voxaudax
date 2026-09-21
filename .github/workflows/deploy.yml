@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Cover colours must meet WCAG AA
+        run: pnpm check:contrast
+
   build-and-push:
     needs: check
     if: github.ref == 'refs/heads/main'
