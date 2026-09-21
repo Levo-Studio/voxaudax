@@ -14,7 +14,8 @@
     "check:connections": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/check-connections.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/migrate.mts",
-    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/seed.mts"
+    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/seed.mts",
+    "test": "node --test --experimental-strip-types --conditions=react-server --import ./test/register-alias.mjs --env-file=.env \"test/**/*.test.mts\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1137.0",
