@@ -4,11 +4,22 @@ const CHECK_TIMEOUT_MS = 2_000;
 
 export type CheckStatus = "ok" | "degraded" | "error";
 
+/**
+ * The extra fields a check may report, enumerated rather than left open. An
+ * observation is serialized straight into the response, so an open shape would
+ * let a future check attach a host, an endpoint or a raw driver message and
+ * ship it to the network without the compiler objecting.
+ */
+type CheckFacts = {
+  /** Migrations written but not applied. */
+  pending?: number;
+};
+
 /** What a check reports about itself, before timing is added. */
 export type CheckObservation = {
   status: CheckStatus;
   error?: string;
-} & Record<string, unknown>;
+} & CheckFacts;
 
 export type CheckResult = CheckObservation & { latencyMs: number };
 
@@ -62,29 +73,38 @@ const classifyFailure = (cause: unknown): string => {
   }
 };
 
-const timeoutAfterTwoSeconds = () =>
-  new Promise<never>((_, reject) => {
-    setTimeout(
-      () => reject(new CheckTimeout()),
-      CHECK_TIMEOUT_MS,
-    ).unref?.();
-  });
+/** A non-critical dependency may degrade the service, never fail it. */
+const withinCriticality = (
+  check: DependencyCheck,
+  status: CheckStatus,
+): CheckStatus =>
+  status === "error" && !check.critical ? "degraded" : status;
 
 const runOneCheck = async (check: DependencyCheck): Promise<CheckResult> => {
   const startedAt = performance.now();
+  const elapsed = () => Math.round(performance.now() - startedAt);
+
+  let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    deadlineTimer = setTimeout(() => reject(new CheckTimeout()), CHECK_TIMEOUT_MS);
+    deadlineTimer.unref?.();
+  });
 
   try {
-    const outcome = await Promise.race([
-      check.inspect(),
-      timeoutAfterTwoSeconds(),
-    ]);
-    return { ...outcome, latencyMs: Math.round(performance.now() - startedAt) };
+    const outcome = await Promise.race([check.inspect(), deadline]);
+    return {
+      ...outcome,
+      status: withinCriticality(check, outcome.status),
+      latencyMs: elapsed(),
+    };
   } catch (cause) {
     return {
-      status: check.critical ? "error" : "degraded",
-      latencyMs: Math.round(performance.now() - startedAt),
+      status: withinCriticality(check, "error"),
+      latencyMs: elapsed(),
       error: classifyFailure(cause),
     };
+  } finally {
+    clearTimeout(deadlineTimer);
   }
 };
 
