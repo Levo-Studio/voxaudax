@@ -1,16 +1,100 @@
 @import "tailwindcss";
 
 /**
- * The template sets one stack on the page — Bricolage Grotesque with Inter
- * Tight behind it — and reaches for Inter Tight explicitly on controls and
- * JetBrains Mono on slugs and code.
+ * The palette is the template's, name for name. Light is the default and lives
+ * on bare :root; dark is stated twice — once for the system preference, once
+ * for an explicit choice — so that the switcher can override the system in
+ * either direction rather than only towards dark.
  */
-@theme {
+:root {
+  --s1: #fbfaff;
+  --s2: #efedfa;
+  --tx: #100c1f;
+  --tm: #5f5a78;
+  --bd: #dcd8ef;
+  --ac: #4b34e6;
+  --ac2: #c8410c;
+  --cov: #4b34e6;
+  --covtx: #ffffff;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --s1: #0e0c16;
+    --s2: #171326;
+    --tx: #f3f1fb;
+    --tm: #a09ab8;
+    --bd: #2a2440;
+    --ac: #a99bff;
+    --ac2: #ff8c5e;
+    --cov: #3a28c4;
+    --covtx: #ffffff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --s1: #0e0c16;
+  --s2: #171326;
+  --tx: #f3f1fb;
+  --tm: #a09ab8;
+  --bd: #2a2440;
+  --ac: #a99bff;
+  --ac2: #ff8c5e;
+  --cov: #3a28c4;
+  --covtx: #ffffff;
+  color-scheme: dark;
+}
+
+/**
+ * `inline` keeps these as var() references in the generated utilities instead
+ * of resolving them at build time, which is what lets one stylesheet serve both
+ * themes and the switch take effect without a reload.
+ */
+@theme inline {
   --font-sans: var(--font-bricolage), var(--font-inter-tight), system-ui, sans-serif;
   --font-control: var(--font-inter-tight), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --color-s1: var(--s1);
+  --color-s2: var(--s2);
+  --color-tx: var(--tx);
+  --color-tm: var(--tm);
+  --color-bd: var(--bd);
+  --color-ac: var(--ac);
+  --color-ac2: var(--ac2);
+  --color-cov: var(--cov);
+  --color-covtx: var(--covtx);
 }
 
 body {
+  background: var(--s1);
+  color: var(--tx);
   font-family: var(--font-sans);
+  text-wrap: pretty;
+  transition:
+    background 200ms ease-out,
+    color 200ms ease-out;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
