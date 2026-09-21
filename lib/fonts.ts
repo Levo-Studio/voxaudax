@@ -12,7 +12,7 @@ import localFont from "next/font/local";
 export const displayFont = localFont({
   src: "../assets/fonts/bricolage-grotesque.woff2",
   variable: "--font-bricolage",
-  weight: "200 800",
+  weight: "400 800",
   display: "swap",
   fallback: ["system-ui", "sans-serif"],
 });
@@ -20,7 +20,7 @@ export const displayFont = localFont({
 export const controlFont = localFont({
   src: "../assets/fonts/inter-tight.woff2",
   variable: "--font-inter-tight",
-  weight: "100 900",
+  weight: "400 800",
   display: "swap",
   fallback: ["system-ui", "sans-serif"],
 });
@@ -28,7 +28,7 @@ export const controlFont = localFont({
 export const codeFont = localFont({
   src: "../assets/fonts/jetbrains-mono.woff2",
   variable: "--font-jetbrains",
-  weight: "100 800",
+  weight: "400 700",
   display: "swap",
   // Only slugs and code reach for it, and neither exists on a public page yet.
   preload: false,
