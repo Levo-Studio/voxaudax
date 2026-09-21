@@ -55,6 +55,15 @@ const inline = (nodes: readonly TipTapNode[] | undefined): ReactNode =>
     </Fragment>
   ));
 
+/**
+ * One node's text with its marks, for a page that sets the type itself — the
+ * editorial page styles its introduction and its closing note differently from
+ * both an article and a legal register.
+ */
+export const Inline = ({ node }: { node: TipTapNode }) => (
+  <>{inline(node.content)}</>
+);
+
 const listItems = (node: TipTapNode) =>
   (node.content ?? []).map((item, index) => (
     <li key={index} className="mt-1.5">
