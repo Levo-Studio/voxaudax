@@ -29,8 +29,11 @@ const environmentSchema = z.object({
 
   AUTH_SECRET: z
     .string()
-    .min(32, "must be at least 32 bytes; @velve/auth refuses to start below that"),
-  HEALTH_TOKEN: z.string().min(16),
+    .refine(
+      (value) => Buffer.byteLength(value, "utf8") >= 32,
+      "must be at least 32 bytes; @velve/auth refuses to start below that",
+    ),
+  HEALTH_TOKEN: z.string().min(32),
 
   NEXT_PUBLIC_SITE_URL: z.url(),
 });
