@@ -147,3 +147,37 @@ es beheben; welches Zeichen darin steht, entwirft die Vorlage nicht.
   und bleibt hier nur als Notiz stehen.
 - `server-response-time`: 2,1 ms für das Dokument. Die Seiten sind
   vorgerendert, die Datenbank steht beim Ausliefern nicht im Weg.
+
+## Ergebnis
+
+Mobil, Lighthouses eigene Drosselung (Slow 4G, CPU ×4):
+
+| Seite | Perf | A11y | Best Practices | SEO | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|
+| `/` | **97** | **95** | **100** | **100** | 2.6 s | 0 ms | 0 |
+| `/artikel/<slug>` | **97** | **96** | **100** | **100** | 2.6 s | 0 ms | 0 |
+| `/archiv` | **96** | **100** | **100** | **100** | 2.7 s | 0 ms | 0 |
+
+**Alle vier Kategorien liegen auf allen drei Seiten über 95.**
+
+### Was die Zahlen dorthin gebracht hat
+
+Der erste Lauf stand bei 94 / 93 / 96 auf der Startseite. Drei Ursachen, alle
+benannt und behoben statt weggeregelt:
+
+- **Perf 92–94 → 96–97.** Der größte Textblock wartete auf 263 KB Schriften.
+  Die Vorlage benutzt Bricolages Breiten-Achse **nie** und setzt kein Gewicht
+  unter 400; beides mitzuschleppen kostete ein Drittel. Jetzt 198 KB, LCP von
+  3,2 s auf 2,6 s. Die Typografie ist unverändert.
+- **A11y 93 → 95.** Die Startseite sprang von `h1` auf `h3`. Die Ebene steckte
+  in der Karten-Komponente, gehört aber zur Seite, die sie platziert.
+- **Best Practices 96 → 100.** `/favicon.ico` antwortete 404, weil es keins
+  gab. Das Symbol ist aus der Wortmarke abgeleitet.
+
+### Was bleibt
+
+`link-in-text-block`: die Autorenzeile auf der Startseite und der
+Kategorie-Verweis im Artikelkopf haben Textfarbe und keine Unterstreichung —
+**so zeichnet die Vorlage sie**. Sie unterscheidbar zu machen wäre eine
+sichtbare Gestaltungsänderung und steht deshalb in `EXTRAPOLATION.md` zur
+Entscheidung, statt still gemacht zu werden.
