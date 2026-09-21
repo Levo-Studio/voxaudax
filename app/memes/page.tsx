@@ -17,11 +17,26 @@ export const metadata: Metadata = {
 /** 10a fills four columns; a page of 48 fills them twelve rows deep. */
 const PAGE_SIZE = 48;
 
+/**
+ * The gallery writes its own cursor into the "Ältere Memes" link, but the
+ * address bar takes whatever is typed into it. `Date` accepts year 0, year
+ * 99999 and negative years, and Postgres then refuses the literal outright —
+ * "time zone displacement out of range" — which answers a hand-typed address
+ * with a 500. A cursor is therefore held inside the window the paper can
+ * plausibly have published in.
+ */
+const EARLIEST_CURSOR = Date.UTC(2000, 0, 1);
+const CURSOR_HEADROOM_MS = 86_400_000;
+
 const before = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
   if (raw === undefined) return undefined;
-  const moment = new Date(raw);
-  return Number.isNaN(moment.getTime()) ? undefined : moment;
+
+  const moment = new Date(raw).getTime();
+  if (Number.isNaN(moment)) return undefined;
+
+  const latest = Date.now() + CURSOR_HEADROOM_MS;
+  return new Date(Math.min(Math.max(moment, EARLIEST_CURSOR), latest));
 };
 
 export default async function MemesPage({
