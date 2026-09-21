@@ -244,15 +244,23 @@ Stunden verschöbe.
 
 → `tzdata` im Runtime-Stage, `TZ=Europe/Berlin`. Geprüft: der Container meldet CEST.
 
-### `Reply-To` auf den Systemmails
+### „noreply" gilt dem Anzeigenamen, nicht der Adresse
 
-Die Aufgabenstellung verbietet „noreply" als Absendernamen. Resend verlangt eine
-verifizierte Absenderdomain, die üblicherweise eine eigene Subdomain ist und kein
-Postfach hat.
+Die Aufgabenstellung verbietet „kein `noreply` als **Absendername**". Das ist der
+Anzeigename, nicht das Postfach. Eine verifizierte Versand-Subdomain hat
+üblicherweise gar kein Postfach, ihre Adresse darf also `noreply@` lauten.
 
-→ Absender auf der Versand-Subdomain, `Reply-To` auf `redaktion@voxaudax.de` —
-die Adresse, die die Vorlage auf sechs Screens nennt. Damit erreicht eine Antwort
-einen Menschen, ohne dass für die Versand-Subdomain ein Postfach nötig wird.
+Die Prüfung war zunächst zu streng und wies jede Adresse ab, die „noreply"
+enthält. Jetzt prüft sie den Anzeigenamen: `noreply@mail.voxaudax.de` ist
+zulässig, `noreply <noreply@…>` und `No-Reply <post@…>` nicht.
+
+→ Dazu setzt der Versand `Reply-To` auf `redaktion@voxaudax.de` — die Adresse,
+die die Vorlage auf sechs Screens nennt. Damit erreicht eine Antwort einen
+Menschen, ohne dass für die Versand-Subdomain ein Postfach nötig wird.
+
+Empfehlenswert, aber nicht erzwungen: den Anzeigenamen mitgeben, also
+`MAIL_FROM=Vox Audax Redaktion <noreply@mail.voxaudax.de>`. Sonst zeigt der
+Posteingang die nackte Adresse.
 
 ---
 

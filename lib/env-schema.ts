@@ -1,7 +1,21 @@
 import { z } from "zod";
 
-const senderMustNotBeUnattended = (address: string) =>
-  !/no-?reply/i.test(address);
+/**
+ * "kein noreply als Absendername" is about the display name, not the mailbox.
+ * A verified sending subdomain usually has no inbox at all, so the address may
+ * well be noreply@ — what must not happen is a mail that presents itself as
+ * unattended. The name has to read as a person or a desk, and lib/mail sets
+ * Reply-To to MAIL_TO_EDITORIAL so an answer reaches one.
+ */
+const displayNameOf = (sender: string) => {
+  const angled = /^\s*(.*?)\s*<[^>]+>\s*$/.exec(sender);
+  return angled === null ? "" : angled[1].replace(/^"|"$/g, "");
+};
+
+const senderMustNotBeUnattended = (sender: string) => {
+  const name = displayNameOf(sender);
+  return name === "" ? true : !/no-?reply|do-?not-?reply/i.test(name);
+};
 
 const isCanonicalBase64Url = (value: string) =>
   /^[A-Za-z0-9_-]+={0,2}$/.test(value) &&
@@ -33,7 +47,7 @@ export const environmentSchema = z.object({
     .min(1)
     .refine(
       senderMustNotBeUnattended,
-      "must not be a noreply address — replies go to a person",
+      'the display name must not read as unattended; write it as "Vox Audax Redaktion <noreply@mail.voxaudax.de>"',
     ),
   MAIL_TO_EDITORIAL: z.email(),
 
