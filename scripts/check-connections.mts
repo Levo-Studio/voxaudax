@@ -1,4 +1,10 @@
-import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadBucketCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { Client } from "pg";
 
 import { environmentSchema } from "../lib/env-schema.ts";
@@ -89,6 +95,65 @@ const checkObjectStorage = async (
 };
 
 /**
+ * Reaching the bucket proves nothing about being allowed to write to it, and
+ * the whole upload path depends on that. Opt-in, because it puts an object in
+ * someone's bucket; it removes it again and fails loudly if it cannot.
+ */
+const checkObjectRoundTrip = async (
+  endpoint: string,
+  bucket: string,
+  region: string,
+  forcePathStyle: boolean,
+  accessKeyId: string,
+  secretAccessKey: string,
+): Promise<Outcome> => {
+  const s3 = new S3Client({
+    endpoint,
+    region,
+    forcePathStyle,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  const key = `.probe/${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const written = "voxaudax connection probe";
+  const done: string[] = [];
+
+  try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: written,
+        ContentType: "text/plain",
+      }),
+    );
+    done.push("put");
+
+    const read = await s3.send(
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+    );
+    const body = await read.Body?.transformToString();
+    if (body !== written) throw new Error("what came back is not what went in");
+    done.push("get");
+
+    await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    done.push("delete");
+
+    return { name: "storage write", ok: true, detail: done.join(", ") };
+  } catch (cause) {
+    await s3
+      .send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
+      .catch(() => undefined);
+    return {
+      name: "storage write",
+      ok: false,
+      detail: `${describe(cause)} after ${done.join(", ") || "nothing"}`,
+    };
+  } finally {
+    s3.destroy();
+  }
+};
+
+/**
  * Each dependency is checked from the raw variables it needs, not from a fully
  * validated environment: an unusable mail key must not stop the database from
  * being reachable, or this reports nothing on the day it is most needed.
@@ -126,6 +191,19 @@ const main = async () => {
         env.S3_SECRET_ACCESS_KEY,
       ),
     );
+    if (process.argv.includes("--write")) {
+      outcomes.push(
+        await checkObjectRoundTrip(
+          env.S3_ENDPOINT,
+          env.S3_BUCKET,
+          env.S3_REGION,
+          env.S3_FORCE_PATH_STYLE,
+          env.S3_ACCESS_KEY_ID,
+          env.S3_SECRET_ACCESS_KEY,
+        ),
+      );
+    }
+
     outcomes.push({
       name: "mail",
       ok: env.RESEND_API_KEY.length > 0,
