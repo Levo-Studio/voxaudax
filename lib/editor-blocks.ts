@@ -1,4 +1,5 @@
 import type { TipTapDocument, TipTapMark, TipTapNode } from "@/lib/content";
+import { acceptHref } from "@/lib/tiptap";
 
 /**
  * The editor edits blocks; the database stores TipTap JSON. This module is the
@@ -63,8 +64,12 @@ const MARK_BY_TAG: Record<string, TipTapMark["type"]> = {
  * reaches the row, because the row is built from this walk and never from the
  * element's `innerHTML`.
  *
- * Runs in the browser only: the server re-parses whatever arrives with
- * `parseDocument`, which is the boundary that actually decides what is stored.
+ * It is also what a paste is put through before it is inserted. The block's
+ * `html` is handed to `dangerouslySetInnerHTML`, so anything that reaches it
+ * runs in the author's own signed-in session — which the server re-parsing the
+ * document on save does nothing about.
+ *
+ * Runs in the browser only, because it needs a DOM to walk.
  */
 export const htmlToInline = (html: string): TipTapNode[] => {
   const holder = document.createElement("div");
@@ -90,8 +95,12 @@ export const htmlToInline = (html: string): TipTapNode[] => {
       }
 
       if (tag === "A") {
-        const href = (child as HTMLAnchorElement).getAttribute("href") ?? "";
-        walk(child, [...marks, { type: "link", attrs: { href } }]);
+        // The same rule the server applies when it parses the document back:
+        // a `javascript:` href does not become a link here either, so what the
+        // editor shows and what the row would hold cannot disagree while the
+        // author is still looking at it.
+        const href = acceptHref((child as HTMLAnchorElement).getAttribute("href"));
+        walk(child, href === null ? marks : [...marks, { type: "link", attrs: { href } }]);
         continue;
       }
 

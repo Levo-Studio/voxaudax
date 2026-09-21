@@ -31,7 +31,7 @@ const asRecord = (value: unknown) =>
     : null;
 
 /** Only http(s) and same-site paths survive; `javascript:` never becomes a link. */
-const acceptHref = (value: unknown) => {
+export const acceptHref = (value: unknown) => {
   if (typeof value !== "string") return null;
   if (value.startsWith("/")) return value;
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, type KeyboardEvent } from "react";
+import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
 
 import {
   emptyBlock,
   htmlToInline,
+  inlineToHtml,
   type Block,
   type BlockKind,
 } from "@/lib/editor-blocks";
@@ -72,6 +73,28 @@ export function BlockEditor({
     const href = window.prompt("Wohin soll der Link führen?", "https://");
     if (href === null || href.trim().length === 0) return;
     document.execCommand("createLink", false, href.trim());
+  };
+
+  /**
+   * The clipboard is not a trusted source of markup. A block's `html` is handed
+   * to `dangerouslySetInnerHTML`, so a copied `<img onerror=…>` would run in
+   * the author's own signed-in session — and the server re-parsing the document
+   * on save is no help, because the script has already run by then.
+   *
+   * So the paste is put through the same walk everything else in this editor
+   * goes through: what survives is text, bold, italic and a link the server
+   * would accept.
+   */
+  const onPaste = (event: ClipboardEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    const html = event.clipboardData.getData("text/html");
+    if (html.length === 0) {
+      document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+      return;
+    }
+
+    document.execCommand("insertHTML", false, inlineToHtml(htmlToInline(html)));
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>, index: number) => {
@@ -171,6 +194,7 @@ export function BlockEditor({
                 focused.current = index;
               }}
               onKeyDown={(event) => onKeyDown(event, index)}
+              onPaste={onPaste}
               onInput={(event) => {
                 // The block's `html` is read back rather than re-rendered: the
                 // element owns its own markup while the caret is inside it, and
