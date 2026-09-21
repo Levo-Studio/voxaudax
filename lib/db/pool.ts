@@ -16,6 +16,13 @@ export const pool = () =>
   (processScope.voxAudaxPool ??= (() => {
     const created = new Pool({
       connectionString: environment().DATABASE_URL,
+      // `extract(year from …)` and every other date expression reads a
+      // timestamptz in the session's zone, and a Postgres server left at its
+      // default hands out Etc/UTC. An article published at 00:30 Berlin on the
+      // first of January then files under the old year while the page prints
+      // the new one. The connection is put in the zone the process itself runs
+      // in, so SQL and the formatters answer to the same calendar.
+      options: `-c timezone=${environment().TZ}`,
       // Without these a database that accepts no connection, or accepts one and
       // never answers, leaves every request waiting for as long as it takes —
       // during an outage the page hangs instead of failing, and a build with no

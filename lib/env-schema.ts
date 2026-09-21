@@ -3,6 +3,15 @@ import { z } from "zod";
 const senderMustNotBeUnattended = (address: string) =>
   !/no-?reply/i.test(address);
 
+const namesAKnownTimeZone = (zone: string) => {
+  try {
+    new Intl.DateTimeFormat("de-DE", { timeZone: zone });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const environmentSchema = z.object({
   DATABASE_URL: z.url(),
 
@@ -43,7 +52,12 @@ export const environmentSchema = z.object({
   /**
    * Articles are scheduled to the minute ("18.09.2026, 07:00") and read by
    * people in one place, so the server must not decide what that means from
-   * whatever the container's clock happens to be set to.
+   * whatever the container's clock happens to be set to. It also becomes the
+   * zone of every database session, so a name the zone database does not know
+   * would take the connections down with it rather than quietly falling back.
    */
-  TZ: z.string().min(1),
+  TZ: z
+    .string()
+    .min(1)
+    .refine(namesAKnownTimeZone, "must name a time zone, such as Europe/Berlin"),
 });
