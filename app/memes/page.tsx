@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { environment } from "@/lib/env";
 import { formatNumber, machineDate, relativeDays, shortDate } from "@/lib/format";
-import { memeGallery, publishedMemeCount } from "@/lib/queries";
+import { memeGallery, publishedMemeSummary } from "@/lib/queries";
 import { imageHref } from "@/lib/routes";
 
 export const revalidate = 300;
@@ -36,13 +36,12 @@ export default async function MemesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const parameters = await searchParams;
-  const [{ memes, hasOlder }, total] = await Promise.all([
+  const [{ memes, hasOlder }, { total, newest }] = await Promise.all([
     memeGallery(PAGE_SIZE, after(parameters.vor)),
-    publishedMemeCount(),
+    publishedMemeSummary(),
   ]);
 
   const editorialEmail = environment().MAIL_TO_EDITORIAL;
-  const newest = memes[0];
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -61,9 +60,7 @@ export default async function MemesPage({
           </div>
           <span className="text-[12.5px] font-semibold text-tm">
             {formatNumber(total)} {total === 1 ? "Beitrag" : "Beiträge"}
-            {newest === undefined
-              ? null
-              : ` · zuletzt ${relativeDays(newest.createdAt)}`}
+            {newest === null ? null : ` · zuletzt ${relativeDays(newest)}`}
           </span>
         </div>
 

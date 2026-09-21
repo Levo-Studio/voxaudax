@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, lte, max, sql } from "drizzle-orm";
 
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
@@ -404,13 +404,24 @@ export const memeGallery = async (limit: number, after?: string) => {
   return { memes: rows.slice(0, limit), hasOlder: rows.length > limit };
 };
 
-export const publishedMemeCount = async () => {
+/**
+ * What the line beside the heading states: how many there are altogether and
+ * when the last one arrived. Both are about the gallery and not about the page
+ * being read, so neither may be taken from the rows on screen — on page two the
+ * newest row is merely the newest of that page.
+ */
+export const publishedMemeSummary = async () => {
   const [row] = await db
-    .select({ total: sql<number>`count(*)::int` })
+    .select({
+      total: sql<number>`count(*)::int`,
+      // drizzle's own max, not a raw aggregate: a raw one comes back as the
+      // string Postgres wrote, because there is no column for it to decode by.
+      newest: max(memes.createdAt),
+    })
     .from(memes)
     .where(and(eq(memes.status, "published"), eq(memes.visible, true)));
 
-  return row.total;
+  return row;
 };
 
 export const imageRecord = async (id: string) => {
