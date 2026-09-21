@@ -24,6 +24,8 @@ describe("Markdown and TipTap are two spellings of one document", () => {
     "- ab Oktober in der Hausordnung",
     "- Durchsetzung bei den Aufsichten",
     "",
+    "![Die Tagesordnung an der Wand](/api/bilder/2f0f3f6e-6f64-4d1a-9a6f-0f2f5c8d4f11)",
+    "",
     "[Protokoll der Sitzung](/artikel/smv-protokoll-juni)",
     "",
     "---",
@@ -39,6 +41,7 @@ describe("Markdown and TipTap are two spellings of one document", () => {
       "paragraph",
       "blockquote",
       "bulletList",
+      "image",
       "paragraph",
       "horizontalRule",
     ]);
@@ -49,6 +52,49 @@ describe("Markdown and TipTap are two spellings of one document", () => {
     const twice = markdownToDocument(documentToMarkdown(once));
 
     assert.deepEqual(twice, once);
+  });
+
+  it("reads an image back as an image and not as an exclamation mark and a link", () => {
+    const [node] = markdownToDocument(
+      "![Die Tafel nach der Stunde](/api/bilder/7c1d)",
+    ).content;
+
+    assert.equal(node?.type, "image");
+    assert.equal(node?.attrs?.src, "/api/bilder/7c1d");
+    assert.equal(node?.attrs?.alt, "Die Tafel nach der Stunde");
+  });
+
+  it("carries an image through the whole round trip, which is what autosave writes", () => {
+    const document = {
+      type: "doc" as const,
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "Davor." }] },
+        {
+          type: "image",
+          attrs: { src: "/api/bilder/7c1d", alt: "Die Tafel nach der Stunde" },
+        },
+        { type: "paragraph", content: [{ type: "text", text: "Danach." }] },
+      ],
+    };
+
+    assert.deepEqual(markdownToDocument(documentToMarkdown(document)), document);
+  });
+
+  it("keeps a quote's second paragraph a second paragraph", () => {
+    const quote = {
+      type: "doc" as const,
+      content: [
+        {
+          type: "blockquote",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Erster Absatz." }] },
+            { type: "paragraph", content: [{ type: "text", text: "Zweiter Absatz." }] },
+          ],
+        },
+      ],
+    };
+
+    assert.deepEqual(markdownToDocument(documentToMarkdown(quote)), quote);
   });
 
   it("keeps the marks rather than the characters that wrote them", () => {

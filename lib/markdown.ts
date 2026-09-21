@@ -13,7 +13,16 @@ import { EMPTY_DOCUMENT } from "@/lib/tiptap";
  * rich text mode could not show back.
  */
 
-const INLINE = /(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]*\]\([^)\s]*\))/;
+/**
+ * The link alternative refuses one that a `!` introduces: `![alt](src)` is an
+ * image, and reading it as a link would leave the `!` behind as text and the
+ * address as a link — which is exactly what the round trip used to do to every
+ * image in a body.
+ */
+const INLINE = /(\*\*[^*]+\*\*|\*[^*]+\*|(?<!!)\[[^\]]*\]\([^)\s]*\))/;
+
+/** A line that is nothing but an image is the image block the editor draws. */
+const IMAGE_LINE = /^!\[([^\]]*)\]\(([^)\s]*)\)\s*$/;
 
 const inlineNodes = (text: string): TipTapNode[] => {
   const nodes: TipTapNode[] = [];
@@ -82,6 +91,13 @@ export const markdownToDocument = (markdown: string): TipTapDocument => {
       continue;
     }
 
+    const image = IMAGE_LINE.exec(line);
+    if (image !== null) {
+      content.push({ type: "image", attrs: { src: image[2]!, alt: image[1]! } });
+      index += 1;
+      continue;
+    }
+
     const heading = /^(#{2,3})\s+(.*)$/.exec(line);
     if (heading !== null) {
       content.push({
@@ -94,10 +110,27 @@ export const markdownToDocument = (markdown: string): TipTapDocument => {
     }
 
     if (line.startsWith(">")) {
+      // A bare `>` separates one quoted paragraph from the next, the way a
+      // blank line separates two paragraphs outside a quote. Joining every
+      // quoted line into a single paragraph collapsed the quote on the way
+      // back in and lost the break for good on the next save.
       const quoted = collect((candidate) => candidate.startsWith(">"));
+      const quotedParagraphs: string[][] = [];
+      let gathering: string[] = [];
+
+      for (const entry of quoted.map((candidate) => candidate.replace(/^>\s?/, ""))) {
+        if (entry.trim().length === 0) {
+          if (gathering.length > 0) quotedParagraphs.push(gathering);
+          gathering = [];
+          continue;
+        }
+        gathering.push(entry);
+      }
+      if (gathering.length > 0) quotedParagraphs.push(gathering);
+
       content.push({
         type: "blockquote",
-        content: [paragraph(quoted.map((entry) => entry.replace(/^>\s?/, "")))],
+        content: (quotedParagraphs.length === 0 ? [[""]] : quotedParagraphs).map(paragraph),
       });
       continue;
     }
@@ -135,7 +168,8 @@ export const markdownToDocument = (markdown: string): TipTapDocument => {
         !bullet.test(candidate) &&
         !ordered.test(candidate) &&
         !/^#{2,3}\s/.test(candidate) &&
-        !/^-{3,}\s*$/.test(candidate),
+        !/^-{3,}\s*$/.test(candidate) &&
+        !IMAGE_LINE.test(candidate),
     );
     content.push(paragraph(block));
   }
@@ -164,7 +198,7 @@ const blockMarkdown = (node: TipTapNode): string => {
   if (node.type === "blockquote") {
     return (node.content ?? [])
       .map((inner) => `> ${inlineMarkdown(inner.content)}`)
-      .join("\n");
+      .join("\n>\n");
   }
   if (node.type === "bulletList" || node.type === "orderedList") {
     return (node.content ?? [])
