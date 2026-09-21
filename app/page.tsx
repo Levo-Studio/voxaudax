@@ -136,8 +136,18 @@ export default async function HomePage() {
               href={archiveHref()}
               className="mt-1.5 inline-flex min-h-11 items-center text-[13px] font-bold text-ac md:mt-[22px] md:min-h-0"
             >
-              Alle {formatNumber(total)} Artikel
-              <span className="hidden md:inline"> im Archiv</span> →
+              {/*
+                The whole label is one child, because the anchor is a flex
+                container — `inline-flex` is what gives the 44px touch target —
+                and a flex container throws away the whitespace between its
+                items. With the inner span as an item of its own it read
+                "Alle 12 Artikelim Archiv→"; inside this span it is ordinary
+                inline text again, spaces and all.
+              */}
+              <span>
+                Alle {formatNumber(total)} Artikel
+                <span className="hidden md:inline"> im Archiv</span> →
+              </span>
             </a>
           </section>
         )}
