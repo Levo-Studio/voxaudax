@@ -3,6 +3,13 @@ import { z } from "zod";
 const senderMustNotBeUnattended = (address: string) =>
   !/no-?reply/i.test(address);
 
+const isCanonicalBase64Url = (value: string) =>
+  /^[A-Za-z0-9_-]+={0,2}$/.test(value) &&
+  (value.includes("=") ? value.length % 4 === 0 : true);
+
+const decodedByteLength = (value: string) =>
+  Buffer.from(value, "base64url").byteLength;
+
 export const environmentSchema = z.object({
   DATABASE_URL: z.url(),
 
@@ -30,11 +37,22 @@ export const environmentSchema = z.object({
     ),
   MAIL_TO_EDITORIAL: z.email(),
 
+  /**
+   * @velve/auth reads this as canonical base64url and needs 32 decoded bytes.
+   * Measuring the string instead would pass a 32-character value carrying 24
+   * bytes of entropy, and `openssl rand -base64 32` — which produces "+", "/"
+   * and padding — is rejected outright as root_key_malformed rather than being
+   * decoded. Both mistakes are caught here rather than at first sign-in.
+   */
   AUTH_SECRET: z
     .string()
+    .refine(isCanonicalBase64Url, {
+      message:
+        'must be canonical base64url. Generate it with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64url\'))"',
+    })
     .refine(
-      (value) => Buffer.byteLength(value, "utf8") >= 32,
-      "must be at least 32 bytes; @velve/auth refuses to start below that",
+      (value) => decodedByteLength(value) >= 32,
+      "must decode to at least 32 bytes; @velve/auth refuses to start below that",
     ),
   HEALTH_TOKEN: z.string().min(32),
 
