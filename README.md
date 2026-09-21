@@ -92,6 +92,7 @@ nothing else; the values below say what each one expects.
 | `pnpm start` | Serve the production build |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint |
+| `pnpm mail:preview` | Renders every transactional mail to `out/mail` as HTML and text, and fails if one loses its preheader, its plaintext part or its margin against the Gmail clipping limit |
 
 ## Health
 
