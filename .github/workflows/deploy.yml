@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: The env example must match the schema
+        run: pnpm check:env
+
   build-and-push:
     needs: check
     if: github.ref == 'refs/heads/main'
