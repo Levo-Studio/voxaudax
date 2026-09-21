@@ -9,6 +9,7 @@ import { articles, images, users } from "@/lib/db/schema";
 import { pool } from "@/lib/db/pool";
 import {
   approveArticle,
+  type ArticlePatch,
   articleForEditor,
   countArticlesByStatus,
   listArticles,
@@ -228,6 +229,88 @@ describe("the two rules the review screen states", () => {
     const published = await articleForEditor(editor, draftId);
     assert.equal(published?.status, "published");
     assert.notEqual(published?.publishedAt, null);
+  });
+});
+
+describe("an approved article is not editable by the author who submitted it", () => {
+  let author: Member;
+  let articleId: string;
+
+  const patch = (title: string): Omit<ArticlePatch, "categoryId"> => ({
+    title,
+    teaser: "Nach der Freigabe ersetzt.",
+    body: { type: "doc", content: [] },
+    cover: { word: "X", line: "", colorId: "violett" },
+    publishAt: null,
+  });
+
+  before(async () => {
+    author = await memberFor("emil.radtke@voxaudax.de");
+
+    const [category] = await db
+      .execute<{ id: string }>("select id from categories order by position limit 1")
+      .then((result) => result.rows);
+
+    const [created] = await db
+      .insert(articles)
+      .values({
+        slug: `test-freigegeben-${crypto.randomUUID()}`,
+        title: "Harmlos eingereicht",
+        teaser: "So stand es da, als es gelesen wurde.",
+        body: { type: "doc", content: [{ type: "paragraph", content: [] }] },
+        cover: { word: "TEST", line: "", colorId: "violett" },
+        categoryId: category!.id,
+        authorId: author.id,
+        status: "draft",
+      })
+      .returning({ id: articles.id });
+
+    articleId = created!.id;
+  });
+
+  after(async () => {
+    await db.delete(articles).where(eq(articles.id, articleId));
+  });
+
+  const categoryOf = async () => (await articleForEditor(author, articleId))!.categoryId;
+
+  it("saves while the article is still a draft", async () => {
+    const saved = await saveArticle(author, articleId, {
+      ...patch("Noch ein Entwurf"),
+      categoryId: await categoryOf(),
+    });
+
+    assert.notEqual(saved, null);
+    assert.equal((await articleForEditor(author, articleId))?.title, "Noch ein Entwurf");
+  });
+
+  it("refuses the write once the article waits for a review", async () => {
+    const categoryId = await categoryOf();
+    await db.update(articles).set({ status: "review" }).where(eq(articles.id, articleId));
+
+    const saved = await saveArticle(author, articleId, {
+      ...patch("Zwischen Lesen und Freigeben getauscht"),
+      categoryId,
+    });
+
+    assert.equal(saved, null);
+    assert.equal((await articleForEditor(author, articleId))?.title, "Noch ein Entwurf");
+  });
+
+  it("refuses the write once the article is published", async () => {
+    const categoryId = await categoryOf();
+    await db
+      .update(articles)
+      .set({ status: "published", publishedAt: new Date() })
+      .where(eq(articles.id, articleId));
+
+    const saved = await saveArticle(author, articleId, {
+      ...patch("Nach der Freigabe uebernommen"),
+      categoryId,
+    });
+
+    assert.equal(saved, null);
+    assert.equal((await articleForEditor(author, articleId))?.title, "Noch ein Entwurf");
   });
 });
 

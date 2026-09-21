@@ -227,9 +227,17 @@ export type ArticlePatch = {
 };
 
 /**
- * Autosave. The slug is not among the fields: it follows the title only while
- * the article has never been published, and it is written by `rename` so that
- * the old one is recorded in the same transaction.
+ * Autosave, and a draft is the only thing it writes. Once an article is
+ * submitted, the row is what a reviewer is reading and about to approve; once
+ * it is published, the row is what the public site is serving. Either way a
+ * save would replace text that somebody else already answered for, so the way
+ * back into an approved article is `returnToDraft` and not a write.
+ *
+ * The status is asked here rather than in the action because an action is a
+ * caller, and the next caller would have to remember.
+ *
+ * The slug is not among the fields: it is written by `renameSlug`, which
+ * records the old one in the same transaction.
  */
 export const saveArticle = async (
   member: Member,
@@ -237,7 +245,7 @@ export const saveArticle = async (
   patch: ArticlePatch,
 ) => {
   const existing = await articleForEditor(member, articleId);
-  if (existing === null) return null;
+  if (existing === null || existing.status !== "draft") return null;
 
   const updatedAt = new Date();
 
