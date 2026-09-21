@@ -53,8 +53,16 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
   },
 };
 
-const GRID_OVERLAY =
-  "linear-gradient(to right, rgba(255,255,255,.14) 0 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.14) 0 1px, transparent 1px)";
+/**
+ * The template writes the grid as white at 14%, which was right while every
+ * cover sat on the one dark violet. The palette made the panel variable, so the
+ * lines follow the ink instead: on Signalgelb and Bernstein a white grid is
+ * 1.03:1 against the panel and simply is not there.
+ */
+const gridOverlay = (ink: string) => {
+  const line = `color-mix(in srgb, ${ink} 14%, transparent)`;
+  return `linear-gradient(to right, ${line} 0 1px, transparent 1px), linear-gradient(to bottom, ${line} 0 1px, transparent 1px)`;
+};
 
 type ArticleCoverProps = {
   /** Feeds the hash that picks the colour when the editor left it alone. */
@@ -88,7 +96,7 @@ export function ArticleCover({
           aria-hidden
           className="absolute inset-0"
           style={{
-            backgroundImage: GRID_OVERLAY,
+            backgroundImage: gridOverlay(color.text),
             backgroundSize: "var(--cover-grid) 100%, 100% var(--cover-grid)",
           }}
         />
