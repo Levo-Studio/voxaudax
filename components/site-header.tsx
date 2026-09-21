@@ -1,4 +1,4 @@
-import { CategoryBar, type CategorySlug } from "@/components/category-bar";
+import { CategoryBar } from "@/components/category-bar";
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", href: "/" },
@@ -19,7 +19,7 @@ type SiteHeaderProps = {
   current?: NavKey;
   showCategoryBar?: boolean;
   showSearch?: boolean;
-  activeCategory?: CategorySlug;
+  activeCategory?: string;
 };
 
 export function SiteHeader({
