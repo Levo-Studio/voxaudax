@@ -19,24 +19,15 @@ const PAGE_SIZE = 48;
 
 /**
  * The gallery writes its own cursor into the "Ältere Memes" link, but the
- * address bar takes whatever is typed into it. `Date` accepts year 0, year
- * 99999 and negative years, and Postgres then refuses the literal outright —
- * "time zone displacement out of range" — which answers a hand-typed address
- * with a 500. A cursor is therefore held inside the window the paper can
- * plausibly have published in.
+ * address bar takes whatever is typed into it. The cursor names a meme, so
+ * anything that is not the shape of an id opens the gallery at the top — there
+ * is no value here that the database can be asked to read and refuse.
  */
-const EARLIEST_CURSOR = Date.UTC(2000, 0, 1);
-const CURSOR_HEADROOM_MS = 86_400_000;
+const MEME_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const before = (value: string | string[] | undefined) => {
+const after = (value: string | string[] | undefined) => {
   const raw = Array.isArray(value) ? value[0] : value;
-  if (raw === undefined) return undefined;
-
-  const moment = new Date(raw).getTime();
-  if (Number.isNaN(moment)) return undefined;
-
-  const latest = Date.now() + CURSOR_HEADROOM_MS;
-  return new Date(Math.min(Math.max(moment, EARLIEST_CURSOR), latest));
+  return raw !== undefined && MEME_ID.test(raw) ? raw : undefined;
 };
 
 export default async function MemesPage({
@@ -46,7 +37,7 @@ export default async function MemesPage({
 }) {
   const parameters = await searchParams;
   const [{ memes, hasOlder }, total] = await Promise.all([
-    memeGallery(PAGE_SIZE, before(parameters.vor)),
+    memeGallery(PAGE_SIZE, after(parameters.vor)),
     publishedMemeCount(),
   ]);
 
@@ -114,7 +105,7 @@ export default async function MemesPage({
         <div className="mt-4 flex flex-wrap items-center gap-4">
           {hasOlder && memes.length > 0 ? (
             <a
-              href={`/memes?vor=${memes[memes.length - 1].createdAt.toISOString()}`}
+              href={`/memes?vor=${memes[memes.length - 1].id}`}
               className="inline-flex min-h-11 items-center rounded-[10px] border border-bd px-[18px] font-control text-[13.5px] font-bold md:min-h-0 md:py-[11px]"
             >
               Ältere Memes

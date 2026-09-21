@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, lt, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, lte, sql } from "drizzle-orm";
 
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
@@ -323,7 +323,31 @@ export type GalleryMeme = {
   alt: string | null;
 };
 
-export const memeGallery = async (limit: number, before?: Date) => {
+/**
+ * The cursor names the last meme of the previous page rather than the instant
+ * that meme was created, because the instant identifies nothing: `defaultNow()`
+ * is the statement timestamp, so everything uploaded in one batch carries the
+ * same one and a cursor that knew only the instant dropped every row sharing
+ * it. A timestamp that has been through a URL and a JavaScript Date has also
+ * lost its microseconds and no longer names the row it was read from. The id
+ * carries both facts exactly, and a cursor naming a meme that has since been
+ * taken down opens the gallery at the top instead of at nothing.
+ */
+export const memeGallery = async (limit: number, after?: string) => {
+  const olderThanCursor =
+    after === undefined
+      ? undefined
+      : sql`(
+          not exists (
+            select 1 from ${memes} as cursor_meme where cursor_meme.id = ${after}::uuid
+          )
+          or (${memes.createdAt}, ${memes.id}) < (
+            select cursor_meme.created_at, cursor_meme.id
+              from ${memes} as cursor_meme
+             where cursor_meme.id = ${after}::uuid
+          )
+        )`;
+
   const rows: GalleryMeme[] = await db
     .select({
       id: memes.id,
@@ -340,10 +364,12 @@ export const memeGallery = async (limit: number, before?: Date) => {
       and(
         eq(memes.status, "published"),
         eq(memes.visible, true),
-        before === undefined ? undefined : lt(memes.createdAt, before),
+        olderThanCursor,
       ),
     )
-    .orderBy(desc(memes.createdAt))
+    // The sort has to be total, or the page the cursor cuts is not the page the
+    // reader was looking at.
+    .orderBy(desc(memes.createdAt), desc(memes.id))
     .limit(limit + 1);
 
   return { memes: rows.slice(0, limit), hasOlder: rows.length > limit };
