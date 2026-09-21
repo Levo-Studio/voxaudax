@@ -38,6 +38,17 @@ export const formatNumber = (value: number) => NUMBER.format(value);
 export const readingMinutes = (wordCount: number) =>
   Math.max(1, Math.round(wordCount / 200));
 
+const RELATIVE = new Intl.RelativeTimeFormat("de-DE", { numeric: "auto" });
+
+const DAY_IN_MS = 86_400_000;
+
+/** "heute", "gestern", "vor 5 Tagen" — what a gallery says about its last entry. */
+export const relativeDays = (moment: Date, now: Date = new Date()) =>
+  RELATIVE.format(
+    -Math.floor((now.getTime() - moment.getTime()) / DAY_IN_MS),
+    "day",
+  );
+
 const TRANSLITERATIONS: Readonly<Record<string, string>> = {
   ä: "ae",
   ö: "oe",
