@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, desc, eq, lte, max, sql } from "drizzle-orm";
+import { cache } from "react";
 
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
@@ -107,7 +108,21 @@ export const homepageArticles = async (): Promise<ArticleTeaser[]> =>
 export const everyPublishedArticle = async (): Promise<ArticleTeaser[]> =>
   dated(await teaserQuery().where(live()).orderBy(desc(articles.publishedAt)));
 
-export const articleBySlug = async (
+/** What a feed reader is given, rather than the whole archive cut down to it. */
+export const recentArticles = async (count: number): Promise<ArticleTeaser[]> =>
+  dated(
+    await teaserQuery()
+      .where(live())
+      .orderBy(desc(articles.publishedAt))
+      .limit(count),
+  );
+
+/**
+ * Cached for the request: an article is read once for its metadata, once for
+ * the page and once more for the link preview image, and the three are the
+ * same three rows.
+ */
+export const articleBySlug = cache(async (
   slug: string,
 ): Promise<FullArticle | undefined> => {
   const [article] = dated(
@@ -131,7 +146,7 @@ export const articleBySlug = async (
   return article === undefined
     ? undefined
     : { ...article, authorSlug: toSlug(article.authorName) };
-};
+});
 
 /**
  * Screen 13a shows two from the article's own category and one from outside.
@@ -192,11 +207,13 @@ export const currentSlugForRetiredSlug = async (retired: string) => {
   return row?.slug;
 };
 
-export const articleCategories = () =>
+/** The chip row and the archive's filter menu ask for this on the same page. */
+export const articleCategories = cache(() =>
   db
     .select({ slug: categories.slug, name: categories.name })
     .from(categories)
-    .orderBy(asc(categories.position));
+    .orderBy(asc(categories.position)),
+);
 
 export const publishedYears = async () => {
   const rows = await db
@@ -227,13 +244,20 @@ export const publishedAuthors = async (): Promise<ArchiveAuthor[]> => {
 
 /**
  * The author is addressed by the slug of their name rather than by an id, so a
- * filtered archive can be read, spoken and pasted. Resolving it needs the whole
- * editorial team in memory, which is eight rows.
+ * filtered archive can be read, spoken and pasted. The slug is made in
+ * JavaScript, so resolving it means comparing names here rather than in SQL —
+ * but only the names of people who have published, which is what the filter
+ * offers and a good deal less than the user table.
  */
-const authorIdForSlug = async (slug: string) => {
-  const rows = await db.select({ id: users.id, name: users.name }).from(users);
+const authorIdForSlug = cache(async (slug: string) => {
+  const rows = await db
+    .selectDistinct({ id: users.id, name: users.name })
+    .from(articles)
+    .innerJoin(users, eq(users.id, articles.authorId))
+    .where(live());
+
   return rows.find((row) => toSlug(row.name) === slug)?.id;
-};
+});
 
 export type ArchiveFilters = {
   query?: string;
@@ -241,6 +265,8 @@ export type ArchiveFilters = {
   year?: number;
   authorSlug?: string;
 };
+
+const ARCHIVE_CEILING = 500;
 
 export const archiveResults = async (
   filters: ArchiveFilters,
@@ -279,7 +305,11 @@ export const archiveResults = async (
   return dated(
     await teaserQuery()
       .where(and(...conditions))
-      .orderBy(desc(articles.publishedAt)),
+      .orderBy(desc(articles.publishedAt))
+      // A ceiling rather than a page: the archive is one list by design, and a
+      // school paper will not reach this. It is here so that an unfiltered
+      // archive cannot become an unbounded read years from now.
+      .limit(ARCHIVE_CEILING),
   );
 };
 

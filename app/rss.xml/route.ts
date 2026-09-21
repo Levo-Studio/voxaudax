@@ -1,5 +1,5 @@
 import { environment } from "@/lib/env";
-import { everyPublishedArticle } from "@/lib/queries";
+import { recentArticles } from "@/lib/queries";
 import { articleHref } from "@/lib/routes";
 
 export const revalidate = 300;
@@ -20,7 +20,7 @@ const escape = (value: string) =>
  */
 const recentArticlesOrNoneAtBuildTime = async () => {
   try {
-    return await everyPublishedArticle();
+    return await recentArticles(FEED_LENGTH);
   } catch {
     return [];
   }
@@ -28,10 +28,7 @@ const recentArticlesOrNoneAtBuildTime = async () => {
 
 export const GET = async () => {
   const site = environment().NEXT_PUBLIC_SITE_URL;
-  const articles = (await recentArticlesOrNoneAtBuildTime()).slice(
-    0,
-    FEED_LENGTH,
-  );
+  const articles = await recentArticlesOrNoneAtBuildTime();
   const url = (path: string) => new URL(path, site).toString();
 
   const items = articles
