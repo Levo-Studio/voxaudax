@@ -112,6 +112,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
             eyebrow="Titelthema"
             word={article.cover.word}
             line={article.cover.line}
+            image={article.coverImage}
           />
 
           <div className="px-[18px] pt-5 md:px-10 md:pt-9">

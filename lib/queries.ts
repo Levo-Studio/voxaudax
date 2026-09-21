@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, desc, eq, lte, max, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { cache } from "react";
 
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
@@ -34,6 +35,19 @@ import { LIKE_ESCAPE, likeContains } from "@/lib/search";
 const live = () =>
   and(eq(articles.status, "published"), lte(articles.publishedAt, sql`now()`));
 
+/**
+ * The photograph that stands in for the generated cover when the editor chose
+ * one. It is only ever this shape: a picture with no description cannot be read
+ * out to anyone who is not looking at it, so a cover without alt text is not a
+ * cover and the article keeps the one the palette draws.
+ */
+export type CoverPhotograph = {
+  id: string;
+  width: number;
+  height: number;
+  alt: string;
+};
+
 export type ArticleTeaser = {
   slug: string;
   title: string;
@@ -45,6 +59,7 @@ export type ArticleTeaser = {
   categoryName: string;
   authorName: string;
   authorInitials: string;
+  coverImage: CoverPhotograph | null;
 };
 
 export type FullArticle = ArticleTeaser & {
@@ -57,6 +72,9 @@ export type FullArticle = ArticleTeaser & {
   authorForm: (typeof userForm.enumValues)[number];
 };
 
+/** The images row the article's cover names, if it names one. */
+const coverImage = alias(images, "cover_image");
+
 const teaserColumns = {
   slug: articles.slug,
   title: articles.title,
@@ -68,16 +86,45 @@ const teaserColumns = {
   categoryName: categories.name,
   authorName: users.name,
   authorInitials: users.initials,
+  coverImage: {
+    id: coverImage.id,
+    width: coverImage.width,
+    height: coverImage.height,
+    alt: coverImage.alt,
+  },
 };
 
+type JoinedCoverImage = {
+  id: string;
+  width: number;
+  height: number;
+  alt: string | null;
+} | null;
+
+/** No row at all when the cover names no image, and no cover when that image
+ *  carries no description. */
+const photograph = (joined: JoinedCoverImage): CoverPhotograph | null =>
+  joined === null || joined.alt === null ? null : { ...joined, alt: joined.alt };
+
 /**
- * The column is nullable, and a check constraint keeps it filled on every
- * published row — which SQL knows and the type system does not. Narrowing once
- * here beats an assertion at each of the dozen places that print a date.
+ * The publication date is nullable, and a check constraint keeps it filled on
+ * every published row — which SQL knows and the type system does not. Narrowing
+ * once here beats an assertion at each of the dozen places that print a date,
+ * and the cover photograph is folded to its one shape in the same pass.
  */
-const dated = <Row extends { publishedAt: Date | null }>(rows: readonly Row[]) =>
+const dated = <Row extends { publishedAt: Date | null; coverImage: JoinedCoverImage }>(
+  rows: readonly Row[],
+) =>
   rows.flatMap((row) =>
-    row.publishedAt === null ? [] : [{ ...row, publishedAt: row.publishedAt }],
+    row.publishedAt === null
+      ? []
+      : [
+          {
+            ...row,
+            publishedAt: row.publishedAt,
+            coverImage: photograph(row.coverImage),
+          },
+        ],
   );
 
 const teaserQuery = () =>
@@ -85,7 +132,11 @@ const teaserQuery = () =>
     .select(teaserColumns)
     .from(articles)
     .innerJoin(categories, eq(categories.id, articles.categoryId))
-    .innerJoin(users, eq(users.id, articles.authorId));
+    .innerJoin(users, eq(users.id, articles.authorId))
+    .leftJoin(
+      coverImage,
+      sql`${coverImage.id}::text = ${articles.cover}->>'imageId'`,
+    );
 
 export const publishedArticleCount = async () => {
   const [row] = await db
@@ -139,6 +190,10 @@ export const articleBySlug = cache(async (
       .from(articles)
       .innerJoin(categories, eq(categories.id, articles.categoryId))
       .innerJoin(users, eq(users.id, articles.authorId))
+      .leftJoin(
+        coverImage,
+        sql`${coverImage.id}::text = ${articles.cover}->>'imageId'`,
+      )
       .where(and(live(), eq(articles.slug, slug)))
       .limit(1),
   );
