@@ -272,6 +272,20 @@ Posteingang die nackte Adresse.
   Solange sie dort steht, startet die Anwendung nicht.
 - **`.design/`** liegt lokal und ist nicht versioniert. Ein Commit wandert
   unumkehrbar in die Historie eines öffentlichen Repositorys.
+- **Der Container-Build braucht eine erreichbare Datenbank.** Die öffentlichen
+  Seiten werden zur Bauzeit vorgerendert und lesen dabei Inhalte. In CI gibt es
+  keine Route zur Datenbank, und ein `DATABASE_URL` als Build-Argument würde
+  Zugangsdaten in eine Image-Schicht backen, was die Regeln verbieten.
+  Artikelroute, Sitemap und Feed geben inzwischen nach und rendern ohne
+  Inhalte; die übrigen Seiten nicht. Zwei Wege, und die Wahl ist eine
+  Infrastrukturentscheidung:
+  **(a)** der CI-Runner bekommt Netzzugang zur Datenbank — dann bleibt alles wie
+  spezifiziert, `SSG + ISR` mit echten Inhalten im Image; oder
+  **(b)** Inhaltsseiten hören auf, zur Bauzeit statisch zu sein, und entstehen
+  beim ersten Aufruf. Kostet einen unvollständigen ersten Aufruf nach jedem
+  Deploy, dafür baut das Image überall.
+  Lokal und bei einem Dokploy-Build im selben Netz baut es heute schon durch.
+
 - **Resend** ist ein US-Anbieter. Die globalen Regeln schließen Dienste aus, die
   Daten außerhalb der EU speichern; die Aufgabenstellung schreibt Resend
   ausdrücklich vor. Über das Kontaktformular laufen Namen und Nachrichten von
