@@ -21,6 +21,17 @@ const client = () =>
       accessKeyId: environment().S3_ACCESS_KEY_ID,
       secretAccessKey: environment().S3_SECRET_ACCESS_KEY,
     },
+    // The node handler waits indefinitely by default, and /bild/[id] hands the
+    // stream straight to the reader. A storage host that accepts the socket and
+    // then says nothing would otherwise hold the request open for as long as it
+    // cared to, one worker at a time. `throwOnRequestTimeout` is not optional
+    // here: without it the handler logs that the deadline passed and then goes
+    // on waiting anyway.
+    requestHandler: {
+      connectionTimeout: 2_000,
+      requestTimeout: 10_000,
+      throwOnRequestTimeout: true,
+    },
   }));
 
 /**

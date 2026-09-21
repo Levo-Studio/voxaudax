@@ -29,7 +29,11 @@ export const pool = () =>
       // route to the database is killed by the renderer's own 60s budget rather
       // than falling back to what it can render without content.
       connectionTimeoutMillis: 5_000,
+      // statement_timeout is the server's promise and needs a server that is
+      // still listening to keep it; query_timeout is this process's own, and is
+      // what ends a query whose connection has gone quiet at the TCP level.
       statement_timeout: 15_000,
+      query_timeout: 15_000,
     });
 
     // A pooled connection that dies between queries emits on the pool, and an

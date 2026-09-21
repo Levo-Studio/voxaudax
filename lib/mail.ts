@@ -54,6 +54,10 @@ export const sendEditorialMessage = async (
   try {
     const response = await fetch(RESEND_ENDPOINT, {
       method: "POST",
+      // Undici waits five minutes for headers. A mail host that hangs would
+      // hold the contact form open for all five, with the person in front of
+      // it watching a spinner rather than being offered the fallback below.
+      signal: AbortSignal.timeout(10_000),
       headers: {
         authorization: `Bearer ${credentials.RESEND_API_KEY}`,
         "content-type": "application/json",
