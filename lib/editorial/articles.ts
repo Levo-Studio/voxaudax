@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, ilike, isNotNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
@@ -251,7 +251,8 @@ export type ArticlePatch = {
  * The status is asked here rather than in the action because an action is a
  * caller, and the next caller would have to remember.
  *
- * The slug is not among the fields: it is written by `renameSlug`, which
+ * The slug is not among the fields. Nothing derives it from the title — it is
+ * drawn once when the draft is created and changed only by `renameSlug`, which
  * records the old one in the same transaction.
  */
 export const saveArticle = async (
@@ -283,8 +284,13 @@ export const saveArticle = async (
 
 /**
  * Screen 3b: "Bleibt nach Veröffentlichung stabil, alte Slugs leiten weiter."
- * The old slug is written to `slug_history` in the same transaction, so a URL
- * that was ever public never stops resolving.
+ *
+ * Both halves of that sentence are here. The first is the status: a published
+ * article's address does not change under the readers who have it, so this
+ * refuses one, the same way autosave does — the way back is `returnToDraft`.
+ * The second is what happens when an article that was once public is renamed
+ * after being returned: the old slug goes into `slug_history` in the same
+ * transaction, so a URL that was ever public never stops resolving.
  */
 export const renameSlug = async (
   member: Member,
@@ -292,7 +298,7 @@ export const renameSlug = async (
   wanted: string,
 ) => {
   const existing = await articleForEditor(member, articleId);
-  if (existing === null) return null;
+  if (existing === null || existing.status !== "draft") return null;
 
   const slug = freeSlug(slugify(wanted), await takenSlugs());
   if (slug === existing.slug) return existing.slug;
@@ -399,8 +405,7 @@ export const countPendingReview = async () => {
     .select({
       articles: sql<number>`count(*) filter (where ${articles.status} = 'review')`.mapWith(Number),
     })
-    .from(articles)
-    .where(isNotNull(articles.id));
+    .from(articles);
 
   return row?.articles ?? 0;
 };

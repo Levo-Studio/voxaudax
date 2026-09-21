@@ -83,8 +83,15 @@ export type OpenInvitation = {
 };
 
 /**
- * The stored digest is compared in constant time, so the time an answer takes
- * says nothing about how many leading bytes of a guess were right.
+ * The token itself is never stored and never compared: the row is found by the
+ * SHA-256 of it, so what a guess is measured against is a digest, and knowing
+ * how many bytes of a digest were right tells nobody anything about the token
+ * that produced it.
+ *
+ * The `timingSafeEqual` below is not what provides that — the SQL `eq` already
+ * matched the digest exactly, so this only re-checks a row the database has
+ * already said is equal. It is kept as a second reading of the same fact, not
+ * as a timing property.
  */
 export const openInvitation = async (token: string): Promise<OpenInvitation | null> => {
   const wanted = digest(token);

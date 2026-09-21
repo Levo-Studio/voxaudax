@@ -4,7 +4,7 @@ import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { describe, it } from "node:test";
 
-import { approvalMailScope, CAPABILITIES, may, roleLabel } from "@/lib/roles";
+import { approvalMailScope, CAPABILITIES, may, roleLabel, type Capability } from "@/lib/roles";
 
 /**
  * A rule enforced in one place is only enforced in one place while nothing has
@@ -112,6 +112,144 @@ describe("every route in the back office goes through the gate", () => {
     }
 
     assert.deepEqual(comparing, []);
+  });
+});
+
+/**
+ * A gate is not a capability. The first test in this file only asked whether a
+ * file mentioned `requireMember` or `requireCapability` at all, and
+ * `editMemeAction` passed it while letting any autor rewrite somebody else's
+ * published meme and overwrite the alt text of an unrelated article's cover.
+ *
+ * So the question is asked one action at a time, against the table below. An
+ * action that is added, renamed or re-gated fails here until the table says so
+ * out loud — which is the point: a permission is a decision somebody has to
+ * write down, not something a file happens to import.
+ */
+type Gate = Capability | "member" | "no session";
+
+const REQUIRED_GATE: Readonly<Record<string, Gate>> = {
+  // Reached before there is an account, or while signing out of one.
+  "sign-in.ts#signInAction": "no session",
+  "actions.ts#signOutAction": "no session",
+  "passwort-vergessen/actions.ts#requestResetAction": "no session",
+  "einladung/[token]/actions.ts#acceptInvitationAction": "no session",
+  "passwort/[token]/actions.ts#setNewPasswordAction": "no session",
+
+  // Your own account: reachable while a forced password change is pending,
+  // which is the one screen that stays open in that state.
+  "(redaktion)/konto/actions.ts#saveProfileAction": "member",
+  "(redaktion)/konto/actions.ts#changePasswordAction": "member",
+  "(redaktion)/konto/actions.ts#revokeSessionAction": "member",
+  "(redaktion)/konto/actions.ts#revokeOtherSessionsAction": "member",
+
+  // Screen 11c, row one: every role writes and submits its own articles.
+  "(redaktion)/artikel/actions.ts#newArticleAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#autosaveAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#renameSlugAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#submitAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#uploadCoverAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#setCoverAltAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#clearCoverImageAction": "writeOwnArticles",
+
+  // Uploading a meme is writing; deciding about one is approving.
+  "(redaktion)/memes/actions.ts#uploadMemeAction": "writeOwnArticles",
+  "(redaktion)/memes/actions.ts#toggleMemeVisibilityAction": "approveArticlesAndMemes",
+  "(redaktion)/memes/actions.ts#editMemeAction": "approveArticlesAndMemes",
+
+  // The review queue.
+  "(redaktion)/review/actions.ts#approveArticleAction": "approveArticlesAndMemes",
+  "(redaktion)/review/actions.ts#returnArticleAction": "approveArticlesAndMemes",
+  "(redaktion)/review/actions.ts#approveMemeAction": "approveArticlesAndMemes",
+  "(redaktion)/review/actions.ts#rejectMemeAction": "approveArticlesAndMemes",
+  "(redaktion)/review/actions.ts#approveSponsorAction": "approveSponsors",
+  "(redaktion)/review/actions.ts#rejectSponsorAction": "approveSponsors",
+
+  // Sponsors and their runtimes.
+  "(redaktion)/unterstuetzer/actions.ts#saveSponsorAction": "manageSponsors",
+  "(redaktion)/unterstuetzer/actions.ts#toggleSponsorAction": "manageSponsors",
+
+  // Admin only.
+  "(redaktion)/nutzer/actions.ts#inviteAction": "manageUsers",
+  "(redaktion)/nutzer/actions.ts#changeRoleAction": "manageUsers",
+  "(redaktion)/nutzer/[id]/passwort/actions.ts#setPasswordAction": "resetOthersPassword",
+};
+
+/**
+ * The gate an action asks for, read out of its own body: the first
+ * `requireCapability("…")`, the capability handed to the shared `decide(…)` in
+ * the review actions, or `requireMember(`. Anything else is "no session", which
+ * the table has to name explicitly.
+ */
+const gateOf = (body: string): Gate => {
+  const capability = /require[Cc]apability\(\s*"([a-zA-Z]+)"/.exec(body) ?? /decide\(\s*"([a-zA-Z]+)"/.exec(body);
+  if (capability !== null) return capability[1] as Gate;
+
+  return /requireMember\(/.test(body) ? "member" : "no session";
+};
+
+const actionsIn = (source: string): ReadonlyMap<string, string> => {
+  const found = new Map<string, string>();
+  const exports = [...source.matchAll(/export const ([A-Za-z0-9_]*Action)\b/g)];
+
+  for (const [index, match] of exports.entries()) {
+    const from = match.index;
+    const to = exports[index + 1]?.index ?? source.length;
+    found.set(match[1]!, source.slice(from, to));
+  }
+
+  return found;
+};
+
+describe("every server action asks for the capability the table names", () => {
+  const collected = async () => {
+    const files = await walk(ADMIN);
+    const gates = new Map<string, Gate>();
+
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      if (!source.startsWith('"use server"')) continue;
+
+      for (const [name, body] of actionsIn(source)) {
+        gates.set(`${relative(ADMIN, file)}#${name}`, gateOf(body));
+      }
+    }
+
+    return gates;
+  };
+
+  it("names every action that exists, and nothing that does not", async () => {
+    const found = [...(await collected()).keys()].sort();
+    assert.deepEqual(found, Object.keys(REQUIRED_GATE).sort());
+  });
+
+  it("gates each one exactly as the table says", async () => {
+    const wrong: string[] = [];
+
+    for (const [action, gate] of await collected()) {
+      const wanted = REQUIRED_GATE[action];
+      if (gate !== wanted) wrong.push(`${action}: asks ${gate}, table says ${wanted}`);
+    }
+
+    assert.deepEqual(wrong, []);
+  });
+
+  it("names a capability the matrix actually has", () => {
+    for (const gate of Object.values(REQUIRED_GATE)) {
+      if (gate === "member" || gate === "no session") continue;
+      assert.ok((CAPABILITIES as readonly string[]).includes(gate), gate);
+    }
+  });
+
+  it("keeps deciding about a meme at the same capability as deciding about an article", () => {
+    assert.equal(
+      REQUIRED_GATE["(redaktion)/memes/actions.ts#editMemeAction"],
+      REQUIRED_GATE["(redaktion)/review/actions.ts#approveArticleAction"],
+    );
+    assert.equal(
+      REQUIRED_GATE["(redaktion)/memes/actions.ts#toggleMemeVisibilityAction"],
+      REQUIRED_GATE["(redaktion)/review/actions.ts#approveMemeAction"],
+    );
   });
 });
 

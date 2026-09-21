@@ -69,7 +69,10 @@ const MARK_BY_TAG: Record<string, TipTapMark["type"]> = {
  * runs in the author's own signed-in session — which the server re-parsing the
  * document on save does nothing about.
  *
- * Runs in the browser only, because it needs a DOM to walk.
+ * It needs a DOM to walk, so it runs in the browser and nowhere else. Calling
+ * it during a render — which React also performs on the server — is what took
+ * the whole editor screen down with a `ReferenceError`; the editor seeds its
+ * document from the stored body and reaches this only from an effect.
  */
 export const htmlToInline = (html: string): TipTapNode[] => {
   const holder = document.createElement("div");

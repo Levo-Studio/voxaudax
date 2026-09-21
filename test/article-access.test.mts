@@ -14,6 +14,7 @@ import {
   countArticlesByStatus,
   listArticles,
   missingAltText,
+  renameSlug,
   saveArticle,
   submitForReview,
 } from "@/lib/editorial/articles";
@@ -311,6 +312,13 @@ describe("an approved article is not editable by the author who submitted it", (
 
     assert.equal(saved, null);
     assert.equal((await articleForEditor(author, articleId))?.title, "Noch ein Entwurf");
+  });
+
+  it("refuses to rename the slug of a published article, which readers already hold", async () => {
+    const before = (await articleForEditor(author, articleId))!.slug;
+
+    assert.equal(await renameSlug(author, articleId, "ganz-neue-adresse"), null);
+    assert.equal((await articleForEditor(author, articleId))?.slug, before);
   });
 });
 
