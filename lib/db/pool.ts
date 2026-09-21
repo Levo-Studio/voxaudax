@@ -1,7 +1,7 @@
 import "server-only";
 import { Pool } from "pg";
 
-import { environment } from "@/lib/env";
+import { databaseUrl } from "@/lib/env";
 
 /**
  * One pool for the process, shared by Drizzle and by the Velve Auth driver.
@@ -15,7 +15,7 @@ const processScope = globalThis as typeof globalThis & {
 export const pool = () =>
   (processScope.voxAudaxPool ??= (() => {
     const created = new Pool({
-      connectionString: environment().DATABASE_URL,
+      connectionString: databaseUrl(),
     });
 
     // A pooled connection that dies between queries emits on the pool, and an
