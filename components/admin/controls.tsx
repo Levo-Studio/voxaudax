@@ -17,7 +17,7 @@ export const LABEL_CLASS =
   "block text-[10.5px] font-bold tracking-[0.12em] text-tm uppercase";
 
 export const PRIMARY_BUTTON_CLASS =
-  "cursor-pointer rounded-[9px] border-none bg-ac px-4 py-[11px] font-control text-[13.5px] font-bold text-white transition-[filter] duration-200 ease-out hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50";
+  "cursor-pointer rounded-[9px] border-none bg-ac px-4 py-[11px] font-control text-[13.5px] font-bold text-s1 transition-[filter] duration-200 ease-out hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50";
 
 export const QUIET_BUTTON_CLASS =
   "cursor-pointer rounded-[9px] border border-bd bg-transparent px-4 py-[11px] font-control text-[13.5px] font-semibold text-tx transition-colors duration-200 ease-out hover:border-ac disabled:cursor-not-allowed disabled:opacity-50";
@@ -58,7 +58,7 @@ export function FilterPill({
     <Link
       href={href}
       className={`rounded-full px-3 py-1.5 text-[12.5px] font-bold no-underline transition-colors duration-200 ease-out ${
-        active ? "bg-ac text-white" : "border border-bd text-tm hover:text-tx"
+        active ? "bg-ac text-s1" : "border border-bd text-tm hover:text-tx"
       }`}
     >
       {children}
@@ -70,7 +70,7 @@ export function Chip({ active, children }: { active: boolean; children: ReactNod
   return (
     <span
       className={`rounded-full px-[11px] py-1.5 text-xs font-bold ${
-        active ? "bg-ac text-white" : "border border-bd text-tm"
+        active ? "bg-ac text-s1" : "border border-bd text-tm"
       }`}
     >
       {children}
@@ -88,7 +88,7 @@ export function Avatar({
   size?: number;
 }) {
   const tones = {
-    accent: "bg-ac text-white",
+    accent: "bg-ac text-s1",
     ink: "bg-tx text-s1",
     outline: "border-[1.5px] border-dashed border-bd text-tm",
   } as const;

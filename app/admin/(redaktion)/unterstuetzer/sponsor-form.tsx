@@ -57,7 +57,7 @@ export function SponsorForm({ today }: { today: string }) {
             <label
               key={value}
               className={`cursor-pointer rounded-full px-[11px] py-1.5 transition-colors duration-200 ease-out ${
-                kind === value ? "bg-ac text-white" : "border border-bd text-tm hover:text-tx"
+                kind === value ? "bg-ac text-s1" : "border border-bd text-tm hover:text-tx"
               }`}
             >
               <input

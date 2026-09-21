@@ -155,7 +155,7 @@ export default async function ArticlesPage({
                 <span
                   className={`rounded-full px-2.5 py-[5px] text-[11.5px] font-bold ${
                     row.status === "review"
-                      ? "bg-ac text-white"
+                      ? "bg-ac text-s1"
                       : row.status === "draft"
                         ? "border border-bd bg-s2 text-tm"
                         : "border border-bd text-tm"

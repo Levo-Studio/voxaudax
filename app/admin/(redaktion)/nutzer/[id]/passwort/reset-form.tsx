@@ -73,7 +73,7 @@ export function ResetPasswordForm({ memberId }: { memberId: string }) {
       </label>
 
       <p className="mt-2.5 flex items-start gap-2.5 text-[13px] leading-[1.5] font-medium text-tm">
-        <span aria-hidden className="mt-px grid h-[17px] w-[17px] flex-none place-items-center rounded-[3px] bg-ac text-[11px] font-bold text-white">
+        <span aria-hidden className="mt-px grid h-[17px] w-[17px] flex-none place-items-center rounded-[3px] bg-ac text-[11px] font-bold text-s1">
           ✓
         </span>
         <span>

@@ -47,7 +47,7 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
                 <label
                   key={role}
                   className={`cursor-pointer rounded-full px-[11px] py-2 ${
-                    role === member.role ? "bg-ac text-white" : "border border-bd text-tm"
+                    role === member.role ? "bg-ac text-s1" : "border border-bd text-tm"
                   }`}
                 >
                   <input type="radio" name="role" value={role} defaultChecked={role === member.role} className="sr-only" />
@@ -65,7 +65,7 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
                 <label
                   key={form}
                   className={`cursor-pointer rounded-full px-[11px] py-2 ${
-                    form === member.form ? "bg-ac text-white" : "border border-bd text-tm"
+                    form === member.form ? "bg-ac text-s1" : "border border-bd text-tm"
                   }`}
                 >
                   <input type="radio" name="form" value={form} defaultChecked={form === member.form} className="sr-only" />

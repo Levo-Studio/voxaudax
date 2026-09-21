@@ -416,7 +416,7 @@ export function Editor({
                     aria-pressed={category.id === categoryId}
                     onClick={() => touch(setCategoryId)(category.id)}
                     className={`cursor-pointer rounded-full px-[11px] py-1.5 font-control transition-colors duration-200 ease-out ${
-                      category.id === categoryId ? "border-none bg-ac text-white" : "border border-bd bg-transparent text-tm hover:text-tx"
+                      category.id === categoryId ? "border-none bg-ac text-s1" : "border border-bd bg-transparent text-tm hover:text-tx"
                     }`}
                   >
                     {category.name}

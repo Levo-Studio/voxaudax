@@ -16,13 +16,10 @@ export default async function AdminLoginPage() {
 
   return (
     <div className="grid min-h-dvh bg-s1 text-tx md:grid-cols-[1.1fr_1fr]">
-      <BrandPanel>
-        <p className="mt-4 hidden max-w-[36ch] text-[17px] leading-relaxed font-medium opacity-90 md:block">
+      <BrandPanel footer="Mittwochs, 7. Stunde, Raum 214">
+        <p className="mt-4 max-w-[36ch] text-[15px] leading-relaxed font-medium opacity-90 md:text-[17px]">
           Artikel schreiben, bebildern und veröffentlichen. Zugang bekommt, wer in der
           Redaktion mitarbeitet.
-        </p>
-        <p className="mt-8 hidden text-[12.5px] font-semibold opacity-80 md:block">
-          Mittwochs, 7. Stunde, Raum 214
         </p>
       </BrandPanel>
       <LoginForm />

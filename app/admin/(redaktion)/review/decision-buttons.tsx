@@ -62,7 +62,7 @@ export function DecisionButtons({
         }cursor-pointer rounded-lg border-none px-[13px] py-2 font-control text-[12.5px] font-bold transition-[filter] duration-200 ease-out ${
           blocked
             ? "cursor-not-allowed border border-bd bg-s2 text-tm"
-            : "bg-ac text-white hover:brightness-110"
+            : "bg-ac text-s1 hover:brightness-110"
         } disabled:opacity-60`}
       >
         {approveLabel}

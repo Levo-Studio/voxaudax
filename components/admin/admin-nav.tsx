@@ -31,7 +31,7 @@ export function AdminNav({ items }: { items: readonly NavItem[] }) {
           >
             {item.label}
             {item.badge !== undefined && item.badge > 0 ? (
-              <span className="ml-[3px] inline-block rounded-full bg-ac px-1.5 py-px text-[10.5px] font-bold text-white">
+              <span className="ml-[3px] inline-block rounded-full bg-ac px-1.5 py-px text-[10.5px] font-bold text-s1">
                 {item.badge}
               </span>
             ) : null}
