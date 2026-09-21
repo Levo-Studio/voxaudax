@@ -75,3 +75,35 @@ export function ArticleBrief({ article }: { article: ArticleTeaser }) {
     </a>
   );
 }
+
+/**
+ * "Weiterlesen" under an article: 13a sets three cards, 13b two ruled rows
+ * without the byline. Same element, same article, two shapes.
+ */
+export function ArticleRelated({ article }: { article: ArticleTeaser }) {
+  return (
+    <a
+      href={articleHref(article.slug)}
+      className="grid grid-cols-[96px_1fr] items-center gap-3.5 border-t border-bd py-3 md:block md:border-0 md:py-0"
+    >
+      <ArticleCover
+        variant="related"
+        title={article.title}
+        colorId={article.cover.colorId}
+        eyebrow={article.categoryName}
+        word={article.cover.word}
+      />
+      <span className="block">
+        <span className="block text-[16.5px] leading-[1.24] font-bold tracking-[-0.02em] md:mt-3 md:text-[19px] md:leading-[1.2] md:tracking-[-0.025em]">
+          {article.title}
+        </span>
+        <span className="mt-1.5 hidden text-[11.5px] font-semibold text-tm md:block">
+          {article.authorName} ·{" "}
+          <time dateTime={machineDate(article.publishedAt)}>
+            {shortDate(article.publishedAt)}
+          </time>
+        </span>
+      </span>
+    </a>
+  );
+}

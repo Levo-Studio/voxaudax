@@ -9,6 +9,7 @@ import {
   images,
   memes,
   pages,
+  slugHistory,
   sponsors,
   userForm,
   userRole,
@@ -144,6 +145,22 @@ export const relatedArticles = async (
       )
       .limit(3),
   );
+
+/**
+ * A slug survives the article it named. A link printed in the school paper or
+ * sent around last term still has to arrive, so an address that is no longer
+ * current names where it went instead of nothing.
+ */
+export const currentSlugForRetiredSlug = async (retired: string) => {
+  const [row] = await db
+    .select({ slug: articles.slug })
+    .from(slugHistory)
+    .innerJoin(articles, eq(articles.id, slugHistory.articleId))
+    .where(and(eq(slugHistory.oldSlug, retired), live()))
+    .limit(1);
+
+  return row?.slug;
+};
 
 export const articleCategories = () =>
   db

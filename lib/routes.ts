@@ -12,7 +12,12 @@ export const ARCHIVE_PARAMS = {
   author: "autor",
 } as const;
 
-export const articleHref = (slug: string) => `/artikel/${slug}`;
+/**
+ * Generic so the literal type survives: with typed routes on, a redirect only
+ * accepts an address the router knows, and a plain `string` is not one.
+ */
+export const articleHref = <Slug extends string>(slug: Slug) =>
+  `/artikel/${slug}` as const;
 
 export type ArchiveLink = {
   query?: string;
