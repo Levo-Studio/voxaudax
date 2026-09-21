@@ -13,8 +13,17 @@ export const CONCERNS = [
 
 export type Concern = (typeof CONCERNS)[number];
 
+/**
+ * The longest a name and a message may be. Both are also set on the fields
+ * themselves, so the browser stops a long paste before the server has to.
+ */
+export const MAX_NAME_LENGTH = 120;
+export const MAX_ROLE_LENGTH = 80;
+export const MAX_EMAIL_LENGTH = 254;
+export const MAX_MESSAGE_LENGTH = 5_000;
+
 export type ContactState = {
-  status: "idle" | "sent" | "invalid" | "unconfigured" | "rejected";
+  status: "idle" | "sent" | "invalid" | "throttled" | "unconfigured" | "rejected";
   problems: string[];
   /**
    * A way to send the same text without this server: on a failure the reader

@@ -3,7 +3,14 @@
 import { useActionState } from "react";
 
 import { submitContactMessage } from "@/app/kontakt/actions";
-import { CONCERNS, type ContactState } from "@/lib/contact";
+import {
+  CONCERNS,
+  MAX_EMAIL_LENGTH,
+  MAX_MESSAGE_LENGTH,
+  MAX_NAME_LENGTH,
+  MAX_ROLE_LENGTH,
+  type ContactState,
+} from "@/lib/contact";
 
 /**
  * The template leaves the field style as a placeholder, so it is taken from
@@ -48,7 +55,9 @@ function Notice({
         <>
           {state.status === "unconfigured"
             ? "Diese Seite kann gerade keine Mail versenden: auf dem Server ist kein Postausgang eingerichtet. Die Nachricht wurde nicht zugestellt."
-            : "Die Nachricht ließ sich nicht zustellen — der Mailversand hat sie abgelehnt."}{" "}
+            : state.status === "throttled"
+              ? "Von dieser Adresse sind gerade mehrere Nachrichten gekommen. Bitte warte einen Moment — diese hier wurde nicht zugestellt."
+              : "Die Nachricht ließ sich nicht zustellen — der Mailversand hat sie abgelehnt."}{" "}
           Schreib uns bitte direkt an{" "}
           <a href={`mailto:${editorialEmail}`} className="font-bold text-ac">
             {editorialEmail}
@@ -85,6 +94,7 @@ export function ContactForm({ editorialEmail }: { editorialEmail: string }) {
             name="name"
             type="text"
             required
+            maxLength={MAX_NAME_LENGTH}
             autoComplete="name"
             placeholder="Vor- und Nachname"
             className={FIELD}
@@ -95,6 +105,7 @@ export function ContactForm({ editorialEmail }: { editorialEmail: string }) {
           <input
             name="role"
             type="text"
+            maxLength={MAX_ROLE_LENGTH}
             placeholder="z. B. 10b oder Elternteil"
             className={FIELD}
           />
@@ -107,6 +118,7 @@ export function ContactForm({ editorialEmail }: { editorialEmail: string }) {
           name="email"
           type="email"
           required
+          maxLength={MAX_EMAIL_LENGTH}
           autoComplete="email"
           placeholder="name@example.de"
           className={FIELD}
@@ -139,6 +151,7 @@ export function ContactForm({ editorialEmail }: { editorialEmail: string }) {
           name="message"
           rows={5}
           required
+          maxLength={MAX_MESSAGE_LENGTH}
           placeholder="Worum geht es?"
           className={`${FIELD} md:min-h-[150px]`}
         />
