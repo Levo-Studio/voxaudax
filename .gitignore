@@ -44,6 +44,7 @@ next-env.d.ts
 # design source of record, kept locally rather than published
 /.design/
 
-# playwright output
-/shots/
+# playwright output: the screenshots stay local, the Lighthouse table is committed
+/shots/*
+!/shots/lighthouse.md
 /test-results/
