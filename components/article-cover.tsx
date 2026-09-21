@@ -1,12 +1,18 @@
 import { resolveCoverColor, type CoverColorId } from "@/lib/cover";
 
-export type ArticleCoverVariant = "hero" | "article" | "card";
+export type ArticleCoverVariant = "hero" | "article" | "card" | "related";
 
 type VariantStyles = {
   panel: string;
   eyebrow: string;
   word: string;
   line: string;
+  /**
+   * A word set across the full width never wraps. In the square a phone gets
+   * it has to: 4a breaks "MAI 2027" and "40° / 800" over two lines rather than
+   * letting either run out of the tile.
+   */
+  wrap: string;
   /**
    * The template draws the faint grid on the full-bleed covers only. The three
    * cards on the homepage are flat panels, so a card that drew one would be the
@@ -30,6 +36,7 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
       "top-4 left-5 text-[10px] tracking-[0.16em] opacity-[0.85] md:top-[22px] md:left-[34px] md:text-[11px] md:opacity-80",
     word: "text-[46px] leading-[0.9] tracking-[-0.05em] md:text-[88px] md:tracking-[-0.055em]",
     line: "mt-2.5 text-[13px] md:mt-3.5 md:text-sm",
+    wrap: "whitespace-nowrap",
     hasGrid: true,
     eyebrowInFlow: false,
   },
@@ -40,14 +47,32 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
       "top-4 left-5 text-[10px] tracking-[0.16em] opacity-[0.85] md:top-[26px] md:left-10 md:text-[11px] md:opacity-80",
     word: "text-[46px] leading-[0.9] tracking-[-0.05em] md:text-[88px] md:tracking-[-0.055em]",
     line: "mt-2.5 text-[13px] md:mt-3 md:text-sm",
+    wrap: "whitespace-nowrap",
     hasGrid: true,
     eyebrowInFlow: false,
   },
+  /**
+   * One tile in two shapes: the square a phone sets beside the headline in 4a,
+   * and the 16/9 panel above it in 3a. The category rides inside the panel
+   * only on the wide one — on the phone it stands over the headline instead.
+   */
   card: {
-    panel: "aspect-[16/9] justify-between rounded-[10px] p-5",
-    eyebrow: "text-[10.5px] tracking-[0.14em] opacity-[0.85]",
-    word: "text-[26px] leading-none tracking-[-0.035em]",
+    panel:
+      "aspect-square justify-end rounded-[10px] p-[11px] md:aspect-[16/9] md:justify-between md:rounded-[10px] md:p-5",
+    eyebrow: "hidden md:block text-[10.5px] tracking-[0.14em] opacity-[0.85]",
+    word: "text-base leading-none tracking-[-0.035em] md:text-[26px]",
     line: "mt-2.5 text-[13px]",
+    wrap: "whitespace-normal md:whitespace-nowrap",
+    hasGrid: false,
+    eyebrowInFlow: true,
+  },
+  related: {
+    panel:
+      "aspect-square justify-end rounded-[9px] p-2.5 md:aspect-[16/9] md:rounded-[10px] md:justify-between md:p-[18px]",
+    eyebrow: "hidden md:block text-[10.5px] tracking-[0.14em] opacity-[0.85]",
+    word: "text-sm leading-none tracking-[-0.03em] md:text-2xl md:tracking-[-0.035em]",
+    line: "mt-2.5 text-[13px]",
+    wrap: "whitespace-normal md:whitespace-nowrap",
     hasGrid: false,
     eyebrowInFlow: true,
   },
@@ -107,7 +132,7 @@ export function ArticleCover({
         {eyebrow}
       </span>
       <span
-        className={`relative font-extrabold whitespace-nowrap ${styles.word}`}
+        className={`relative font-extrabold ${styles.wrap} ${styles.word}`}
       >
         {word}
       </span>

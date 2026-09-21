@@ -1,0 +1,44 @@
+/**
+ * Every public address in one place. Category and author are filters on the
+ * archive and have no page of their own, so the only way to link to "everything
+ * by Lina Brenner" is a filtered archive URL — which is also the only way for a
+ * reader to send one to somebody else.
+ */
+
+export const ARCHIVE_PARAMS = {
+  query: "q",
+  category: "kategorie",
+  year: "jahr",
+  author: "autor",
+} as const;
+
+export const articleHref = (slug: string) => `/artikel/${slug}`;
+
+export type ArchiveLink = {
+  query?: string;
+  category?: string;
+  year?: number;
+  author?: string;
+};
+
+export const archiveHref = (link: ArchiveLink = {}) => {
+  const parameters = new URLSearchParams();
+
+  if (link.query !== undefined && link.query.length > 0) {
+    parameters.set(ARCHIVE_PARAMS.query, link.query);
+  }
+  if (link.category !== undefined) {
+    parameters.set(ARCHIVE_PARAMS.category, link.category);
+  }
+  if (link.year !== undefined) {
+    parameters.set(ARCHIVE_PARAMS.year, String(link.year));
+  }
+  if (link.author !== undefined) {
+    parameters.set(ARCHIVE_PARAMS.author, link.author);
+  }
+
+  const query = parameters.toString();
+  return query.length === 0 ? "/archiv" : `/archiv?${query}`;
+};
+
+export const imageHref = (imageId: string) => `/bild/${imageId}`;

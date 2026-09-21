@@ -1,0 +1,77 @@
+import { ArticleCover } from "@/components/article-cover";
+import type { ArticleTeaser } from "@/lib/queries";
+import { machineDate, readingMinutes, shortDate } from "@/lib/format";
+import { articleHref } from "@/lib/routes";
+
+/**
+ * The same article in the two shapes 3a and 4a draw: a card with the cover
+ * above the headline on the wide screen, a row with a square tile beside it on
+ * the phone. One element, because it is one article — a second copy behind a
+ * media query would ship every headline twice.
+ */
+export function ArticleCard({
+  article,
+  variant = "card",
+}: {
+  article: ArticleTeaser;
+  variant?: "card" | "related";
+}) {
+  const href = articleHref(article.slug);
+
+  return (
+    <article className="grid grid-cols-[104px_1fr] items-start gap-3.5 md:block">
+      {/* The cover repeats the headline's destination. Hidden from keyboard and
+          screen reader so the same article is not announced twice in a row. */}
+      <a href={href} tabIndex={-1} aria-hidden className="block">
+        <ArticleCover
+          variant={variant}
+          title={article.title}
+          colorId={article.cover.colorId}
+          eyebrow={article.categoryName}
+          word={article.cover.word}
+        />
+      </a>
+
+      <div>
+        <div className="text-[10.5px] font-bold tracking-[0.12em] text-tm uppercase md:hidden">
+          {article.categoryName}
+        </div>
+        <h3 className="mt-1.5 text-[17.5px] leading-[1.2] font-bold tracking-[-0.02em] md:mt-4 md:text-[22px] md:leading-[1.12] md:tracking-[-0.028em]">
+          <a href={href}>{article.title}</a>
+        </h3>
+        <p className="mt-[9px] hidden text-sm leading-[1.6] font-medium text-tm md:block">
+          {article.teaser}
+        </p>
+        <div className="mt-[7px] text-[11.5px] font-semibold text-tm md:mt-2.5">
+          {article.authorName} ·{" "}
+          <span className="md:hidden">
+            {readingMinutes(article.wordCount)} Min
+          </span>
+          <time
+            dateTime={machineDate(article.publishedAt)}
+            className="hidden md:inline"
+          >
+            {shortDate(article.publishedAt)}
+          </time>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/** The "Außerdem" rows: category, headline, nothing else. */
+export function ArticleBrief({ article }: { article: ArticleTeaser }) {
+  return (
+    <a
+      href={articleHref(article.slug)}
+      className="flex flex-col border-b border-bd py-3.5 md:flex-row md:items-baseline md:gap-4 md:py-[15px]"
+    >
+      <span className="text-[10.5px] font-bold tracking-[0.1em] text-ac uppercase md:min-w-[94px] md:text-[11px]">
+        {article.categoryName}
+      </span>
+      <span className="mt-[5px] text-base leading-[1.3] font-semibold tracking-[-0.02em] md:mt-0 md:text-[17px] md:leading-[1.25]">
+        {article.title}
+      </span>
+    </a>
+  );
+}
