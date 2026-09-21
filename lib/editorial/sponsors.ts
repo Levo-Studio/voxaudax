@@ -91,6 +91,17 @@ export const createSponsor = (member: Member, input: SponsorInput) =>
     })
     .returning({ id: sponsors.id });
 
+/**
+ * A freigabe is about what the homepage shows, so changing a published entry
+ * changes what was approved. It goes back into the review queue rather than
+ * reaching the public site unread — written as one statement so that two
+ * editors saving at once cannot leave it published.
+ *
+ * An entry that is still waiting stays where it is, and nothing here publishes
+ * anything: only `approveSponsor` does that.
+ */
+const backIntoReview = sql`case when ${sponsors.status} = 'published' then 'review' else ${sponsors.status} end`;
+
 export const updateSponsor = (sponsorId: string, input: SponsorInput) =>
   db
     .update(sponsors)
@@ -101,6 +112,7 @@ export const updateSponsor = (sponsorId: string, input: SponsorInput) =>
       kind: input.kind,
       startsAt: input.startsAt,
       endsAt: endOfRuntime(input.startsAt, input.months),
+      status: backIntoReview,
     })
     .where(eq(sponsors.id, sponsorId));
 
@@ -131,7 +143,7 @@ export const setSponsorLogo = (input: {
 
     await tx
       .update(sponsors)
-      .set({ logoImageId: image!.id })
+      .set({ logoImageId: image!.id, status: backIntoReview })
       .where(eq(sponsors.id, input.sponsorId));
   });
 
