@@ -54,8 +54,6 @@ There is no tracking, no analytics and no third-party font or script.
 ```sh
 pnpm install
 cp .env.example .env.local   # then fill in the values
-pnpm db:migrate
-pnpm db:seed                 # editorial content for a fresh database
 pnpm dev
 ```
 
@@ -64,10 +62,11 @@ and production alike.
 
 ### Environment
 
-Every variable is required and validated with Zod at startup; a missing or
-malformed one stops the process with a message naming it, rather than failing
-later at the first request. `.env.example` lists the keys; it never carries
-values.
+Every variable is required and declared in one Zod schema. Validation runs the
+first time the environment is read rather than at import, so a build that never
+reaches the database still succeeds; a missing or malformed value then stops the
+process with a message naming the key. `.env.example` lists every key and
+carries no secret — only the two settings whose value is the same everywhere.
 
 | Variable | Purpose |
 |---|---|
@@ -88,17 +87,13 @@ values.
 | `pnpm start` | Serve the production build |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint |
-| `pnpm db:migrate` | Apply the authentication and application schema |
-| `pnpm db:seed` | Seed a fresh database with editorial content |
-| `pnpm check:connections` | Verify the database, object storage and mail credentials |
-| `pnpm shots` | Capture every screen in both themes at 375 px and 1280 px |
 
 ## Health
 
 | Route | Purpose |
 |---|---|
 | `GET /api/health` | Public. Answers 200 while the process is alive, touching no dependency. The container health check points here. |
-| `GET /api/health/detailed` | Guarded by `HEALTH_TOKEN`. Checks the database, object storage and pending migrations, each under a 2 s timeout. 200 when healthy or degraded, 503 when a critical check fails. |
+| `GET /api/health/detailed` | Guarded by `HEALTH_TOKEN`. Runs one check per dependency, each under a 2 s timeout, and never reports a host, a port or a driver message. 200 when healthy or degraded, 503 when a critical check fails. Currently checks the database; object storage and pending migrations join it with the data layer. |
 
 ## Deployment
 
@@ -109,9 +104,10 @@ the deployment webhook.
 
 ## Design
 
-The interface follows a fixed design specification. Where the implementation
-departs from it, or fills a gap the specification left open, the decision and
-its origin are recorded in [`EXTRAPOLATION.md`](./EXTRAPOLATION.md).
+The interface follows a fixed design specification, kept outside the repository
+as the client's source of record. Where the implementation departs from it, or
+fills a gap it leaves open, the decision and its origin are recorded in
+`EXTRAPOLATION.md`.
 
 ## Licence
 
