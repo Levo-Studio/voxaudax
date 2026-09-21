@@ -123,7 +123,12 @@ export default async function ArticlePage({ params }: ArticleParams) {
               aria-label="Brotkrume"
               className="text-[11.5px] font-bold text-tm md:text-[12.5px]"
             >
-              <a href={archiveHref({ category: article.categorySlug })} className="text-ac">
+              {/* Padding, not height: the breadcrumb stays one line and the
+                  link is 44px tall to a thumb. */}
+              <a
+                href={archiveHref({ category: article.categorySlug })}
+                className="py-[15px] text-ac"
+              >
                 {article.categoryName}
               </a>{" "}
               ·{" "}

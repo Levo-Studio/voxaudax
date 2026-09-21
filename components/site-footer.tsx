@@ -35,7 +35,7 @@ export function SiteFooter() {
       <div className="mx-[18px] mt-4 flex flex-col border-t border-bd pt-3.5 pb-[26px] text-[13px] md:mx-0 md:mt-0 md:flex-row md:items-baseline md:gap-3.5 md:px-10 md:pt-3.5">
         <span className="font-extrabold tracking-[-0.02em] text-tx">
           Built by{" "}
-          <a href="https://levo-studio.com" className="text-ac">
+          <a href="https://levo-studio.com" className="py-[15px] text-ac">
             Levo Studio
           </a>
         </span>

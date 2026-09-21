@@ -65,7 +65,10 @@ export function MissingDocument({
         {what} Die Redaktion trägt den Text im Redaktionssystem unter{" "}
         <span className="font-mono text-[15px]">pages</span> nach; bis dahin
         steht hier absichtlich nichts. Fragen dazu beantwortet{" "}
-        <a href={`mailto:${editorialEmail}`} className="font-bold text-ac">
+        <a
+          href={`mailto:${editorialEmail}`}
+          className="py-[15px] font-bold text-ac"
+        >
           {editorialEmail}
         </a>
         .

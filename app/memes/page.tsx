@@ -110,7 +110,10 @@ export default async function MemesPage({
           ) : null}
           <p className="text-[13px] leading-[1.6] font-medium text-tm">
             Eigenes Meme? Schick es an{" "}
-            <a href={`mailto:${editorialEmail}`} className="font-bold text-ac">
+            <a
+              href={`mailto:${editorialEmail}`}
+              className="py-[15px] font-bold text-ac"
+            >
               {editorialEmail}
             </a>{" "}
             — veröffentlicht wird nur, was niemanden bloßstellt.

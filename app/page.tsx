@@ -75,9 +75,12 @@ export default async function HomePage() {
               <div className="mt-3.5 flex items-center gap-2.5 text-[12.5px] font-semibold text-tm md:mt-6 md:gap-3">
                 <Avatar initials={lead.authorInitials} size="byline" />
                 <span>
+                  {/* Padding on an inline link grows the box that can be
+                      tapped without growing the line it sits in: the byline
+                      stays one line and the name is 44px tall to a thumb. */}
                   <a
                     href={archiveHref({ author: toSlug(lead.authorName) })}
-                    className="text-tx"
+                    className="py-[15px] text-tx"
                   >
                     {lead.authorName}
                   </a>{" "}
