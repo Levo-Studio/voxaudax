@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790018878661,
+      "tag": "0000_editorial_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790018879111,
+      "tag": "0001_velve_user_link",
+      "breakpoints": true
+    }
+  ]
+}
