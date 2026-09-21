@@ -12,11 +12,20 @@ import { articleHref } from "@/lib/routes";
 export function ArticleCard({
   article,
   variant = "card",
+  headingLevel = "h3",
 }: {
   article: ArticleTeaser;
   variant?: "card" | "related";
+  /**
+   * The level belongs to the page, not to the card. On the homepage the cards
+   * follow the lead story's h1 with no section heading between them, so h3
+   * would skip a level; under "Weiterlesen" they follow that section's h2 and
+   * h3 is right.
+   */
+  headingLevel?: "h2" | "h3";
 }) {
   const href = articleHref(article.slug);
+  const Heading = headingLevel;
 
   return (
     <article className="grid grid-cols-[104px_1fr] items-start gap-3.5 md:block">
@@ -37,9 +46,9 @@ export function ArticleCard({
         <div className="text-[10.5px] font-bold tracking-[0.12em] text-tm uppercase md:hidden">
           {article.categoryName}
         </div>
-        <h3 className="mt-1.5 text-[17.5px] leading-[1.2] font-bold tracking-[-0.02em] md:mt-4 md:text-[22px] md:leading-[1.12] md:tracking-[-0.028em]">
+        <Heading className="mt-1.5 text-[17.5px] leading-[1.2] font-bold tracking-[-0.02em] md:mt-4 md:text-[22px] md:leading-[1.12] md:tracking-[-0.028em]">
           <a href={href}>{article.title}</a>
-        </h3>
+        </Heading>
         <p className="mt-[9px] hidden text-sm leading-[1.6] font-medium text-tm md:block">
           {article.teaser}
         </p>

@@ -116,7 +116,7 @@ export default async function HomePage() {
           <section className="flex flex-col gap-5 border-t border-bd px-[18px] py-5 md:grid md:grid-cols-3 md:gap-px md:bg-bd md:p-0">
             {cards.map((article) => (
               <div key={article.slug} className="md:bg-s1 md:p-[26px]">
-                <ArticleCard article={article} />
+                <ArticleCard headingLevel="h2" article={article} />
               </div>
             ))}
           </section>
