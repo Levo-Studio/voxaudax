@@ -19,22 +19,71 @@ const contrastRatio = (a: string, b: string) => {
   return (lighter + 0.05) / (darker + 0.05);
 };
 
-const failures = COVER_COLORS.map((colour) => ({
-  id: colour.id,
-  ratio: contrastRatio(colour.value, colour.text),
-  value: colour.value,
-  text: colour.text,
-})).filter((colour) => colour.ratio < MINIMUM_RATIO);
+/**
+ * The interface palette, both themes, as `app/globals.css` states it. It is
+ * repeated here rather than parsed out of the stylesheet because a checker that
+ * reads the stylesheet is exactly what missed the disabled states: half an
+ * accent on its own ground is a colour that only exists once the browser has
+ * composited, and there is no declaration anywhere that names it.
+ *
+ * Which is why a disabled control is a token pair now, and why the pair is
+ * measured here beside the cover colours.
+ */
+const THEMES = {
+  hell: { s1: "#fbfaff", s2: "#efedfa", tx: "#100c1f", tm: "#5f5a78", ac: "#4b34e6", ac2: "#c8410c" },
+  dunkel: { s1: "#0e0c16", s2: "#171326", tx: "#f3f1fb", tm: "#a09ab8", ac: "#a99bff", ac2: "#ff8c5e" },
+} as const;
 
-for (const colour of failures) {
+type Token = keyof (typeof THEMES)["hell"];
+
+/** Ink on ground, named the way the class list names it. */
+const INTERFACE_PAIRS: readonly (readonly [string, Token, Token])[] = [
+  ["disabled control", "tm", "s2"],
+  ["blocked Freigeben", "tm", "s2"],
+  ["secondary text on the page", "tm", "s1"],
+  ["secondary text on a panel", "tm", "s2"],
+  ["body text", "tx", "s1"],
+  ["accent link", "ac", "s1"],
+  ["refusal", "ac2", "s1"],
+  ["ink on the accent", "s1", "ac"],
+];
+
+type Failure = { readonly what: string; readonly ratio: number; readonly ink: string; readonly ground: string };
+
+const failures: Failure[] = [];
+
+for (const colour of COVER_COLORS) {
+  const ratio = contrastRatio(colour.value, colour.text);
+  if (ratio < MINIMUM_RATIO) {
+    failures.push({ what: `Aufmacher ${colour.id}`, ratio, ink: colour.text, ground: colour.value });
+  }
+}
+
+for (const [theme, palette] of Object.entries(THEMES)) {
+  for (const [what, ink, ground] of INTERFACE_PAIRS) {
+    const ratio = contrastRatio(palette[ink], palette[ground]);
+    if (ratio < MINIMUM_RATIO) {
+      failures.push({
+        what: `${what} (${theme}, ${ink} auf ${ground})`,
+        ratio,
+        ink: palette[ink],
+        ground: palette[ground],
+      });
+    }
+  }
+}
+
+for (const failure of failures) {
   console.error(
-    `${colour.id}: ${colour.text} on ${colour.value} is ${colour.ratio.toFixed(2)}:1, below ${MINIMUM_RATIO}:1`,
+    `${failure.what}: ${failure.ink} on ${failure.ground} is ${failure.ratio.toFixed(2)}:1, below ${MINIMUM_RATIO}:1`,
   );
 }
 
+const checked = COVER_COLORS.length + Object.keys(THEMES).length * INTERFACE_PAIRS.length;
+
 if (failures.length > 0) {
-  console.error(`\n${failures.length} of ${COVER_COLORS.length} cover colours fail WCAG AA.`);
+  console.error(`\n${failures.length} of ${checked} colour pairs fail WCAG AA.`);
   process.exit(1);
 }
 
-console.log(`All ${COVER_COLORS.length} cover colours meet WCAG AA.`);
+console.log(`All ${checked} colour pairs meet WCAG AA.`);

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
+
+import { DISABLED_CLASS } from "@/components/admin/controls";
 
 const REFUSALS: Record<string, string> = {
   own_submission: "Die eigene Einreichung gibt niemand frei.",
@@ -30,6 +32,7 @@ export function DecisionButtons({
 }) {
   const [refusal, setRefusal] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const reasonId = useId();
 
   const run = (action: () => Promise<{ outcome: string }>) =>
     startTransition(async () => {
@@ -44,11 +47,20 @@ export function DecisionButtons({
           {refusal}
         </span>
       )}
+      {blocked ? (
+        // The reason a reviewer cannot act belongs on the screen. It used to be
+        // a `title`, which is a tooltip for a mouse and nothing at all for a
+        // keyboard, a screen reader or a touch device — on the one control
+        // whose whole job at that moment is to say why it will not work.
+        <span id={reasonId} className="w-full text-right text-[11.5px] font-semibold text-ac2">
+          Alt-Text fehlt
+        </span>
+      ) : null}
       <button
         type="button"
         onClick={() => run(reject)}
         disabled={pending}
-        className="cursor-pointer rounded-lg border border-bd bg-transparent px-[13px] py-2 font-control text-[12.5px] font-bold text-ac2 transition-colors duration-200 ease-out hover:border-ac2 disabled:opacity-50"
+        className={`cursor-pointer rounded-lg border border-bd bg-transparent px-[13px] py-2 font-control text-[12.5px] font-bold text-ac2 transition-colors duration-200 ease-out hover:border-ac2 ${DISABLED_CLASS}`}
       >
         {rejectLabel}
       </button>
@@ -56,14 +68,10 @@ export function DecisionButtons({
         type="button"
         onClick={() => run(approve)}
         disabled={pending || blocked}
-        title={blocked ? "Alt-Text fehlt" : undefined}
+        aria-describedby={blocked ? reasonId : undefined}
         className={`${
           layout === "grid" ? "flex-1 " : ""
-        }cursor-pointer rounded-lg border-none px-[13px] py-2 font-control text-[12.5px] font-bold transition-[filter] duration-200 ease-out ${
-          blocked
-            ? "cursor-not-allowed border border-bd bg-s2 text-tm"
-            : "bg-ac text-s1 hover:brightness-110"
-        } disabled:opacity-60`}
+        }cursor-pointer rounded-lg border-none px-[13px] py-2 font-control text-[12.5px] font-bold transition-[filter] duration-200 ease-out bg-ac text-s1 hover:brightness-110 ${DISABLED_CLASS}`}
       >
         {approveLabel}
       </button>

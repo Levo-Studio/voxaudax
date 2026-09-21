@@ -56,14 +56,16 @@ export default async function MemesPage({
             memes.map((meme) => {
               const online = meme.visible && meme.status === "published";
               return (
-                <figure key={meme.id} className={`m-0 ${online ? "" : "opacity-60"}`}>
+                <figure key={meme.id} className="m-0">
+                  {/* The picture is dimmed while it is offline; the line under
+                      it is not, because that line is what says so. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/bilder/${meme.imageId}`}
                     alt={meme.alt ?? ""}
                     width={meme.width}
                     height={meme.height}
-                    className="block w-full rounded-xl border border-bd bg-s2"
+                    className={`block w-full rounded-xl border border-bd bg-s2 ${online ? "" : "opacity-60"}`}
                   />
                   <figcaption className="mt-[9px] flex flex-wrap items-center gap-2.5 text-[11.5px] font-semibold text-tm">
                     <span>{DAY.format(meme.createdAt)}</span>
