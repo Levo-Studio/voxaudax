@@ -30,6 +30,8 @@ export const codeFont = localFont({
   variable: "--font-jetbrains",
   weight: "100 800",
   display: "swap",
+  // Only slugs and code reach for it, and neither exists on a public page yet.
+  preload: false,
   fallback: ["ui-monospace", "monospace"],
 });
 
