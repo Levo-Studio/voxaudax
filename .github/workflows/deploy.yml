@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Both dockerfiles must stay identical
+        run: diff Dockerfile Dockerfile.dokploy
+
       - name: Typecheck
         run: pnpm typecheck
 
