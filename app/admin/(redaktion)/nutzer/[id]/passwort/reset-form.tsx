@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { FIELD_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
 import { setPasswordAction, type SetPasswordState } from "@/app/admin/(redaktion)/nutzer/[id]/passwort/actions";
@@ -27,8 +27,18 @@ const generate = () => {
 
 export function ResetPasswordForm({ memberId }: { memberId: string }) {
   const [state, submit, pending] = useActionState(setPasswordAction, EMPTY);
-  const [password, setPassword] = useState(generate);
+  const [password, setPassword] = useState("");
   const [copied, setCopied] = useState(false);
+
+  /**
+   * After the first paint, not while rendering. Drawing it in the initial state
+   * meant the server drew one password and the browser another, and React
+   * answers a mismatch like that by throwing the server's markup away and
+   * rendering the document again from `<html>` down — which wiped the
+   * `data-theme` the boot script had stamped there, so this was the one screen
+   * in the back office that could not be dark.
+   */
+  useEffect(() => setPassword(generate()), []);
 
   return (
     <form action={submit} className="p-5">
