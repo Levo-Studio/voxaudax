@@ -65,18 +65,20 @@ and production alike.
 Every variable is required and declared in one Zod schema. Validation runs the
 first time the environment is read rather than at import, so a build that never
 reaches the database still succeeds; a missing or malformed value then stops the
-process with a message naming the key. `.env.example` lists every key and
-carries no secret — only the two settings whose value is the same everywhere.
+process with a message naming the key. `.env.example` lists the keys and
+nothing else; the values below say what each one expects.
 
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | The only database connection. Migrations use it too. |
-| `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`, `S3_REGION`, `S3_FORCE_PATH_STYLE` | RustFS object storage |
-| `CDN_BASE_URL` | Prefix an object key is joined to in order to build an image URL |
+| `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` | RustFS object storage |
+| `S3_REGION` | Any non-empty string; RustFS ignores it, the S3 client insists on one |
+| `S3_FORCE_PATH_STYLE` | `true` — RustFS addresses buckets by path, not by subdomain |
+| `CDN_BASE_URL` | `https://cdn.levo-studio.com` — prefix an object key is joined to in order to build an image URL |
 | `RESEND_API_KEY`, `MAIL_FROM`, `MAIL_TO_EDITORIAL` | Transactional mail and the contact form recipient |
 | `AUTH_SECRET` | Root key for `@velve/auth`; at least 32 bytes |
 | `HEALTH_TOKEN` | Bearer token guarding the detailed health route |
-| `NEXT_PUBLIC_SITE_URL` | Canonical origin, used for metadata, RSS and mail links |
+| `NEXT_PUBLIC_SITE_URL` | `https://voxaudax.de` — canonical origin, used for metadata, RSS and mail links |
 
 ## Scripts
 
