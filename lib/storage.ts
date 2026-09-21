@@ -111,7 +111,9 @@ export const readObject = async (key: string) => {
   if (body === undefined) return null;
 
   return {
-    bytes: await body.transformToByteArray(),
+    // Copied into a buffer of its own: the SDK hands back a view over an
+    // ArrayBufferLike, which may be shared, and a Response body may not be.
+    bytes: Uint8Array.from(await body.transformToByteArray()),
     mime: object.ContentType ?? "application/octet-stream",
   };
 };

@@ -53,6 +53,7 @@ export const mailEnvironment = () =>
     "Mail is not configured on this server, so nothing was sent",
   );
 
+/**
  * The connection string on its own, validated on its own.
  *
  * The pool is built while the module graph is being evaluated, and validating

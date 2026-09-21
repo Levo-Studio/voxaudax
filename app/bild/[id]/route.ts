@@ -22,10 +22,10 @@ export const GET = async (
   const image = await imageRecord(id);
   if (image === undefined) return notFound();
 
-  let body: ReadableStream | undefined;
+  let object: Awaited<ReturnType<typeof readObject>>;
 
   try {
-    body = await readObject(image.key);
+    object = await readObject(image.key);
   } catch {
     // The row promises an object the bucket does not have. Which key is
     // missing belongs in the log, not in the response.
@@ -33,9 +33,9 @@ export const GET = async (
     return notFound();
   }
 
-  if (body === undefined) return notFound();
+  if (object === null) return notFound();
 
-  return new Response(body, {
+  return new Response(object.bytes, {
     headers: {
       "content-type": image.mime,
       // The id names one immutable object: a changed picture is a new row.
