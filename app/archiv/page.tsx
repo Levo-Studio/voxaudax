@@ -14,6 +14,15 @@ import { ARCHIVE_PARAMS, archiveHref, articleHref } from "@/lib/routes";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
+const single = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+
+/** "?q=" is an empty field, not a search: nothing is filtered by it. */
+const filled = (value: string | undefined) => {
+  const trimmed = value?.trim();
+  return trimmed === undefined || trimmed.length === 0 ? undefined : trimmed;
+};
+
 /**
  * A filtered archive is the same articles in another order, so only the
  * unfiltered one is offered for indexing — the filters exist for readers, not
@@ -26,7 +35,7 @@ export const generateMetadata = async ({
 }): Promise<Metadata> => {
   const parameters = await searchParams;
   const narrowed = Object.values(ARCHIVE_PARAMS).some(
-    (key) => parameters[key] !== undefined,
+    (key) => filled(single(parameters[key])) !== undefined,
   );
 
   return {
@@ -37,8 +46,16 @@ export const generateMetadata = async ({
   };
 };
 
-const single = (value: string | string[] | undefined) =>
-  Array.isArray(value) ? value[0] : value;
+/**
+ * A filter value the archive does not recognise still narrows the list — to
+ * nothing — so it has to be readable in the chip rather than hidden behind
+ * "Alle Kategorien". It came out of the address bar, so it is shown at a length
+ * the row can hold.
+ */
+const CHIP_LIMIT = 40;
+
+const chip = (known: string | undefined, asked: string | undefined) =>
+  known ?? asked?.slice(0, CHIP_LIMIT);
 
 const positiveYear = (value: string | undefined) => {
   if (value === undefined) return undefined;
@@ -52,6 +69,10 @@ type MenuOption = { label: string; href: string; current: boolean };
  * A filter is a menu of links, not a control that fetches: opening it needs no
  * script, choosing from it is a navigation, and the address that results is the
  * whole state of the page — so a filtered archive can be bookmarked and sent.
+ *
+ * Below md the panel is positioned against the row rather than against its own
+ * chip, so it opens at the page's left margin and cannot reach past the right
+ * one: anchored to the third chip it pushed a 360px page 36px sideways.
  */
 function FilterMenu({
   label,
@@ -65,7 +86,7 @@ function FilterMenu({
   const active = value !== undefined;
 
   return (
-    <details className="relative">
+    <details className="md:relative">
       <summary
         className={`inline-flex min-h-11 cursor-pointer list-none items-center rounded-full px-3 text-xs font-semibold [&::-webkit-details-marker]:hidden md:min-h-0 md:px-[13px] md:py-[7px] md:text-[12.5px] ${
           active ? "bg-ac text-s1" : "border border-bd text-tm"
@@ -73,7 +94,7 @@ function FilterMenu({
       >
         {value ?? label}
       </summary>
-      <div className="absolute z-10 mt-2 flex min-w-[200px] flex-col rounded-xl border border-bd bg-s1 p-1.5 shadow-lg">
+      <div className="absolute top-full left-0 z-10 mt-2 flex max-w-[calc(100vw-36px)] min-w-[200px] flex-col rounded-xl border border-bd bg-s1 p-1.5 shadow-lg md:top-auto md:max-w-none">
         {options.map((option) => (
           <a
             key={option.href}
@@ -97,10 +118,10 @@ export default async function ArchivePage({
   searchParams: Promise<SearchParams>;
 }) {
   const parameters = await searchParams;
-  const query = single(parameters[ARCHIVE_PARAMS.query])?.trim();
-  const category = single(parameters[ARCHIVE_PARAMS.category]);
+  const query = filled(single(parameters[ARCHIVE_PARAMS.query]));
+  const category = filled(single(parameters[ARCHIVE_PARAMS.category]));
   const year = positiveYear(single(parameters[ARCHIVE_PARAMS.year]));
-  const author = single(parameters[ARCHIVE_PARAMS.author]);
+  const author = filled(single(parameters[ARCHIVE_PARAMS.author]));
 
   const [results, total, categories, years, authors] = await Promise.all([
     archiveResults({
@@ -162,10 +183,10 @@ export default async function ArchivePage({
           </button>
         </form>
 
-        <div className="mt-3 flex flex-wrap gap-[7px] md:mt-3.5">
+        <div className="relative mt-3 flex flex-wrap gap-[7px] md:mt-3.5">
           <FilterMenu
             label="Alle Kategorien"
-            value={activeCategory?.name}
+            value={chip(activeCategory?.name, category)}
             options={[
               {
                 label: "Alle Kategorien",
@@ -197,7 +218,7 @@ export default async function ArchivePage({
           />
           <FilterMenu
             label="Autor"
-            value={activeAuthor?.name}
+            value={chip(activeAuthor?.name, author)}
             options={[
               {
                 label: "Alle Autorinnen und Autoren",
