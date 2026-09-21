@@ -41,7 +41,13 @@ export const environmentSchema = z.object({
     .enum(["true", "false"])
     .transform((value) => value === "true"),
 
-  RESEND_API_KEY: z.string().min(1),
+  /**
+   * Allowed to be empty. Sending is one subsystem, and signing in is not it —
+   * demanding a mail key before anyone can log in would make a missing key look
+   * like a broken deployment. lib/mail refuses at send time and names it, and
+   * the detailed health route reports its absence as degraded rather than down.
+   */
+  RESEND_API_KEY: z.string(),
   MAIL_FROM: z
     .string()
     .min(1)
