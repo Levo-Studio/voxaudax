@@ -20,7 +20,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=7896
 ENV HOSTNAME=0.0.0.0
-RUN addgroup -S app && adduser -S app -G app
+# Without tzdata the TZ below is ignored and every scheduled publication silently
+# lands in UTC, an hour or two off what the editor typed.
+ENV TZ=Europe/Berlin
+RUN apk add --no-cache tzdata && addgroup -S app && adduser -S app -G app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public

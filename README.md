@@ -71,14 +71,16 @@ nothing else; the values below say what each one expects.
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | The only database connection. Migrations use it too. |
-| `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` | RustFS object storage |
-| `S3_REGION` | Any non-empty string; RustFS ignores it, the S3 client insists on one |
+| `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | RustFS object storage. `pnpm rustfs:key` builds a bucket-scoped policy and a credential pair |
+| `S3_BUCKET` | `voxaudax` |
+| `S3_REGION` | `eu-central-1`. RustFS ignores it; the S3 client insists on one |
 | `S3_FORCE_PATH_STYLE` | `true` — RustFS addresses buckets by path, not by subdomain |
 | `CDN_BASE_URL` | `https://cdn.levo-studio.com` — prefix an object key is joined to in order to build an image URL |
 | `RESEND_API_KEY`, `MAIL_FROM`, `MAIL_TO_EDITORIAL` | Transactional mail and the contact form recipient |
 | `AUTH_SECRET` | Root key for `@velve/auth`; at least 32 bytes |
 | `HEALTH_TOKEN` | Bearer token guarding the detailed health route |
 | `NEXT_PUBLIC_SITE_URL` | `https://voxaudax.de` — canonical origin, used for metadata, RSS and mail links |
+| `TZ` | `Europe/Berlin` — the zone scheduled publication times are read in |
 
 ## Scripts
 

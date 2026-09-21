@@ -36,6 +36,13 @@ const environmentSchema = z.object({
   HEALTH_TOKEN: z.string().min(32),
 
   NEXT_PUBLIC_SITE_URL: z.url(),
+
+  /**
+   * Articles are scheduled to the minute ("18.09.2026, 07:00") and read by
+   * people in one place, so the server must not decide what that means from
+   * whatever the container's clock happens to be set to.
+   */
+  TZ: z.string().min(1),
 });
 
 const describeFailure = (error: z.ZodError) =>
