@@ -62,6 +62,20 @@ const sendMail = async (message: EmailMessage): Promise<void> => {
  * account, which is a second and separate counter left at the library's
  * default of five attempts refilling at 0.01/s.
  */
+/**
+ * The canonical origin, plus the local one while developing. Without it nobody
+ * can sign in on their own machine: the origin check refuses the request before
+ * it ever reaches a password, which reads like a broken login rather than a
+ * working guard. Gated on NODE_ENV so a production build never carries it.
+ */
+const allowedOrigins = () => {
+  const canonical = new URL(environment().NEXT_PUBLIC_SITE_URL).origin;
+
+  return process.env.NODE_ENV === "production"
+    ? [canonical]
+    : [canonical, "http://localhost:7896", "http://127.0.0.1:7896"];
+};
+
 const SIGN_IN_LOCKOUT = { capacity: 3, refillPerSecond: 1 / 180 } as const;
 
 let instance: VelveAuth<typeof AUTH_IDENTITY_MODE> | undefined;
@@ -76,7 +90,7 @@ export const velveAuth = () =>
     database: authDriver(),
     identity: { mode: AUTH_IDENTITY_MODE },
     keys: keys(),
-    origins: [new URL(environment().NEXT_PUBLIC_SITE_URL).origin],
+    origins: allowedOrigins(),
     email: { send: sendMail },
     rateLimit: { perIpAddress: SIGN_IN_LOCKOUT },
     // Screens 8b, 8c and 12b all say "Mindestens 10 Zeichen"; the library's own
