@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
 import type { TipTapDocument, TipTapNode } from "@/lib/content";
+import { safeHref } from "@/lib/links";
 
 /**
  * Renders what the editor stores. Two shapes of prose exist on the public site
@@ -23,7 +24,8 @@ const headingLevel = (node: TipTapNode) => {
 
 /**
  * A link the editor wrote points anywhere, so it is opened in the same tab and
- * carries no referrer of its own beyond what the origin policy already sends.
+ * carries no referrer of its own beyond what the origin policy already sends —
+ * and only if `safeHref` recognises the address as one a link may lead to.
  */
 const withMarks = (node: TipTapNode, text: ReactNode): ReactNode =>
   (node.marks ?? []).reduce<ReactNode>((wrapped, mark) => {
@@ -32,7 +34,7 @@ const withMarks = (node: TipTapNode, text: ReactNode): ReactNode =>
     if (mark.type === "code")
       return <code className="font-mono text-[0.9em]">{wrapped}</code>;
     if (mark.type === "link") {
-      const href = attribute(mark.attrs, "href");
+      const href = safeHref(attribute(mark.attrs, "href"));
       return href === undefined ? (
         wrapped
       ) : (
