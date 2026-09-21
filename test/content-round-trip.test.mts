@@ -161,6 +161,42 @@ describe("what the server accepts into the body column", () => {
     assert.deepEqual(hrefs, ["/artikel/x", "https://example.org/y"]);
   });
 
+  it("keeps an image this installation serves itself", () => {
+    const parsed = parseDocument({
+      type: "doc",
+      content: [
+        {
+          type: "image",
+          attrs: {
+            src: "/api/bilder/2f0f3f6e-6f64-4d1a-9a6f-0f2f5c8d4f11",
+            alt: "Die Tafel nach der Stunde",
+          },
+        },
+      ],
+    });
+
+    assert.equal(parsed.content[0]?.type, "image");
+    assert.equal(parsed.content[0]?.attrs?.alt, "Die Tafel nach der Stunde");
+  });
+
+  it("drops an image pointed at somebody else's host, which would report every reader", () => {
+    for (const src of [
+      "https://tracker.example/pixel.png",
+      "http://tracker.example/pixel.png",
+      "//tracker.example/pixel.png",
+      "/api/bilder/../../etc/passwd",
+      "javascript:alert(1)",
+      "",
+    ]) {
+      const parsed = parseDocument({
+        type: "doc",
+        content: [{ type: "image", attrs: { src, alt: "" } }],
+      });
+
+      assert.deepEqual(parsed.content.map((node) => node.type), ["paragraph"], src);
+    }
+  });
+
   it("answers an empty document rather than throwing on rubbish", () => {
     assert.deepEqual(parseDocumentJson("{ not json").content, [
       { type: "paragraph", content: [] },

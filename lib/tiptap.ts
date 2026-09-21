@@ -43,6 +43,22 @@ export const acceptHref = (value: unknown) => {
   }
 };
 
+/**
+ * An image address is not a link address, and it was being taken as any string
+ * at all while the `href` beside it went through `acceptHref`. A link is
+ * followed on purpose; an image is fetched by every reader's browser the moment
+ * the article opens, so an external one hands that host the IP address of
+ * everybody who reads it — from a page that was approved as harmless.
+ *
+ * The only images this installation has are the ones it serves itself, so that
+ * is the whole of what an image may point at.
+ */
+const IMAGE_SOURCE =
+  /^\/api\/bilder\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const acceptImageSource = (value: unknown) =>
+  typeof value === "string" && IMAGE_SOURCE.test(value) ? value : null;
+
 const parseMarks = (value: unknown): TipTapMark[] => {
   if (!Array.isArray(value)) return [];
 
@@ -81,9 +97,10 @@ const parseNode = (value: unknown): TipTapNode | null => {
 
   if (node.type === "image") {
     const attributes = asRecord(node.attrs);
-    const src = attributes?.src;
+    const src = acceptImageSource(attributes?.src);
+    if (src === null) return null;
+
     const alt = attributes?.alt;
-    if (typeof src !== "string" || src.length === 0) return null;
     return {
       type: "image",
       attrs: { src, alt: typeof alt === "string" ? alt : "" },

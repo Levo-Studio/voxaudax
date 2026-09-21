@@ -170,7 +170,7 @@ export function BlockEditor({
               <input
                 value={block.src ?? ""}
                 onChange={(event) => replace(index, { src: event.target.value })}
-                placeholder="Bildadresse"
+                placeholder="/api/bilder/… — nur Bilder aus dieser Redaktion"
                 aria-label="Bildadresse"
                 className="w-full rounded-lg border border-bd bg-s2 px-[11px] py-[9px] font-mono text-xs text-tx outline-ac"
               />
