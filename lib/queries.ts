@@ -133,19 +133,48 @@ export const articleBySlug = async (
     : { ...article, authorSlug: toSlug(article.authorName) };
 };
 
-/** Screen 13a shows two from the article's own category and one from outside. */
+/**
+ * Screen 13a shows two from the article's own category and one from outside.
+ * Sorting by "own category first" and taking three does not do that: once a
+ * category has four published articles the reader is offered three more of the
+ * same, which is the one thing the split exists to prevent. Each side is asked
+ * for separately, and either tops the other up when it comes back short — three
+ * rows is what the row of cards is built for.
+ */
+const RELATED_COUNT = 3;
+const RELATED_FROM_OWN_CATEGORY = 2;
+
 export const relatedArticles = async (
   article: FullArticle,
-): Promise<ArticleTeaser[]> =>
-  dated(
-    await teaserQuery()
-      .where(and(live(), sql`${articles.id} <> ${article.id}`))
-      .orderBy(
-        sql`(${articles.categoryId} = ${article.categoryId}) desc`,
-        desc(articles.publishedAt),
-      )
-      .limit(3),
-  );
+): Promise<ArticleTeaser[]> => {
+  const otherArticles = and(live(), sql`${articles.id} <> ${article.id}`);
+
+  const near = teaserQuery()
+    .where(and(otherArticles, eq(articles.categoryId, article.categoryId)))
+    .orderBy(desc(articles.publishedAt))
+    .limit(RELATED_COUNT);
+
+  const far = teaserQuery()
+    .where(
+      and(otherArticles, sql`${articles.categoryId} <> ${article.categoryId}`),
+    )
+    .orderBy(desc(articles.publishedAt))
+    .limit(RELATED_COUNT);
+
+  const [own, elsewhere] = await Promise.all([near, far]);
+
+  const chosen = [
+    ...dated(own).slice(0, RELATED_FROM_OWN_CATEGORY),
+    ...dated(elsewhere).slice(0, RELATED_COUNT - RELATED_FROM_OWN_CATEGORY),
+  ];
+
+  const spare = [
+    ...dated(own).slice(RELATED_FROM_OWN_CATEGORY),
+    ...dated(elsewhere).slice(RELATED_COUNT - RELATED_FROM_OWN_CATEGORY),
+  ].sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+
+  return [...chosen, ...spare].slice(0, RELATED_COUNT);
+};
 
 /**
  * A slug survives the article it named. A link printed in the school paper or
