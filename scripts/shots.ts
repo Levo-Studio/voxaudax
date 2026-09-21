@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, readdir, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import { Pool } from "pg";
@@ -504,8 +504,13 @@ const redeem = async (
 };
 
 const run = async () => {
-  await rm(OUTPUT, { recursive: true, force: true });
+  // Only the photographs from the last run, one by one. Wiping the directory
+  // would take `shots/lighthouse.md` with it, which is the one file in here
+  // that is committed and that no later run rewrites.
   await mkdir(OUTPUT, { recursive: true });
+  for (const entry of await readdir(OUTPUT)) {
+    if (entry.endsWith(".png")) await rm(`${OUTPUT}${entry}`);
+  }
 
   const bucketsBefore = await bucketKeys();
 
