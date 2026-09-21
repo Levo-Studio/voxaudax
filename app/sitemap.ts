@@ -36,9 +36,6 @@ const publishedArticlesOrNoneAtBuildTime = async () => {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = environment().NEXT_PUBLIC_SITE_URL;
-  // Built where the database is unreachable, so an absent article list yields a
-  // sitemap of the standing pages rather than a failed build; the revalidate
-  // window above fills in the articles on the first request after deployment.
   const articles = await publishedArticlesOrNoneAtBuildTime();
   const url = (path: string) => new URL(path, site).toString();
 

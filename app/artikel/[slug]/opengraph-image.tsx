@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { resolveCoverColor } from "@/lib/cover";
+import { coverColorById, resolveCoverColor } from "@/lib/cover";
 import { articleBySlug } from "@/lib/queries";
 
 export const size = { width: 1200, height: 630 };
@@ -13,6 +13,9 @@ export const alt = "Titelbild des Artikels";
  * colour and the headline are the ones stored with the article — the same
  * three things a reader sees at the top of it.
  */
+/** What a link to an article that is gone falls back to. */
+const HOUSE = coverColorById("violett");
+
 export default async function ArticleOpenGraphImage({
   params,
 }: {
@@ -31,8 +34,8 @@ export default async function ArticleOpenGraphImage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#4b34e6",
-            color: "#ffffff",
+            background: HOUSE.value,
+            color: HOUSE.text,
             fontSize: 72,
             fontWeight: 800,
           }}

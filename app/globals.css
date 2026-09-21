@@ -14,8 +14,6 @@
   --bd: #dcd8ef;
   --ac: #4b34e6;
   --ac2: #c8410c;
-  --cov: #4b34e6;
-  --covtx: #ffffff;
   color-scheme: light;
 }
 
@@ -28,9 +26,7 @@
     --bd: #2a2440;
     --ac: #a99bff;
     --ac2: #ff8c5e;
-    --cov: #3a28c4;
-    --covtx: #ffffff;
-    color-scheme: dark;
+      color-scheme: dark;
   }
 }
 
@@ -42,8 +38,6 @@
   --bd: #2a2440;
   --ac: #a99bff;
   --ac2: #ff8c5e;
-  --cov: #3a28c4;
-  --covtx: #ffffff;
   color-scheme: dark;
 }
 
@@ -64,8 +58,6 @@
   --color-bd: var(--bd);
   --color-ac: var(--ac);
   --color-ac2: var(--ac2);
-  --color-cov: var(--cov);
-  --color-covtx: var(--covtx);
 }
 
 body {

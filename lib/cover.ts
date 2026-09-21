@@ -1,7 +1,8 @@
 /**
  * The fourteen covers an article can wear. `text` is the ink that belongs on
- * `value` and is the only source for it — the --covtx token is white in both
- * themes, which on Signalgelb or Bernstein would fall far below AA.
+ * `value` and is the only source for it. The template's --cov and --covtx
+ * tokens are gone: one panel colour and one white ink cannot serve fourteen
+ * panels, and white on Signalgelb or Bernstein is far below AA.
  */
 export const COVER_COLORS = [
   { id: "violett", name: "Violett", value: "#4b34e6", text: "#ffffff" },

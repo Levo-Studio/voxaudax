@@ -1,8 +1,13 @@
 import { ImageResponse } from "next/og";
 
+import { coverColorById } from "@/lib/cover";
+
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Vox Audax — Schülerzeitung des Uhland-Gymnasiums";
+
+/** The paper's own cover: the same violet an article wearing it would get. */
+const HOUSE = coverColorById("violett");
 
 /** What a link to the paper itself looks like when someone shares it. */
 export default function SiteOpenGraphImage() {
@@ -15,8 +20,8 @@ export default function SiteOpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          background: "#4b34e6",
-          color: "#ffffff",
+          background: HOUSE.value,
+          color: HOUSE.text,
           padding: 64,
         }}
       >
