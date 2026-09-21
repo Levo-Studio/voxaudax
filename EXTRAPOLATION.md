@@ -170,6 +170,25 @@ am Text klebt und nicht an den Rand der 44px-Fläche rutscht.
 | Verteilung der Cover-Farbe | Hash über den Titel, Avalanche-Stufe vor dem Modulo | Ohne sie liegen vier der zwölf echten Überschriften auf einer Farbe |
 | „Weiterlesen" auf dem Artikel | Gleiche Kategorie zuerst, dann die neuesten | 13a zeigt zwei aus der eigenen Kategorie und einen fremden |
 
+### Systemmails: was der Entwurf zeigt und was nicht
+
+Die Mail-Karten in **11b**, **8b**, **12a** und **12b** sind Ausschnitte, keine
+vollständigen Mails.
+
+- Die Zeile „An alle Admins und …" samt fettem Betreff sitzt im **Mock-Kopf des
+  Mailprogramms**, und „Die Mail, die ankommt" ist eine Beschriftung des
+  Entwurfsdokuments. Beides wird nicht in die Mail gerendert: die Empfängerliste
+  ist der Umschlag, die fette Zeile der Betreff.
+- **Kopf und Fußzeile** sind ergänzt, weil eine eigenständige Mail einen
+  erkennbaren Absender braucht. Wortmarke wie in 8b und 12b, Fußzeile im
+  Wortlaut des Entwurfs.
+- **Vorschautexte** zeichnet der Entwurf nicht. Sie ergänzen, was der Betreff
+  weglässt, statt ihn zu wiederholen.
+- **Das Meme hat keinen Titel**, also nutzt seine Freigabemail den ausgeschriebenen
+  Betreff aus 11b statt eines Titelmusters.
+- „Du bekommst es persönlich von **ihr**." (12a) ist gegendert und aus einem Namen
+  nicht ableitbar, also trägt der Prüfer sein Pronomen mit.
+
 ---
 
 ## 6. Abweichungen auf Ansage des Auftraggebers
