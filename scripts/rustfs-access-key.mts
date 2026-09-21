@@ -3,129 +3,116 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /**
- * Builds a least-privilege RustFS policy for one bucket, and a credential pair
+ * Emits a RustFS policy document scoped to one bucket, plus a credential pair
  * to attach it to.
  *
- * Scoped to the whole bucket rather than to a prefix on purpose: RustFS has an
- * open report of prefix-conditioned policies answering 403 even when the
- * ListBucket condition and the object ARNs agree (rustfs/rustfs#1399). A bucket
- * that holds nothing but this project's objects does not need the prefix to be
- * the security boundary, and a boundary that might silently fail closed is
- * worse than one that is simply coarser.
+ * The envelope is the one the RustFS console shows — `ID`, an empty `Sid`, an
+ * empty `Condition` — so the output can be pasted straight in. What it drops
+ * from the built-in admin policy is `admin:*`, `kms:*` and `sts:AssumeRole`:
+ * those are server-wide and take no resource, so there is no version of them
+ * that reaches only one bucket.
+ *
+ * Scoped to the bucket rather than to a prefix on purpose: RustFS has an open
+ * report of prefix-conditioned policies answering 403 even when the ListBucket
+ * condition and the object ARNs agree (rustfs/rustfs#1399).
  */
 
 const S3_ARN_PREFIX = "arn:aws:s3:::";
 
-type Role = "app" | "readonly";
+type Role = "full" | "app" | "readonly";
 
-/**
- * What the application genuinely does: hand out a presigned PUT, read an
- * original back to derive the WebP variants, drop an object when an editor
- * deletes a meme or replaces a cover, and whatever handshake the SDK performs.
- * Anything absent here — creating buckets, editing policies, configuring
- * versioning — is denied by omission.
- */
-const ACTIONS_BY_ROLE: Record<Role, { onBucket: string[]; onObjects: string[] }> = {
-  app: {
-    onBucket: ["s3:GetBucketLocation", "s3:ListBucket"],
-    onObjects: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
-  },
-  readonly: {
-    onBucket: ["s3:GetBucketLocation", "s3:ListBucket"],
-    onObjects: ["s3:GetObject"],
-  },
+const ACTIONS_BY_ROLE: Record<Role, string[]> = {
+  /** Everything S3 can do, but only inside this bucket. */
+  full: ["s3:*"],
+  /**
+   * What the application actually does: hand out a presigned PUT, read an
+   * original back to derive the WebP variants, delete what an editor removed,
+   * and whatever handshake the SDK performs.
+   */
+  app: [
+    "s3:GetBucketLocation",
+    "s3:ListBucket",
+    "s3:GetObject",
+    "s3:PutObject",
+    "s3:DeleteObject",
+  ],
+  /** For whatever only serves the files, such as the content delivery host. */
+  readonly: ["s3:GetBucketLocation", "s3:ListBucket", "s3:GetObject"],
 };
 
-const buildPolicy = (bucket: string, role: Role) => {
-  const { onBucket, onObjects } = ACTIONS_BY_ROLE[role];
-
-  return {
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Sid: "BucketLevel",
-        Effect: "Allow",
-        Action: onBucket,
-        Resource: [`${S3_ARN_PREFIX}${bucket}`],
-      },
-      {
-        Sid: "ObjectLevel",
-        Effect: "Allow",
-        Action: onObjects,
-        Resource: [`${S3_ARN_PREFIX}${bucket}/*`],
-      },
-    ],
-  };
-};
+const buildPolicy = (bucket: string, role: Role) => ({
+  ID: "",
+  Version: "2012-10-17",
+  Statement: [
+    {
+      Sid: "",
+      Effect: "Allow",
+      Action: ACTIONS_BY_ROLE[role],
+      Resource: [`${S3_ARN_PREFIX}${bucket}`, `${S3_ARN_PREFIX}${bucket}/*`],
+      Condition: {},
+    },
+  ],
+});
 
 /** Upper-case alphanumerics, the shape S3 tooling expects of a key id. */
 const generateAccessKeyId = () => {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  const bytes = randomBytes(20);
-  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+  return Array.from(
+    randomBytes(20),
+    (byte) => alphabet[byte % alphabet.length],
+  ).join("");
 };
 
 /** 32 bytes, base64url so it survives an .env file without quoting. */
 const generateSecretAccessKey = () => randomBytes(32).toString("base64url");
 
 const readOption = (name: string, fallback: string) => {
-  const flag = `--${name}`;
-  const index = process.argv.indexOf(flag);
+  const index = process.argv.indexOf(`--${name}`);
   if (index === -1) return fallback;
 
   const value = process.argv[index + 1];
   if (value === undefined || value.startsWith("--")) {
-    throw new Error(`${flag} needs a value`);
+    throw new Error(`--${name} needs a value`);
   }
   return value;
 };
 
 const isRole = (value: string): value is Role =>
-  value === "app" || value === "readonly";
+  value === "full" || value === "app" || value === "readonly";
 
 const main = async () => {
   const bucket = readOption("bucket", "voxaudax");
-  const role = readOption("role", "app");
+  const role = readOption("role", "full");
   const outputDirectory = readOption("out", "");
 
   if (!isRole(role)) {
-    throw new Error(`--role must be "app" or "readonly", got "${role}"`);
+    throw new Error(`--role must be full, app or readonly, got "${role}"`);
   }
 
   const policyName = `${bucket}-${role}`;
-  const policy = buildPolicy(bucket, role);
-  const accessKeyId = generateAccessKeyId();
-  const secretAccessKey = generateSecretAccessKey();
-  const policyJson = `${JSON.stringify(policy, null, 2)}\n`;
+  const policyJson = `${JSON.stringify(buildPolicy(bucket, role), null, 2)}\n`;
 
   if (outputDirectory !== "") {
     await mkdir(outputDirectory, { recursive: true });
-    const policyPath = join(outputDirectory, `${policyName}.policy.json`);
+    const policyPath = join(outputDirectory, `${policyName}.json`);
     await writeFile(policyPath, policyJson, { mode: 0o600 });
-    console.log(`Policy written to ${policyPath}`);
-    console.log(
-      "The credentials are printed below and deliberately not written to disk.\n",
-    );
+    console.error(`Policy written to ${policyPath}`);
   }
 
-  console.log(`# Policy "${policyName}" — bucket ${bucket}, role ${role}`);
-  console.log(policyJson);
+  process.stdout.write(policyJson);
 
-  console.log("# Credentials — store these in a password manager, not in a file");
-  console.log(`S3_ACCESS_KEY_ID=${accessKeyId}`);
-  console.log(`S3_SECRET_ACCESS_KEY=${secretAccessKey}`);
-  console.log();
-
-  console.log("# In RustFS, in this order:");
-  console.log(`#   1. create the bucket "${bucket}" if it does not exist`);
-  console.log(`#   2. add a policy named "${policyName}" with the JSON above`);
-  console.log("#   3. add a user with the access key and secret above");
-  console.log(`#   4. attach "${policyName}" to that user`);
-  console.log(
-    "#      Console, or the admin API: add-user, then set-user-or-group-policy.",
+  console.error(`\n# Policy name: ${policyName}`);
+  console.error("# Credentials — keep these in a password manager, not a file");
+  console.error(`S3_ACCESS_KEY_ID=${generateAccessKeyId()}`);
+  console.error(`S3_SECRET_ACCESS_KEY=${generateSecretAccessKey()}`);
+  console.error(
+    `\n# In RustFS: create bucket "${bucket}", add the policy above under the`,
   );
-  console.log(
-    `#   Do not also attach a built-in policy such as readwrite — it grants every bucket.`,
+  console.error(
+    `# name "${policyName}", add a user with those credentials, attach it.`,
+  );
+  console.error(
+    "# Do not also attach a built-in policy such as readwrite — those reach every bucket.",
   );
 };
 
