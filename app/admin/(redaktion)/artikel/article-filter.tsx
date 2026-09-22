@@ -87,21 +87,22 @@ export function ArticleFilter({
         autoComplete="off"
         className="h-[38px] min-w-0 flex-1 rounded-lg border border-bd bg-s2 px-[11px] font-control text-[13.5px] font-semibold text-tx outline-ac placeholder:text-tm"
       />
-      <label className="flex items-center gap-2 text-[12.5px] font-semibold text-tm">
-        Sortieren
-        <select
-          name="sort"
-          value={sort}
-          onChange={(event) => go(hrefFor({ sort: event.target.value }))}
-          className="h-[38px] rounded-lg border border-bd bg-s2 px-2.5 font-control text-[12.5px] font-semibold text-tx outline-ac"
-        >
-          {sorts.map((one) => (
-            <option key={one.key} value={one.key}>
-              {one.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      {/* The word "Sortieren" beside a list of sort orders says what the list
+          already says. It stays as the accessible name, where it is the only
+          thing that tells a screen reader what the control is for. */}
+      <select
+        name="sort"
+        value={sort}
+        aria-label="Sortieren"
+        onChange={(event) => go(hrefFor({ sort: event.target.value }))}
+        className="h-[38px] rounded-lg border border-bd bg-s2 px-2.5 font-control text-[12.5px] font-semibold text-tx outline-ac"
+      >
+        {sorts.map((one) => (
+          <option key={one.key} value={one.key}>
+            {one.label}
+          </option>
+        ))}
+      </select>
       <button type="submit" className="sr-only">
         Anwenden
       </button>

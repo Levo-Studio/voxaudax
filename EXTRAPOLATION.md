@@ -524,6 +524,11 @@ die Sortierung beim Wählen. Der Knopf stand nur zwischen den beiden. Er bleibt
 als `sr-only`-Absender im Formular, damit die Liste ohne Skript weiter
 funktioniert und die Adresse in beiden Fällen der ganze Zustand bleibt.
 
+→ Das Wort „Sortieren“ neben einer Liste von Sortierungen sagt, was die
+Liste schon sagt; es steht nur noch als zugänglicher Name auf der Auswahl, wo
+es das einzige ist, das einem Screenreader mitteilt, wofür das Bedienelement
+da ist.
+
 → Suchfeld und Auswahl haben jetzt dieselbe feste Höhe. Sie trugen dieselbe
 Polsterung, aber zwei Schriftgrößen, und ein `select` bringt zusätzlich eine
 eigene Höhe mit.
