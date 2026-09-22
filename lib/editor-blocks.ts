@@ -1,4 +1,5 @@
 import type { TipTapDocument, TipTapMark, TipTapNode } from "@/lib/content";
+import { IS_URL, splitOnUrl } from "@/lib/markdown";
 import { acceptHref } from "@/lib/tiptap";
 
 /**
@@ -251,3 +252,21 @@ export const blocksToDocument = (
     ? { type: "doc", content: [{ type: "paragraph", content: [] }] }
     : { type: "doc", content };
 };
+
+/**
+ * Plain text as HTML, with any address in it wrapped in an anchor. What counts
+ * as an address is the markdown side's rule, so a link pasted into the rich
+ * text and one written in markdown are the same link — and `htmlToInline`
+ * still decides afterwards whether the href survives, which is what keeps a
+ * `javascript:` URL out however it arrived.
+ */
+export const linkedHtml = (text: string) =>
+  text
+    .split(splitOnUrl())
+    .filter((piece) => piece.length > 0)
+    .map((piece) =>
+      IS_URL.test(piece)
+        ? `<a href="${escapeAttribute(piece)}">${escapeText(piece)}</a>`
+        : escapeText(piece),
+    )
+    .join("");

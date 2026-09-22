@@ -409,3 +409,73 @@ export const countPendingReview = async () => {
 
   return row?.articles ?? 0;
 };
+
+/**
+ * A category the editors add while filing an article. The chip row on the home
+ * page reads the table, so a new one appears there by itself — as soon as
+ * something is published in it, which is the rule that keeps a chip from
+ * leading into an empty archive.
+ *
+ * A name that already exists returns the row that has it rather than a second
+ * one beside it: the slug is what an address is built from, and two categories
+ * sharing one would be two chips leading to the same list.
+ */
+export const createCategory = async (name: string) => {
+  const slug = slugify(name);
+  if (slug.length === 0) return null;
+
+  const [existing] = await db
+    .select({ id: categories.id, slug: categories.slug, name: categories.name })
+    .from(categories)
+    .where(eq(categories.slug, slug))
+    .limit(1);
+
+  if (existing !== undefined) return existing;
+
+  // `position` orders the chip row and is unique, so the new one goes last.
+  const [last] = await db
+    .select({ highest: sql<number>`coalesce(max(${categories.position}), 0)` })
+    .from(categories);
+
+  const [created] = await db
+    .insert(categories)
+    .values({ slug, name: name.trim(), position: (last?.highest ?? 0) + 1 })
+    .returning({ id: categories.id, slug: categories.slug, name: categories.name });
+
+  return created ?? null;
+};
+
+/**
+ * Whether an address is still to be had. `freeSlug` would silently append a
+ * number, which is the right thing when a draft is created and the wrong thing
+ * when somebody is typing an address on purpose — so the editor asks first and
+ * says which of the two it is.
+ */
+export const slugStanding = async (articleId: string, wanted: string) => {
+  const slug = slugify(wanted);
+  if (slug.length === 0) return { slug, free: false as const, reason: "leer" as const };
+
+  const [taken] = await db
+    .select({ id: articles.id })
+    .from(articles)
+    .where(eq(articles.slug, slug))
+    .limit(1);
+
+  if (taken !== undefined) {
+    return taken.id === articleId
+      ? { slug, free: true as const, reason: "eigener" as const }
+      : { slug, free: false as const, reason: "belegt" as const };
+  }
+
+  // A slug an article once had still resolves, so handing it to another one
+  // would break the redirect that promise rests on.
+  const [historic] = await db
+    .select({ articleId: slugHistory.articleId })
+    .from(slugHistory)
+    .where(eq(slugHistory.oldSlug, slug))
+    .limit(1);
+
+  return historic === undefined || historic.articleId === articleId
+    ? { slug, free: true as const, reason: "frei" as const }
+    : { slug, free: false as const, reason: "vergeben" as const };
+};

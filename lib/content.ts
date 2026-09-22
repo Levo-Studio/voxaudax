@@ -28,4 +28,10 @@ export type ArticleCover = {
   readonly line: string;
   readonly colorId: CoverColorId;
   readonly imageId?: string;
+  /**
+   * Whether the panel carries the template's grid. Absent on every row written
+   * before the switch existed, and absent means on — which is what those rows
+   * have always drawn.
+   */
+  readonly grid?: boolean;
 };

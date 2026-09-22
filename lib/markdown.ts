@@ -24,6 +24,31 @@ const INLINE = /(\*\*[^*]+\*\*|\*[^*]+\*|(?<!!)\[[^\]]*\]\([^)\s]*\))/;
 /** A line that is nothing but an image is the image block the editor draws. */
 const IMAGE_LINE = /^!\[([^\]]*)\]\(([^)\s]*)\)\s*$/;
 
+/**
+ * A bare address in running text. Only http and https, which is the same rule
+ * the editor applies to a pasted href — a `javascript:` URL is not a link here
+ * either. The trailing class excludes the punctuation a sentence puts after an
+ * address, so "siehe https://example.org." does not link the full stop.
+ *
+ * Two of them, because one cannot be both: `split` needs the global flag, and a
+ * global regular expression remembers where it last matched, so testing with it
+ * would answer differently on every second call.
+ */
+const URL_PATTERN = "https?:\\/\\/[^\\s<>\"']+[^\\s<>\"'.,;:!?)\\]]";
+export const splitOnUrl = () => new RegExp(`(${URL_PATTERN})`, "g");
+export const IS_URL = new RegExp(`^${URL_PATTERN}$`);
+
+/** Plain text, with any address in it turned into a link. */
+const linkedText = (text: string): TipTapNode[] =>
+  text
+    .split(splitOnUrl())
+    .filter((piece) => piece.length > 0)
+    .map((piece) =>
+      IS_URL.test(piece)
+        ? { type: "text", text: piece, marks: [{ type: "link", attrs: { href: piece } }] }
+        : { type: "text", text: piece },
+    );
+
 const inlineNodes = (text: string): TipTapNode[] => {
   const nodes: TipTapNode[] = [];
 
@@ -52,7 +77,7 @@ const inlineNodes = (text: string): TipTapNode[] => {
       continue;
     }
 
-    nodes.push({ type: "text", text: piece });
+    nodes.push(...linkedText(piece));
   }
 
   return nodes;

@@ -43,6 +43,7 @@ export default async function ArticlePreviewPage({
           <ArticleCover
             title={article.title}
             colorId={article.cover.colorId}
+            grid={article.cover.grid}
             eyebrow="Titelthema"
             word={article.cover.word}
             line={article.cover.line}

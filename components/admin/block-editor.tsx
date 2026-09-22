@@ -1,10 +1,18 @@
 "use client";
 
-import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  type ClipboardEvent,
+  type KeyboardEvent,
+} from "react";
 
 import {
   emptyBlock,
   htmlToInline,
+  linkedHtml,
   inlineToHtml,
   type Block,
   type BlockKind,
@@ -36,6 +44,65 @@ const BLOCK_CLASS: Record<BlockKind, string> = {
 const TOOL_CLASS =
   "cursor-pointer rounded-[7px] border-none bg-transparent px-[11px] py-[7px] font-control text-[13px] font-semibold text-tx transition-colors duration-200 ease-out hover:bg-s2";
 
+/**
+ * One editable line, and the reason it is a component of its own: React writes
+ * `dangerouslySetInnerHTML` to the DOM whenever the string differs from the one
+ * it last rendered, and assigning `innerHTML` throws away the nodes the caret
+ * is sitting in. With the html in state, every keystroke therefore put the
+ * caret back at position 0 and the next letter landed in front of the last —
+ * the text came out reversed.
+ *
+ * So the comparison below deliberately ignores `html`. While a line is being
+ * typed in, the element owns its own markup and React is told nothing changed;
+ * `html` reaches React again only when the line becomes something else — a
+ * heading, a quote — and then the caret may move, which is what a toolbar press
+ * does anyway.
+ *
+ * Every handler it is given reads through a ref, because this component keeps
+ * whichever one it was mounted with.
+ */
+const EditableLine = memo(
+  function EditableLine({
+    block,
+    index,
+    className,
+    onFocusLine,
+    onKeyDown,
+    onPaste,
+    onInput,
+  }: {
+    block: Block;
+    index: number;
+    className: string;
+    onFocusLine: (index: number) => void;
+    onKeyDown: (event: KeyboardEvent<HTMLDivElement>, index: number) => void;
+    onPaste: (event: ClipboardEvent<HTMLDivElement>) => void;
+    onInput: (id: string, html: string) => void;
+  }) {
+    return (
+      <div
+        contentEditable
+        suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="false"
+        tabIndex={0}
+        onFocus={() => onFocusLine(index)}
+        onKeyDown={(event) => onKeyDown(event, index)}
+        onPaste={onPaste}
+        onInput={(event) => onInput(block.id, event.currentTarget.innerHTML)}
+        data-block-id={block.id}
+        dangerouslySetInnerHTML={{ __html: block.html }}
+        className={className}
+      />
+    );
+  },
+  (before, after) =>
+    before.block.id === after.block.id &&
+    before.block.kind === after.block.kind &&
+    before.index === after.index &&
+    before.className === after.className,
+);
+
 export type BlockEditorHandle = {
   readonly blocks: readonly Block[];
 };
@@ -48,6 +115,54 @@ export function BlockEditor({
   onChange: (blocks: readonly Block[]) => void;
 }) {
   const focused = useRef<number>(0);
+
+  // The editable lines keep the handlers they were mounted with, so those read
+  // the current blocks through here rather than through a closure.
+  const latest = useRef(blocks);
+  latest.current = blocks;
+  const report = useRef(onChange);
+  report.current = onChange;
+
+  const onFocusLine = useCallback((index: number) => {
+    focused.current = index;
+  }, []);
+
+  const lines = useRef<HTMLDivElement>(null);
+
+  /**
+   * Which line the caret belongs in once React has drawn the new list. Enter
+   * and Backspace change how many lines there are, and the browser leaves the
+   * caret wherever the old element was — so the line that should have it is
+   * named here and claimed in the effect below.
+   */
+  const wanted = useRef<{ id: string; atEnd: boolean } | null>(null);
+
+  useEffect(() => {
+    const claim = wanted.current;
+    if (claim === null) return;
+    wanted.current = null;
+
+    const line = lines.current?.querySelector<HTMLElement>(
+      `[data-block-id="${claim.id}"]`,
+    );
+    if (line === null || line === undefined) return;
+
+    line.focus();
+
+    const range = document.createRange();
+    range.selectNodeContents(line);
+    range.collapse(!claim.atEnd);
+
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  });
+
+  const onInput = useCallback((id: string, html: string) => {
+    report.current(
+      latest.current.map((block) => (block.id === id ? { ...block, html } : block)),
+    );
+  }, []);
 
   const replace = (index: number, patch: Partial<Block>) =>
     onChange(blocks.map((block, position) => (position === index ? { ...block, ...patch } : block)));
@@ -69,12 +184,6 @@ export function BlockEditor({
     document.execCommand(command);
   };
 
-  const applyLink = () => {
-    const href = window.prompt("Wohin soll der Link führen?", "https://");
-    if (href === null || href.trim().length === 0) return;
-    document.execCommand("createLink", false, href.trim());
-  };
-
   /**
    * The clipboard is not a trusted source of markup. A block's `html` is handed
    * to `dangerouslySetInnerHTML`, so a copied `<img onerror=…>` would run in
@@ -90,7 +199,13 @@ export function BlockEditor({
 
     const html = event.clipboardData.getData("text/html");
     if (html.length === 0) {
-      document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+      // Plain text, so any address in it is still bare: it is turned into a
+      // link here rather than through a button that asks for one. The same
+      // walk as below decides what an href may be, so nothing reaches the
+      // document that the server would not accept.
+      const text = event.clipboardData.getData("text/plain");
+      const linked = inlineToHtml(htmlToInline(linkedHtml(text)));
+      document.execCommand("insertHTML", false, linked);
       return;
     }
 
@@ -105,7 +220,9 @@ export function BlockEditor({
         current.kind === "bulletItem" || current.kind === "orderedItem"
           ? current.kind
           : "paragraph";
-      onChange([...blocks.slice(0, index + 1), emptyBlock(kind), ...blocks.slice(index + 1)]);
+      const fresh = emptyBlock(kind);
+      wanted.current = { id: fresh.id, atEnd: false };
+      onChange([...blocks.slice(0, index + 1), fresh, ...blocks.slice(index + 1)]);
       return;
     }
 
@@ -113,6 +230,11 @@ export function BlockEditor({
       const element = event.currentTarget;
       if (element.textContent?.length === 0) {
         event.preventDefault();
+        // The caret goes to the end of the line above, where it would be if the
+        // two had been one line all along — so holding Backspace keeps deleting
+        // instead of stopping at every empty line.
+        const before = blocks[index - 1] ?? blocks[index + 1];
+        if (before !== undefined) wanted.current = { id: before.id, atEnd: true };
         onChange(blocks.filter((_block, position) => position !== index));
       }
     }
@@ -134,9 +256,6 @@ export function BlockEditor({
         <button type="button" className={`${TOOL_CLASS} italic`} onMouseDown={(event) => event.preventDefault()} onClick={() => applyMark("italic")} aria-label="Kursiv">
           I
         </button>
-        <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={applyLink}>
-          Link
-        </button>
         <span aria-hidden className="mx-[5px] h-5 w-px bg-bd" />
         <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={() => applyKind("bulletItem")}>
           Liste
@@ -152,7 +271,7 @@ export function BlockEditor({
         </button>
       </div>
 
-      <div className="mt-6 flex max-w-[68ch] flex-col gap-3">
+      <div ref={lines} className="mt-6 flex max-w-[68ch] flex-col gap-3">
         {blocks.map((block, index) =>
           block.kind === "horizontalRule" ? (
             <div key={block.id} className="flex items-center gap-3">
@@ -183,34 +302,15 @@ export function BlockEditor({
               />
             </div>
           ) : (
-            <div
+            <EditableLine
               key={block.id}
-              contentEditable
-              suppressContentEditableWarning
-              role="textbox"
-              aria-multiline="false"
-              tabIndex={0}
-              onFocus={() => {
-                focused.current = index;
-              }}
-              onKeyDown={(event) => onKeyDown(event, index)}
+              block={block}
+              index={index}
+              onFocusLine={onFocusLine}
+              onKeyDown={onKeyDown}
               onPaste={onPaste}
-              onInput={(event) => {
-                // The block's `html` is read back rather than re-rendered: the
-                // element owns its own markup while the caret is inside it, and
-                // writing it back through React would move the caret to the end
-                // on every keystroke. `dangerouslySetInnerHTML` therefore only
-                // ever seeds it, because the key never changes while it is
-                // being typed in.
-                const written = event.currentTarget.innerHTML;
-                onChange(
-                  blocks.map((candidate, position) =>
-                    position === index ? { ...candidate, html: written } : candidate,
-                  ),
-                );
-              }}
-              dangerouslySetInnerHTML={{ __html: block.html }}
-              className={`min-h-[1.7em] outline-none focus-visible:outline-2 focus-visible:outline-ac ${BLOCK_CLASS[block.kind]}`}
+              onInput={onInput}
+              className={`min-h-[1.7em] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ac ${BLOCK_CLASS[block.kind]}`}
             />
           ),
         )}

@@ -108,6 +108,8 @@ type ArticleCoverProps = {
   /** Feeds the hash that picks the colour when the editor left it alone. */
   title: string;
   colorId?: CoverColorId | null;
+  /** Off turns the grid off where the variant draws one; absent means on. */
+  grid?: boolean;
   eyebrow: string;
   word: string;
   line?: string;
@@ -122,6 +124,7 @@ type ArticleCoverProps = {
 
 export function ArticleCover({
   title,
+  grid,
   colorId,
   eyebrow,
   word,
@@ -155,7 +158,7 @@ export function ArticleCover({
       className={`relative flex flex-col overflow-hidden ${styles.eyebrowInFlow ? "" : "justify-end"} ${styles.panel}`}
       style={{ background: color.value, color: color.text }}
     >
-      {styles.hasGrid ? (
+      {styles.hasGrid && grid !== false ? (
         <div
           aria-hidden
           className="absolute inset-0"

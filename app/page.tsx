@@ -126,6 +126,7 @@ export default async function HomePage() {
                 variant="hero"
                 title={lead.title}
                 colorId={lead.cover.colorId}
+                grid={lead.cover.grid}
                 eyebrow="Titelthema"
                 word={lead.cover.word}
                 line={lead.cover.line}

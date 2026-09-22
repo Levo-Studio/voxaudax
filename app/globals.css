@@ -91,6 +91,17 @@ select:focus-visible {
 }
 
 /**
+ * A control that fills its panel from edge to edge has no room for a ring 3px
+ * outside itself: the panel clipped it, and what was left read as a stray blue
+ * line lying across the top. Drawn on the inside instead — same 2px, same
+ * colour, 6.9:1 against the field in light and 8.1:1 in dark.
+ */
+.va-focus-inside:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
+/**
  * The template's own entrance, `@keyframes vaIn`, at the template's own values.
  * The reduced-motion block below flattens it to a single frame, so a reader who
  * asked for no motion sees the finished state and never the offset.

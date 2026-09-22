@@ -6,11 +6,21 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { ArticleBody } from "@/components/article-body";
 import { ArticleCover } from "@/components/article-cover";
 import { BlockEditor } from "@/components/admin/block-editor";
-import { Avatar, FIELD_CLASS, LABEL_CLASS, PANEL_CLASS, PRIMARY_BUTTON_CLASS, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
+import {
+  Avatar,
+  FIELD_CLASS,
+  LABEL_CLASS,
+  PANEL_CLASS,
+  PANEL_HEADING_CLASS,
+  PRIMARY_BUTTON_CLASS,
+  QUIET_BUTTON_CLASS,
+} from "@/components/admin/controls";
 import { Segmented } from "@/components/admin/segmented";
 import {
   autosaveAction,
   clearCoverImageAction,
+  createCategoryAction,
+  checkSlugAction,
   renameSlugAction,
   setCoverAltAction,
   submitAction,
@@ -80,8 +90,18 @@ export function Editor({
     word: article.cover.word,
     line: article.cover.line,
     colorId: article.cover.colorId as CoverColorId,
+    grid: article.cover.grid ?? true,
   });
   const [categoryId, setCategoryId] = useState(article.categoryId);
+  const [categoryList, setCategoryList] = useState<readonly Category[]>(categories);
+  const [newCategory, setNewCategory] = useState("");
+  const [slugDraft, setSlugDraft] = useState<string | null>(null);
+  const [slugStanding, setSlugStanding] = useState<{
+    slug: string;
+    free: boolean;
+    reason: string;
+  } | null>(null);
+  const [categoryProblem, setCategoryProblem] = useState<string | null>(null);
   const [publishAt, setPublishAt] = useState(article.publishAt ?? "");
   const [slug, setSlug] = useState(article.slug);
   const [tab, setTab] = useState<"cover" | "meta" | "publish">("cover");
@@ -90,7 +110,7 @@ export function Editor({
   const [alt, setAlt] = useState(coverImageAlt);
   const [coverImage, setCoverImage] = useState(hasCoverImage);
   const [uploadProblem, setUploadProblem] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
+  const [busy, startTransition] = useTransition();
 
   /**
    * Deriving the document from the blocks needs a DOM: `htmlToInline` walks
@@ -128,6 +148,7 @@ export function Editor({
           coverWord: cover.word,
           coverLine: cover.line,
           colorId: cover.colorId,
+          coverGrid: cover.grid ?? true,
           categoryId,
           publishAt,
         });
@@ -150,12 +171,57 @@ export function Editor({
     setMarkdown(null);
   };
 
-  const rename = () => {
-    const wanted = window.prompt("Neuer Slug", slug);
-    if (wanted === null || wanted.trim().length === 0) return;
+  const addCategory = () => {
+    const wanted = newCategory.trim();
+    if (wanted.length === 0) return;
+
     startTransition(async () => {
-      const answer = await renameSlugAction(article.id, wanted.trim());
+      const answer = await createCategoryAction(wanted);
+      if (answer.category === null) {
+        setCategoryProblem("Der Name ergibt keine Kategorie — höchstens 40 Zeichen.");
+        return;
+      }
+      setCategoryProblem(null);
+      setNewCategory("");
+      setCategoryList((known) =>
+        known.some((entry) => entry.id === answer.category!.id)
+          ? known
+          : [...known, answer.category!],
+      );
+      touch(setCategoryId)(answer.category.id);
+    });
+  };
+
+  /**
+   * The browser's own prompt was a system dialog in a page that has a design:
+   * grey, in the wrong typeface, and with no room to say whether the address
+   * is still free. This one is the page's own.
+   */
+  const openRename = () => {
+    setSlugDraft(slug);
+    setSlugStanding(null);
+  };
+
+  useEffect(() => {
+    if (slugDraft === null) return;
+
+    const handle = window.setTimeout(() => {
+      startTransition(async () => {
+        setSlugStanding(await checkSlugAction(article.id, slugDraft));
+      });
+    }, 220);
+
+    return () => window.clearTimeout(handle);
+  }, [article.id, slugDraft]);
+
+  const rename = () => {
+    const wanted = slugDraft?.trim() ?? "";
+    if (wanted.length === 0) return;
+
+    startTransition(async () => {
+      const answer = await renameSlugAction(article.id, wanted);
       if (answer.slug !== null) setSlug(answer.slug);
+      setSlugDraft(null);
     });
   };
 
@@ -218,20 +284,102 @@ export function Editor({
             value={title}
             onChange={(event) => touch(setTitle)(event.target.value)}
             aria-label="Titel"
-            className="mt-2 w-full border-none bg-transparent p-0 text-[25px] leading-[1.08] font-extrabold tracking-[-0.04em] text-tx outline-none md:text-[34px]"
+            className="va-focus-inside mt-2 w-full border-none bg-transparent p-0 text-[25px] leading-[1.08] font-extrabold tracking-[-0.04em] text-tx md:text-[34px]"
           />
           <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px] font-semibold text-tm">
             <span>Slug</span>
             <code className="rounded-md border border-bd bg-s2 px-2 py-1 font-mono text-xs">{slug}</code>
             <button
               type="button"
-              onClick={rename}
-              className="cursor-pointer border-none bg-transparent p-0 font-control text-[12.5px] font-semibold text-ac"
+              onClick={openRename}
+              className="cursor-pointer border-none bg-transparent p-0 font-control text-[12.5px] font-semibold text-ac transition-opacity duration-200 ease-out hover:opacity-75"
             >
               bearbeiten
             </button>
           </div>
         </div>
+
+        {slugDraft === null ? null : (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Slug ändern"
+            className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-5"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setSlugDraft(null);
+            }}
+          >
+            <div className={`${PANEL_CLASS} va-in w-full max-w-[420px]`}>
+              <div className={PANEL_HEADING_CLASS}>Adresse des Artikels</div>
+              <div className="flex flex-col gap-3 p-5">
+                <label className={LABEL_CLASS} htmlFor="slug-draft">
+                  Slug
+                </label>
+                <div className="flex items-baseline gap-2.5">
+                  <input
+                    id="slug-draft"
+                    autoFocus
+                    value={slugDraft}
+                    onChange={(event) => setSlugDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") setSlugDraft(null);
+                      if (event.key === "Enter" && slugStanding?.free === true) rename();
+                    }}
+                    className={`${FIELD_CLASS} font-mono`}
+                  />
+                  {/* Right of the field, because that is where the answer to
+                      "is this one still to be had" belongs — beside what was
+                      typed, not underneath it. */}
+                  <span
+                    className={`shrink-0 text-[11.5px] font-bold whitespace-nowrap ${
+                      slugStanding === null
+                        ? "text-tm"
+                        : slugStanding.free
+                          ? "text-ac"
+                          : "text-ac2"
+                    }`}
+                  >
+                    {slugStanding === null
+                      ? "prüft …"
+                      : slugStanding.reason === "leer"
+                        ? "leer"
+                        : slugStanding.reason === "eigener"
+                          ? "aktuell"
+                          : slugStanding.free
+                            ? "frei"
+                            : "belegt"}
+                  </span>
+                </div>
+
+                <p className="m-0 text-[12.5px] leading-[1.55] font-medium text-tm">
+                  {slugStanding === null || slugStanding.slug.length === 0
+                    ? "Aus dem Namen wird eine Adresse gemacht."
+                    : `/artikel/${slugStanding.slug}`}
+                  {" · "}
+                  Alte Adressen leiten weiter.
+                </p>
+
+                <div className="mt-1 flex flex-wrap gap-2.5">
+                  <button
+                    type="button"
+                    onClick={rename}
+                    disabled={slugStanding === null || !slugStanding.free || busy}
+                    className={`${PRIMARY_BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-45`}
+                  >
+                    Übernehmen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSlugDraft(null)}
+                    className={QUIET_BUTTON_CLASS}
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-5 flex flex-wrap items-center gap-2.5 border-y border-bd px-4 py-2.5 md:px-[30px]">
           <div className="min-w-[190px]">
@@ -273,7 +421,7 @@ export function Editor({
               onChange={(event) => touch(setMarkdown)(event.target.value)}
               aria-label="Markdown"
               rows={20}
-              className="m-0 resize-y bg-s1 px-[26px] py-6 font-mono text-[13px] leading-[1.75] text-tx outline-none"
+              className="va-focus-inside m-0 resize-y bg-s1 px-[26px] py-6 font-mono text-[13px] leading-[1.75] text-tx"
             />
             <div className="bg-s1 px-[26px] py-6">
               <div className={LABEL_CLASS}>Vorschau im echten Layout</div>
@@ -302,7 +450,11 @@ export function Editor({
           <div className="va-in">
             <div className="border-b border-bd px-[18px] pt-[18px] pb-4">
               <div className="flex items-baseline justify-between">
-                <span className={LABEL_CLASS}>Vorschau</span>
+                {/* The article variant, not the card: that is the panel the
+                    reader meets at the top of the piece, and it is the only
+                    one the template draws the grid on — so a preview on a card
+                    showed the switch doing nothing. */}
+                <span className={LABEL_CLASS}>Vorschau · Artikelkopf</span>
                 <span className="text-[11.5px] font-semibold text-tm">
                   {coverImage ? "eigenes Bild" : `generiert · ${colour.name}`}
                 </span>
@@ -311,10 +463,11 @@ export function Editor({
                 <ArticleCover
                   title={title}
                   colorId={cover.colorId}
+                  grid={cover.grid}
                   eyebrow="Titelthema"
                   word={cover.word}
                   line={cover.line}
-                  variant="card"
+                  variant="article"
                 />
               </div>
             </div>
@@ -352,6 +505,50 @@ export function Editor({
                 {colour.name} · Vorschlag kommt aus dem Titel-Hash, eigene Farbwerte sind nicht
                 möglich.
               </p>
+            </div>
+
+            {/* The template draws the grid on every generated cover. On a busy
+                cover word it competes with the type, so it is a choice — and
+                only a choice where the panel is generated: a photograph never
+                had one. */}
+            <div className="flex items-center justify-between gap-4 border-b border-bd px-[18px] py-4">
+              <span>
+                <label className={LABEL_CLASS} htmlFor="cover-grid">
+                  Karo im Hintergrund
+                </label>
+                <span className="mt-1 block text-[11.5px] font-medium text-tm">
+                  {coverImage
+                    ? "Ein eigenes Bild hat kein Karo."
+                    : cover.grid === false
+                      ? "Aus — glatte Fläche."
+                      : "An — wie in der Vorlage."}
+                </span>
+              </span>
+              <label className="inline-flex min-h-11 cursor-pointer items-center">
+                <input
+                  id="cover-grid"
+                  type="checkbox"
+                  checked={cover.grid !== false}
+                  disabled={coverImage}
+                  onChange={(event) =>
+                    touch(setCover)({ ...cover, grid: event.target.checked })
+                  }
+                  className="peer sr-only"
+                />
+                {/* The two states are computed rather than expressed with
+                    peer-checked, because the knob is a descendant of the
+                    track and not its sibling — which is what that variant
+                    selects. */}
+                <span
+                  className={`flex h-6 w-[42px] items-center rounded-full p-[2px] transition-[background,border-color] duration-200 ease-out ${
+                    cover.grid === false
+                      ? "justify-start border border-bd bg-s2"
+                      : "justify-end border border-transparent bg-ac"
+                  } ${coverImage ? "opacity-45" : ""}`}
+                >
+                  <span className="size-[18px] rounded-full bg-s1 shadow-sm" />
+                </span>
+              </label>
             </div>
 
             <div
@@ -422,7 +619,7 @@ export function Editor({
             <div className="border-b border-bd px-[18px] py-4">
               <div className={LABEL_CLASS}>Kategorie</div>
               <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-bold">
-                {categories.map((category) => (
+                {categoryList.map((category) => (
                   <button
                     key={category.id}
                     type="button"
@@ -436,6 +633,39 @@ export function Editor({
                   </button>
                 ))}
               </div>
+
+              {/* The six the paper started with are not the six it will always
+                  need, and the person who finds that out is the one filing the
+                  article. A new one is picked straight away — nobody adds a
+                  category they did not want to use. */}
+              <div className="mt-2.5 flex gap-1.5">
+                <input
+                  value={newCategory}
+                  onChange={(event) => setNewCategory(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    addCategory();
+                  }}
+                  maxLength={40}
+                  placeholder="Eigene Kategorie"
+                  aria-label="Eigene Kategorie"
+                  className={FIELD_CLASS}
+                />
+                <button
+                  type="button"
+                  onClick={addCategory}
+                  disabled={newCategory.trim().length === 0}
+                  className={`${QUIET_BUTTON_CLASS} shrink-0 disabled:cursor-not-allowed disabled:opacity-45`}
+                >
+                  Anlegen
+                </button>
+              </div>
+              {categoryProblem === null ? null : (
+                <p role="alert" className="mt-1.5 text-[11.5px] font-semibold text-ac2">
+                  {categoryProblem}
+                </p>
+              )}
             </div>
 
             <div className="border-b border-bd px-[18px] py-4">

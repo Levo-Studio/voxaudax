@@ -276,6 +276,41 @@ Die Produktion läuft über https und behält beides: der Präfix bindet das Coo
 an genau diesen Host und Pfad und ist dort mehr wert als die Bequemlichkeit
 hier. Gegengeprüft in WebKit, Anmeldung und zehn Navigationen.
 
+### Karo auf dem Titelbild ist eine Entscheidung
+
+Die Vorlage zeichnet das Raster auf jedem erzeugten Cover, ohne es zur Wahl zu
+stellen. Auf einem langen Cover-Wort konkurriert es mit der Schrift.
+
+→ Ein Schalter im Cover-Reiter, gespeichert als `grid` im Cover-JSON. Fehlt das
+Feld — also auf jeder Zeile, die vor dem Schalter geschrieben wurde —, gilt es
+als an, was genau das ist, was diese Zeilen immer gezeichnet haben. Bei einem
+eigenen Foto ist der Schalter gesperrt: ein Foto hatte nie ein Raster.
+
+→ Die Vorschau im Editor zeigt seither die Variante `article` statt `card`. Die
+Karte trägt laut Vorlage gar kein Raster, eine Vorschau darauf hätte den
+Schalter also wirkungslos aussehen lassen.
+
+### Eigene Kategorien aus dem Editor
+
+Die Vorlage zeigt sechs feste Kategorien. Wer beim Schreiben merkt, dass keine
+davon passt, hatte keinen Weg.
+
+→ Ein Feld unter den Chips legt eine an und wählt sie sofort aus. Der Slug und
+die Position in der Chipleiste werden abgeleitet, damit zwei Personen sich über
+keines von beidem uneinig sein können; ein schon vergebener Name liefert die
+vorhandene Zeile zurück statt einer zweiten daneben. Auf der Startseite taucht
+sie auf, sobald der erste Artikel darin veröffentlicht ist.
+
+### Links werden erkannt statt eingetragen
+
+Die Vorlage zeigt einen Link-Knopf in der Werkzeugleiste. Dahinter stand ein
+`window.prompt`.
+
+→ Der Knopf ist weg. Eine eingefügte Adresse wird zum Link, im Rich Text wie in
+Markdown, nach derselben Regel: nur `http` und `https`, und der abschließende
+Satzpunkt bleibt Text. Was ein `href` sein darf, entscheidet weiterhin
+`htmlToInline`.
+
 ### Kein Suche-Knopf im Kopf
 
 Die Vorlage setzt rechts in die Kopfzeile eine Pille „Suche", die auf das

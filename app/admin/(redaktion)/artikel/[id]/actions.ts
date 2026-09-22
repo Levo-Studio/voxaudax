@@ -11,8 +11,10 @@ import { db } from "@/lib/db/client";
 import { articles, images } from "@/lib/db/schema";
 import {
   articleForEditor,
+  createCategory,
   renameSlug,
   saveArticle,
+  slugStanding,
   submitForReview,
 } from "@/lib/editorial/articles";
 import { readDimensions } from "@/lib/image-dimensions";
@@ -32,6 +34,7 @@ const draft = z.object({
   coverWord: z.string().trim().max(40),
   coverLine: z.string().trim().max(120),
   colorId: z.string().refine(isCoverColorId, "unknown cover colour"),
+  coverGrid: z.boolean(),
   categoryId: z.uuid(),
   publishAt: z.string(),
 });
@@ -52,6 +55,7 @@ export const autosaveAction = async (articleId: string, input: DraftInput) => {
     word: parsed.data.coverWord,
     line: parsed.data.coverLine,
     colorId: parsed.data.colorId,
+    grid: parsed.data.coverGrid,
     ...(existing.cover.imageId === undefined ? {} : { imageId: existing.cover.imageId }),
   };
 
@@ -74,6 +78,30 @@ export const renameSlugAction = async (articleId: string, wanted: string) => {
   const slug = await renameSlug(member, articleId, wanted);
   if (slug !== null) revalidatePath(`/admin/artikel/${articleId}`);
   return { slug };
+};
+
+/**
+ * A category added while filing. Any author may add one — they are the people
+ * who find out that the six the paper started with do not cover what they are
+ * writing — and the name is all they give: the slug and the place in the chip
+ * row are derived, so two people cannot disagree about either.
+ */
+export const createCategoryAction = async (name: string) => {
+  await requireCapability("writeOwnArticles");
+
+  const wanted = name.trim();
+  if (wanted.length === 0 || wanted.length > 40) return { category: null };
+
+  const category = await createCategory(wanted);
+  if (category !== null) revalidatePath("/", "layout");
+
+  return { category };
+};
+
+/** Read-only, so the editor can ask on every keystroke while a slug is typed. */
+export const checkSlugAction = async (articleId: string, wanted: string) => {
+  await requireCapability("writeOwnArticles");
+  return slugStanding(articleId, wanted);
 };
 
 export const submitAction = async (articleId: string) => {

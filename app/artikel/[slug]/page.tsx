@@ -110,6 +110,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
             variant="article"
             title={article.title}
             colorId={article.cover.colorId}
+            grid={article.cover.grid}
             eyebrow="Titelthema"
             word={article.cover.word}
             line={article.cover.line}

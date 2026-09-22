@@ -37,6 +37,7 @@ export function ArticleCard({
           variant={variant}
           title={article.title}
           colorId={article.cover.colorId}
+          grid={article.cover.grid}
           eyebrow={article.categoryName}
           word={article.cover.word}
           image={article.coverImage}
@@ -102,6 +103,7 @@ export function ArticleRelated({ article }: { article: ArticleTeaser }) {
         variant="related"
         title={article.title}
         colorId={article.cover.colorId}
+        grid={article.cover.grid}
         eyebrow={article.categoryName}
         word={article.cover.word}
         image={article.coverImage}
