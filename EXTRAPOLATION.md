@@ -21,6 +21,19 @@ Kopf- und Fußzeile, dieselben Abschnittsüberschriften, derselbe Zeilenabstand.
 Der Text liegt in `pages` und ist damit ohne Deploy änderbar — wie das Impressum,
 das 5c ebenfalls als redaktionellen Inhalt behandelt.
 
+Der Text ist inzwischen geschrieben, und zwar aus dem Verhalten der Anwendung
+abgelesen statt aus einer Vorlage übernommen: kein Tracking und keine fremden
+Hosts, das Farbschema im `localStorage` statt in einem Cookie, das
+Kontaktformular ohne jede Speicherung in der Datenbank, die Ratenbremse nur im
+Arbeitsspeicher und nur auf die Adresse, das eine Sitzungscookie, sowie IP und
+Browserkennung in `velve.session` samt ihrer Fristen.
+
+**Drei Angaben darin kann die Anwendung nicht belegen, weil sie dem Betrieb
+gehören, und sie müssen vor dem Livegang zutreffen:** die Aufbewahrung der
+Server-Protokolle von sieben Tagen (im Reverse Proxy einzustellen), ein
+Auftragsverarbeitungsvertrag mit Resend samt Standardvertragsklauseln, und dass
+der Objektspeicher tatsächlich in der EU steht.
+
 ### 404
 
 Nicht entworfen. Kopf- und Fußzeile wie auf jeder öffentlichen Seite, ein Satz,
