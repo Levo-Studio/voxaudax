@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import type { Member } from "@/lib/authorize";
 import { db } from "@/lib/db/client";
 import { articles, images, memes, users } from "@/lib/db/schema";
-import { imageAccess, mayReadImage } from "@/lib/editorial/images";
+import { imageAccess, imageHeaders, mayReadImage } from "@/lib/editorial/images";
 import { pool } from "@/lib/db/pool";
 
 /**
@@ -44,9 +44,12 @@ describe("an image is as reachable as the thing it belongs to", () => {
   let publishedCoverId: string;
   let memeImageId: string;
   let hiddenMemeImageId: string;
+  let looseImageId: string;
+  let scheduledCoverId: string;
 
   let draftId: string;
   let publishedId: string;
+  let scheduledId: string;
   let memeId: string;
   let hiddenMemeId: string;
 
@@ -82,8 +85,16 @@ describe("an image is as reachable as the thing it belongs to", () => {
     publishedCoverId = await insertImage("Aufmacher eines Artikels", owner.id);
     memeImageId = await insertImage("Ein freigegebenes Meme", editor.id);
     hiddenMemeImageId = await insertImage("Ein eingereichtes Meme", editor.id);
+    // Nothing points at this one: the state a picture is in between the upload
+    // and the autosave that writes it into a body.
+    looseImageId = await insertImage("Gerade erst hochgeladen", owner.id);
+    scheduledCoverId = await insertImage("Bild eines geplanten Artikels", owner.id);
 
-    const article = async (status: "draft" | "published", imageId: string) => {
+    const article = async (
+      status: "draft" | "published",
+      imageId: string,
+      publishedAt?: Date,
+    ) => {
       const [created] = await db
         .insert(articles)
         .values({
@@ -100,7 +111,7 @@ describe("an image is as reachable as the thing it belongs to", () => {
           categoryId: category!.id,
           authorId: owner.id,
           status,
-          ...(status === "published" ? { publishedAt: new Date() } : {}),
+          ...(status === "published" ? { publishedAt: publishedAt ?? new Date() } : {}),
         })
         .returning({ id: articles.id });
       return created!.id;
@@ -108,6 +119,13 @@ describe("an image is as reachable as the thing it belongs to", () => {
 
     draftId = await article("draft", draftCoverId);
     publishedId = await article("published", publishedCoverId);
+    // Approved on the Monday, due on the Friday: the status is already
+    // "published" and the hour is not here yet.
+    scheduledId = await article(
+      "published",
+      scheduledCoverId,
+      new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+    );
 
     const meme = async (status: "review" | "published", imageId: string) => {
       const [created] = await db
@@ -126,7 +144,15 @@ describe("an image is as reachable as the thing it belongs to", () => {
     await db.delete(memes).where(eq(memes.id, hiddenMemeId));
     await db.delete(articles).where(eq(articles.id, draftId));
     await db.delete(articles).where(eq(articles.id, publishedId));
-    for (const id of [draftCoverId, publishedCoverId, memeImageId, hiddenMemeImageId]) {
+    await db.delete(articles).where(eq(articles.id, scheduledId));
+    for (const id of [
+      draftCoverId,
+      publishedCoverId,
+      memeImageId,
+      hiddenMemeImageId,
+      looseImageId,
+      scheduledCoverId,
+    ]) {
       await db.delete(images).where(eq(images.id, id));
     }
   });
@@ -172,6 +198,90 @@ describe("an image is as reachable as the thing it belongs to", () => {
 
   it("answers nothing at all for an image that does not exist", async () => {
     assert.equal(await imageAccess(crypto.randomUUID()), null);
+  });
+
+  /**
+   * A scheduled article carries the status days before its hour — that is what
+   * scheduling is. The public read asks for `published_at <= now()`; this asked
+   * only for the status, so the photograph belonging to an embargoed piece was
+   * served to anybody, and cached for a year, while the text was still nobody's
+   * to read.
+   */
+  it("keeps a scheduled article's picture off the public side until its hour", async () => {
+    assert.equal((await imageAccess(scheduledCoverId))?.publiclyVisible, false);
+    assert.equal(await reachable(scheduledCoverId, null), false);
+  });
+
+  it("still shows it to the author who scheduled it, and not to another one", async () => {
+    assert.equal(await reachable(scheduledCoverId, owner), true);
+    assert.equal(await reachable(scheduledCoverId, stranger), false);
+  });
+
+  it("shows it to everybody once the hour has passed", async () => {
+    await db
+      .update(articles)
+      .set({ publishedAt: new Date(Date.now() - 60_000) })
+      .where(eq(articles.id, scheduledId));
+
+    assert.equal((await imageAccess(scheduledCoverId))?.publiclyVisible, true);
+    assert.equal(await reachable(scheduledCoverId, null), true);
+  });
+
+  /**
+   * A picture that belongs to nothing yet used to be served to every member,
+   * which meant that the moment the lookup above stopped finding the article —
+   * as it did while the editor and the parser disagreed about the address —
+   * every draft's pictures were open to the whole redaktion in silence.
+   */
+  it("shows a picture nothing points at yet to whoever uploaded it", async () => {
+    assert.equal((await imageAccess(looseImageId))?.articleId, null);
+    assert.equal(await reachable(looseImageId, owner), true);
+  });
+
+  it("keeps it from another author until it stands in something", async () => {
+    assert.equal(await reachable(looseImageId, stranger), false);
+  });
+
+  it("still shows a meme that waits for its freigabe to any member", async () => {
+    assert.equal(await reachable(hiddenMemeImageId, stranger), true);
+  });
+});
+
+/**
+ * Screen 14 takes an SVG for a sponsor's logo, and an SVG is a document: opened
+ * as an address of its own it runs the script inside it, under this origin and
+ * in the session of whoever opened it. Every page shows the logo through
+ * `<img>`, which runs nothing — so the answer has to be the one thing an
+ * address cannot be opened as a page.
+ */
+describe("a logo is answered as a file, never as a page", () => {
+  const access = (mime: string) => ({
+    key: "logos/x",
+    mime,
+    publiclyVisible: true,
+    articleId: null,
+    belongsToMemeOrSponsor: true,
+    uploadedBy: null,
+  });
+
+  it("hands an SVG over as a download and sandboxes it on top", () => {
+    const headers = imageHeaders(access("image/svg+xml"));
+    assert.equal(headers["content-disposition"], "attachment");
+    assert.equal(headers["content-security-policy"], "sandbox");
+  });
+
+  it("leaves a photograph where it is", () => {
+    const headers = imageHeaders(access("image/jpeg"));
+    assert.equal(headers["content-disposition"], "inline");
+    assert.equal(headers["content-security-policy"], undefined);
+  });
+
+  it("caches only what the public site shows", () => {
+    assert.match(imageHeaders(access("image/png"))["cache-control"]!, /^public,/);
+    assert.equal(
+      imageHeaders({ ...access("image/png"), publiclyVisible: false })["cache-control"],
+      "private, no-store",
+    );
   });
 });
 

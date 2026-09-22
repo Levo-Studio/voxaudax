@@ -120,6 +120,32 @@ export const setMemeVisibility = (memeId: string, visible: boolean) =>
   db.update(memes).set({ visible }).where(eq(memes.id, memeId));
 
 /**
+ * Not the same thing as the switch: that one takes a meme off the wall and
+ * keeps both the row and the file. This is for the picture that has to be gone
+ * — somebody on it who asks for it back — and a picture that stays in the
+ * bucket is not gone. The key travels out so the caller can empty the bucket
+ * after the row, the way a sponsor's logo is removed.
+ *
+ * `memes.imageId` is `on delete restrict`, so the meme goes first.
+ */
+export const deleteMeme = async (memeId: string) => {
+  const [row] = await db
+    .select({ imageId: memes.imageId, key: images.key })
+    .from(memes)
+    .innerJoin(images, eq(images.id, memes.imageId))
+    .where(eq(memes.id, memeId));
+
+  if (row === undefined) return { deleted: false as const, imageKey: null };
+
+  await db.transaction(async (tx) => {
+    await tx.delete(memes).where(eq(memes.id, memeId));
+    await tx.delete(images).where(eq(images.id, row.imageId));
+  });
+
+  return { deleted: true as const, imageKey: row.key };
+};
+
+/**
  * The image is not a parameter. It was, and a posted `imageId` meant the alt
  * text of any row in `images` could be rewritten through this form — including
  * the cover of somebody else's unpublished draft, which is the field approval
@@ -164,8 +190,14 @@ export const approveMeme = async (approver: Member, memeId: string) => {
   }
   if (row.alt === null || row.alt.trim().length === 0) return "alt_text_missing" as const;
 
-  await db.update(memes).set({ status: "published" }).where(eq(memes.id, memeId));
-  return "approved" as const;
+  // See `rejectMeme`: the status is asked again where the row is written.
+  const [updated] = await db
+    .update(memes)
+    .set({ status: "published" })
+    .where(and(eq(memes.id, memeId), eq(memes.status, "review")))
+    .returning({ id: memes.id });
+
+  return updated === undefined ? ("unknown" as const) : ("approved" as const);
 };
 
 export const rejectMeme = async (approver: Member, memeId: string, reason: string) => {
@@ -186,10 +218,14 @@ export const rejectMeme = async (approver: Member, memeId: string, reason: strin
   // the decision sticks, and `visible` keeps it off the wall even if somebody
   // later publishes it by hand. The reason goes with them, because a refusal
   // nobody can read is a refusal nobody can answer.
-  await db
+  // The status is in the write as well, so that two reviewers deciding at the
+  // same moment cannot both land: the first decision stands and the second is
+  // told the meme has left the queue.
+  const [updated] = await db
     .update(memes)
     .set({ status: "abgelehnt", visible: false, rejectionReason: reason })
-    .where(eq(memes.id, memeId));
+    .where(and(eq(memes.id, memeId), eq(memes.status, "review")))
+    .returning({ id: memes.id });
 
-  return "rejected" as const;
+  return updated === undefined ? ("unknown" as const) : ("rejected" as const);
 };

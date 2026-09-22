@@ -2,16 +2,25 @@ import type { Metadata } from "next";
 
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { environment } from "@/lib/env";
+import { editorialAddress } from "@/lib/env";
 import { formatNumber, machineDate, relativeDays, shortDate } from "@/lib/format";
+import { alternates } from "@/lib/metadata";
 import { memeGallery, publishedMemeSummary } from "@/lib/queries";
 import { imageHref } from "@/lib/routes";
 
-export const revalidate = 300;
+/**
+ * No `revalidate` here, unlike every other public page: the cursor comes out of
+ * `searchParams`, which renders this route per request. There is no entry in
+ * the route cache for a revalidation to replace, so a five-minute window
+ * declared here would have promised a caching that never happened — the same
+ * shape `/archiv` already has.
+ */
 
 export const metadata: Metadata = {
   title: "Memes",
   description: "Memes aus dem Schulalltag, gesammelt von der Redaktion.",
+  // The gallery pages on with a cursor; they are one gallery, not a new page.
+  alternates: alternates("/memes"),
 };
 
 /** 10a fills four columns; a page of 48 fills them twelve rows deep. */
@@ -41,7 +50,7 @@ export default async function MemesPage({
     publishedMemeSummary(),
   ]);
 
-  const editorialEmail = environment().MAIL_TO_EDITORIAL;
+  const editorialEmail = editorialAddress();
 
   return (
     <div className="flex min-h-dvh flex-col">

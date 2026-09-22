@@ -13,8 +13,9 @@ import { approvalMailScope, CAPABILITIES, may, roleLabel, type Capability } from
  * rather than the review.
  */
 
-const ADMIN = join(process.cwd(), "app", "admin");
-const API = join(process.cwd(), "app", "api");
+const APP = join(process.cwd(), "app");
+const ADMIN = join(APP, "admin");
+const API = join(APP, "api");
 
 const GATE = /requireMember|requireCapability/;
 
@@ -45,6 +46,12 @@ const WITHOUT_A_SESSION = new Set([
   "passwort/[token]/page.tsx",
   "passwort/[token]/set-form.tsx",
   "passwort/[token]/actions.ts",
+
+  // And the tree's own layout, which sets `robots` for everything under /admin
+  // and hands `children` straight back. A layout runs before a page and never
+  // before a server action, so a gate written here would look like it covered
+  // the tree and would not — every page and action below asks for its own.
+  "layout.tsx",
 ]);
 
 const walk = async (directory: string): Promise<string[]> => {
@@ -156,6 +163,7 @@ const REQUIRED_GATE: Readonly<Record<string, Gate>> = {
   "(redaktion)/memes/actions.ts#uploadMemeAction": "writeOwnArticles",
   "(redaktion)/memes/actions.ts#toggleMemeVisibilityAction": "approveArticlesAndMemes",
   "(redaktion)/memes/actions.ts#editMemeAction": "approveArticlesAndMemes",
+  "(redaktion)/memes/actions.ts#deleteMemeAction": "approveArticlesAndMemes",
 
   // The review queue.
   "(redaktion)/review/actions.ts#approveArticleAction": "approveArticlesAndMemes",
@@ -318,6 +326,31 @@ describe("the role matrix answers screen 11c row for row", () => {
  * list of exceptions is only as good as the normalisation it is compared under,
  * and there is no normalisation to get wrong when there is no route.
  */
+/**
+ * The bytes in the bucket have one rule and it lives in `lib/editorial/images`.
+ * It was written twice: `/bild/[id]` read the row itself and went on serving a
+ * meme the redaktion had taken down — to anybody, with a year of cache — while
+ * `/api/bilder/[id]` beside it refused the same picture correctly.
+ *
+ * The gate above looks at app/admin and app/api, and `/bild` is under neither,
+ * which is why nothing noticed. So this one asks the whole route tree instead:
+ * whoever reads an object asks that module first.
+ */
+describe("nothing takes bytes out of the bucket on its own authority", () => {
+  it("asks lib/editorial/images wherever an object is read", async () => {
+    const files = await walk(APP);
+    const deciding: string[] = [];
+
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      if (!/\breadObject\(/.test(source)) continue;
+      if (!/\bmayReadImage\(/.test(source)) deciding.push(relative(APP, file));
+    }
+
+    assert.deepEqual(deciding, []);
+  });
+});
+
 describe("the library's own HTTP surface is not mounted", () => {
   it("has no route under app/api that hands a request to @velve/auth's router", async () => {
     const files = await walk(API);

@@ -5,9 +5,14 @@ import { revalidatePath } from "next/cache";
 import { refreshPublic } from "@/lib/refresh";
 
 import { requireCapability } from "@/lib/authorize";
-import { createMeme, editMeme, setMemeVisibility } from "@/lib/editorial/memes";
+import { createMeme, deleteMeme, editMeme, setMemeVisibility } from "@/lib/editorial/memes";
 import { readDimensions } from "@/lib/image-dimensions";
-import { MAXIMUM_UPLOAD_BYTES, MEME_IMAGE_TYPES, storeObject } from "@/lib/storage";
+import {
+  MAXIMUM_UPLOAD_BYTES,
+  MEME_IMAGE_TYPES,
+  removeObject,
+  storeObject,
+} from "@/lib/storage";
 
 export type UploadState = { readonly problem: string | null; readonly uploaded: boolean };
 
@@ -47,7 +52,21 @@ export const uploadMemeAction = async (
   const size = readDimensions(bytes, file.type);
   if (size === null) return { problem: "Die Bilddatei ließ sich nicht lesen.", uploaded: false };
 
-  const key = await storeObject({ prefix: "memes", bytes, mime: file.type });
+  let key: string;
+
+  try {
+    key = await storeObject({ prefix: "memes", bytes, mime: file.type });
+  } catch (cause) {
+    // The bucket is the one thing in this form that fails from outside it, and
+    // it was the only refusal the form could not report: letting it out took
+    // the whole column with it, alt text and caption included, where a problem
+    // the state already carries leaves them standing for a second attempt.
+    console.error("error", "a meme image could not be stored", { cause });
+    return {
+      problem: "Das Bild ließ sich gerade nicht ablegen. Versuch es gleich noch einmal.",
+      uploaded: false,
+    };
+  }
 
   await createMeme({
     member,
@@ -75,6 +94,26 @@ export const toggleMemeVisibilityAction = async (form: FormData) => {
   await requireCapability("approveArticlesAndMemes");
   const memeId = String(form.get("memeId") ?? "");
   await setMemeVisibility(memeId, form.get("visible") === "on");
+  revalidatePath("/admin/memes");
+  refreshPublic.memes();
+};
+
+/**
+ * Whoever may take a meme off the wall may also remove it, which is the same
+ * decision one step further. It is needed when somebody is recognisable on the
+ * picture and asks for it to go: hidden, the file stays in the bucket and is
+ * still served to every signed-in member, so hiding does not answer that.
+ */
+export const deleteMemeAction = async (form: FormData) => {
+  await requireCapability("approveArticlesAndMemes");
+
+  const { deleted, imageKey } = await deleteMeme(String(form.get("memeId") ?? ""));
+  if (!deleted) return;
+
+  // After the row, so a failure in the bucket never leaves a meme pointing at
+  // bytes that are gone.
+  await removeObject(imageKey);
+
   revalidatePath("/admin/memes");
   refreshPublic.memes();
 };

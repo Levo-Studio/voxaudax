@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
 import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
@@ -7,6 +7,7 @@ import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
 import { articles, categories, slugHistory, users } from "@/lib/db/schema";
 import { may } from "@/lib/roles";
+import { LIKE_ESCAPE, likeContains } from "@/lib/search";
 import { freeSlug, slugify } from "@/lib/slug";
 import { countWords } from "@/lib/word-count";
 
@@ -80,18 +81,26 @@ export const listArticles = async (
 ) => {
   const search = filter.query?.trim();
 
+  /**
+   * The same escaping the public archive does, for the same reason lib/search
+   * gives: handed straight to `ilike`, a search for "50%" answers every article
+   * with "50" in it and a search for "%" answers all of them. Written out as
+   * SQL rather than through drizzle's `ilike`, which produces no `escape`
+   * clause to name the character with.
+   */
+  const pattern =
+    search === undefined || search.length === 0 ? null : likeContains(search);
+
   return withJoins()
     .where(
       and(
         reachableBy(member),
         filter.mineOnly === true ? eq(articles.authorId, member.id) : undefined,
         filter.status === undefined ? undefined : eq(articles.status, filter.status),
-        search === undefined || search.length === 0
+        pattern === null
           ? undefined
-          : or(
-              ilike(articles.title, `%${search}%`),
-              ilike(articles.teaser, `%${search}%`),
-            ),
+          : sql`(${articles.title} ilike ${pattern} escape ${LIKE_ESCAPE}
+              or ${articles.teaser} ilike ${pattern} escape ${LIKE_ESCAPE})`,
       ),
     )
     .orderBy(SORTS[filter.sort ?? "changed"].order)
@@ -193,13 +202,24 @@ const bodyImagesMissingAlt = (body: TipTapDocument) => {
 export const missingAltText = (input: { readonly body: TipTapDocument }) =>
   bodyImagesMissingAlt(input.body);
 
-const takenSlugs = async () => {
+/**
+ * Every address that is spoken for. Where an article is named, its own are not:
+ * neither the slug it carries nor one it used to carry is a collision with
+ * anybody else, and counting them as one is how a rename answered "x-2" to a
+ * field that `slugStanding` had just called free — including the one that was
+ * typed as a no-op, where the article was renamed away from itself.
+ */
+const takenSlugs = async (exceptArticleId?: string) => {
   const [current, historic] = await Promise.all([
-    db.select({ slug: articles.slug }).from(articles),
-    db.select({ slug: slugHistory.oldSlug }).from(slugHistory),
+    db.select({ slug: articles.slug, articleId: articles.id }).from(articles),
+    db.select({ slug: slugHistory.oldSlug, articleId: slugHistory.articleId }).from(slugHistory),
   ]);
 
-  return new Set([...current, ...historic].map((row) => row.slug));
+  return new Set(
+    [...current, ...historic]
+      .filter((row) => row.articleId !== exceptArticleId)
+      .map((row) => row.slug),
+  );
 };
 
 export const createDraft = async (member: Member) => {
@@ -239,6 +259,11 @@ export type ArticlePatch = {
   readonly cover: ArticleCover;
   readonly categoryId: string;
   readonly publishAt: Date | null;
+  /**
+   * The stand of the row the editor is writing over: `updated_at` as it was
+   * when this document was last read or last saved from this screen.
+   */
+  readonly knownUpdatedAt: Date;
 };
 
 /**
@@ -254,6 +279,12 @@ export type ArticlePatch = {
  * The slug is not among the fields. Nothing derives it from the title — it is
  * drawn once when the draft is created and changed only by `renameSlug`, which
  * records the old one in the same transaction.
+ *
+ * Answers `"conflict"` when the row has moved on since the editor read it, and
+ * writes nothing. Autosave sends the whole document every time, so without this
+ * the last tab to speak replaces paragraphs it never saw — a redakteur reading
+ * somebody's draft may save it, the same author may have it open twice, and
+ * there is no revision to take the lost text back out of.
  */
 export const saveArticle = async (
   member: Member,
@@ -265,7 +296,11 @@ export const saveArticle = async (
 
   const updatedAt = new Date();
 
-  await db
+  // Truncated on the column rather than compared as it stands: a draft created
+  // by `createDraft` carries the microseconds of the database's own `now()`,
+  // and the driver hands a JavaScript Date back in milliseconds — an equality
+  // against the value the editor was given would never hold again.
+  const [written] = await db
     .update(articles)
     .set({
       title: patch.title,
@@ -277,9 +312,15 @@ export const saveArticle = async (
       wordCount: countWords(patch.body),
       updatedAt,
     })
-    .where(eq(articles.id, articleId));
+    .where(
+      and(
+        eq(articles.id, articleId),
+        sql`date_trunc('milliseconds', ${articles.updatedAt}) = ${patch.knownUpdatedAt}`,
+      ),
+    )
+    .returning({ id: articles.id });
 
-  return updatedAt;
+  return written === undefined ? ("conflict" as const) : updatedAt;
 };
 
 /**
@@ -300,7 +341,7 @@ export const renameSlug = async (
   const existing = await articleForEditor(member, articleId);
   if (existing === null || existing.status !== "draft") return null;
 
-  const slug = freeSlug(slugify(wanted), await takenSlugs());
+  const slug = freeSlug(slugify(wanted), await takenSlugs(articleId));
   if (slug === existing.slug) return existing.slug;
 
   await db.transaction(async (tx) => {
@@ -310,6 +351,13 @@ export const renameSlug = async (
         .values({ oldSlug: existing.slug, articleId })
         .onConflictDoNothing();
     }
+
+    // Taking an old address back means it resolves to the article again, so the
+    // redirect it left behind has to go — an article that forwards to itself is
+    // a loop, and the row would make the address look spoken for next time.
+    await tx
+      .delete(slugHistory)
+      .where(and(eq(slugHistory.oldSlug, slug), eq(slugHistory.articleId, articleId)));
 
     await tx
       .update(articles)
@@ -370,13 +418,26 @@ export const submitForReview = async (member: Member, articleId: string) => {
 
 /** Carries the body as well, because the alt-text question is asked of it. */
 export const listSubmittedArticles = () =>
-  db
-    .select({ ...listColumns, body: articles.body })
-    .from(articles)
-    .innerJoin(categories, eq(categories.id, articles.categoryId))
-    .innerJoin(users, eq(users.id, articles.authorId))
+  withJoins()
     .where(eq(articles.status, "review"))
     .orderBy(asc(articles.submittedAt));
+
+/**
+ * Which of the waiting articles a missing alt text blocks.
+ *
+ * Read apart from the list, because it is read apart from it: the tab bar on
+ * screen 11a counts all three queues, so the list above is read whichever tab
+ * is open, and `body` — the heaviest column in the table — is only asked about
+ * on the one tab that shows articles.
+ */
+export const submittedArticlesBlockedByAltText = async () => {
+  const rows = await db
+    .select({ id: articles.id, body: articles.body })
+    .from(articles)
+    .where(eq(articles.status, "review"));
+
+  return new Set(rows.filter((row) => missingAltText(row)).map((row) => row.id));
+};
 
 /**
  * The two rules screen 11a states, enforced where the row is written rather
@@ -410,12 +471,18 @@ export const approveArticle = async (approver: Member, articleId: string) => {
   // schedule and no second process has to come back for it.
   const publishedAt = row.publishAt ?? new Date();
 
-  await db
+  // The status is read again by the write itself. Two reviewers have the queue
+  // open at once by design, and between the select above and this line the
+  // other one may have sent the article back — without this the later write
+  // simply wins, and a rejected article stands published while its reason is
+  // shown to nobody.
+  const [updated] = await db
     .update(articles)
     .set({ status: "published", publishedAt, updatedAt: new Date() })
-    .where(eq(articles.id, articleId));
+    .where(and(eq(articles.id, articleId), eq(articles.status, "review")))
+    .returning({ id: articles.id });
 
-  return "approved" as const;
+  return updated === undefined ? ("unknown" as const) : ("approved" as const);
 };
 
 export const returnToDraft = async (
@@ -436,7 +503,10 @@ export const returnToDraft = async (
     return "own_submission" as const;
   }
 
-  await db
+  // Asked again in the write, for the reason `approveArticle` gives: whichever
+  // of two simultaneous decisions lands first is the decision, and the other
+  // one is told the article is no longer in review.
+  const [updated] = await db
     .update(articles)
     .set({
       status: "draft",
@@ -444,9 +514,10 @@ export const returnToDraft = async (
       rejectionReason: reason,
       updatedAt: new Date(),
     })
-    .where(eq(articles.id, articleId));
+    .where(and(eq(articles.id, articleId), eq(articles.status, "review")))
+    .returning({ id: articles.id });
 
-  return "returned" as const;
+  return updated === undefined ? ("unknown" as const) : ("returned" as const);
 };
 
 export const listCategories = () =>
@@ -475,29 +546,47 @@ export const countPendingReview = async () => {
  * one beside it: the slug is what an address is built from, and two categories
  * sharing one would be two chips leading to the same list.
  */
+/**
+ * An arbitrary but fixed number: an advisory lock is only ever a lock against
+ * whoever asks for the same one, and nothing else in this application does.
+ */
+const CATEGORY_LOCK = 8_312_001;
+
 export const createCategory = async (name: string) => {
   const slug = slugify(name);
   if (slug.length === 0) return null;
 
-  const [existing] = await db
-    .select({ id: categories.id, slug: categories.slug, name: categories.name })
-    .from(categories)
-    .where(eq(categories.slug, slug))
-    .limit(1);
+  /**
+   * Both answers below are read and then written in a second statement, and
+   * both columns are unique: two authors filing at the same moment read the
+   * same highest `position` and the same absent slug, and the second insert
+   * comes back as a constraint violation rather than as a category. The lock
+   * is held for the transaction and taken nowhere else, so all it serialises
+   * is adding a category — which happens a few times a year.
+   */
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(${CATEGORY_LOCK})`);
 
-  if (existing !== undefined) return existing;
+    const [existing] = await tx
+      .select({ id: categories.id, slug: categories.slug, name: categories.name })
+      .from(categories)
+      .where(eq(categories.slug, slug))
+      .limit(1);
 
-  // `position` orders the chip row and is unique, so the new one goes last.
-  const [last] = await db
-    .select({ highest: sql<number>`coalesce(max(${categories.position}), 0)` })
-    .from(categories);
+    if (existing !== undefined) return existing;
 
-  const [created] = await db
-    .insert(categories)
-    .values({ slug, name: name.trim(), position: (last?.highest ?? 0) + 1 })
-    .returning({ id: categories.id, slug: categories.slug, name: categories.name });
+    // `position` orders the chip row and is unique, so the new one goes last.
+    const [last] = await tx
+      .select({ highest: sql<number>`coalesce(max(${categories.position}), 0)` })
+      .from(categories);
 
-  return created ?? null;
+    const [created] = await tx
+      .insert(categories)
+      .values({ slug, name: name.trim(), position: (last?.highest ?? 0) + 1 })
+      .returning({ id: categories.id, slug: categories.slug, name: categories.name });
+
+    return created ?? null;
+  });
 };
 
 /**

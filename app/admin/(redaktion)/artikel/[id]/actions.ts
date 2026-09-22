@@ -37,6 +37,8 @@ const draft = z.object({
   coverGrid: z.boolean(),
   categoryId: z.uuid(),
   publishAt: z.string(),
+  /** What the editor last saw the row at, so a stale tab overwrites nothing. */
+  knownUpdatedAt: z.iso.datetime(),
 });
 
 export type DraftInput = z.input<typeof draft>;
@@ -44,10 +46,10 @@ export type DraftInput = z.input<typeof draft>;
 export const autosaveAction = async (articleId: string, input: DraftInput) => {
   const member = await requireCapability("writeOwnArticles");
   const parsed = draft.safeParse(input);
-  if (!parsed.success) return { savedAt: null };
+  if (!parsed.success) return { savedAt: null, conflict: false };
 
   const existing = await articleForEditor(member, articleId);
-  if (existing === null) return { savedAt: null };
+  if (existing === null) return { savedAt: null, conflict: false };
 
   const cover: ArticleCover = {
     word: parsed.data.coverWord,
@@ -65,16 +67,27 @@ export const autosaveAction = async (articleId: string, input: DraftInput) => {
     cover,
     categoryId: parsed.data.categoryId,
     publishAt: scheduled === null || Number.isNaN(scheduled.getTime()) ? null : scheduled,
+    knownUpdatedAt: new Date(parsed.data.knownUpdatedAt),
   });
 
-  return { savedAt: savedAt?.toISOString() ?? null };
+  // Told apart from every other refusal, because it is the only one the editor
+  // must not simply retry with: somebody else's paragraphs are in the row.
+  if (savedAt === "conflict") return { savedAt: null, conflict: true };
+
+  return { savedAt: savedAt?.toISOString() ?? null, conflict: false };
 };
 
 export const renameSlugAction = async (articleId: string, wanted: string) => {
   const member = await requireCapability("writeOwnArticles");
   const slug = await renameSlug(member, articleId, wanted);
   if (slug !== null) revalidatePath(`/admin/artikel/${articleId}`);
-  return { slug };
+
+  // A rename moves `updated_at`, which is what the next autosave pins its write
+  // to. The new stand goes back with the address, so the editor's own rename
+  // does not read to it as somebody else's edit a second later.
+  const renamed = slug === null ? null : await articleForEditor(member, articleId);
+
+  return { slug, updatedAt: renamed?.updatedAt.toISOString() ?? null };
 };
 
 /**
@@ -150,7 +163,17 @@ export const uploadBodyImageAction = async (
   const size = readDimensions(bytes, file.type);
   if (size === null) return { ok: false, problem: "Die Bilddatei ließ sich nicht lesen." };
 
-  const key = await storeObject({ prefix: "artikel", bytes, mime: file.type });
+  let key: string;
+
+  try {
+    key = await storeObject({ prefix: "artikel", bytes, mime: file.type });
+  } catch (cause) {
+    // A storage host that is down is the one refusal this result type did not
+    // carry, and the editor awaits the action without a boundary under it: the
+    // exception replaced the page the text was still in.
+    console.error("error", "a body image could not be stored", { cause });
+    return { ok: false, problem: "Das Bild ließ sich gerade nicht ablegen." };
+  }
 
   const [image] = await db
     .insert(images)

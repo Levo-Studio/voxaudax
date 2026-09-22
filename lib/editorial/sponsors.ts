@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
 import { may } from "@/lib/roles";
@@ -124,6 +124,12 @@ export const updateSponsor = (member: Member, sponsorId: string, input: SponsorI
 export const setSponsorActive = (sponsorId: string, active: boolean) =>
   db.update(sponsors).set({ active }).where(eq(sponsors.id, sponsorId));
 
+/**
+ * The replaced logo goes the way `deleteSponsor` sends one: nothing points at
+ * it once the column has moved on, and an image the application cannot reach
+ * any more is an image nobody will ever remember to remove from the bucket.
+ * Its key comes back so the caller can clear the object after the commit.
+ */
 export const setSponsorLogo = (input: {
   readonly member: Member;
   readonly sponsorId: string;
@@ -134,6 +140,12 @@ export const setSponsorLogo = (input: {
   readonly alt: string;
 }) =>
   db.transaction(async (tx) => {
+    const [previous] = await tx
+      .select({ id: images.id, key: images.key })
+      .from(sponsors)
+      .innerJoin(images, eq(images.id, sponsors.logoImageId))
+      .where(eq(sponsors.id, input.sponsorId));
+
     const [image] = await tx
       .insert(images)
       .values({
@@ -150,6 +162,12 @@ export const setSponsorLogo = (input: {
       .update(sponsors)
       .set({ logoImageId: image!.id, status: backIntoReview })
       .where(eq(sponsors.id, input.sponsorId));
+
+    if (previous !== undefined) {
+      await tx.delete(images).where(eq(images.id, previous.id));
+    }
+
+    return { replacedKey: previous?.key ?? null };
   });
 
 export const approveSponsor = async (approver: Member, sponsorId: string) => {
@@ -170,8 +188,16 @@ export const approveSponsor = async (approver: Member, sponsorId: string) => {
     return "alt_text_missing" as const;
   }
 
-  await db.update(sponsors).set({ status: "published" }).where(eq(sponsors.id, sponsorId));
-  return "approved" as const;
+  // The status is asked again where the row is written, so that an approval and
+  // a rejection arriving at the same moment cannot both land: the first stands,
+  // the second hears that the entry has left the queue.
+  const [updated] = await db
+    .update(sponsors)
+    .set({ status: "published" })
+    .where(and(eq(sponsors.id, sponsorId), eq(sponsors.status, "review")))
+    .returning({ id: sponsors.id });
+
+  return updated === undefined ? ("unknown" as const) : ("approved" as const);
 };
 
 export const rejectSponsor = async (
@@ -192,12 +218,14 @@ export const rejectSponsor = async (
     return "own_submission" as const;
   }
 
-  await db
+  // See `approveSponsor`: the status is part of the write.
+  const [updated] = await db
     .update(sponsors)
     .set({ status: "abgelehnt", active: false, rejectionReason: reason })
-    .where(eq(sponsors.id, sponsorId));
+    .where(and(eq(sponsors.id, sponsorId), eq(sponsors.status, "review")))
+    .returning({ id: sponsors.id });
 
-  return "rejected" as const;
+  return updated === undefined ? ("unknown" as const) : ("rejected" as const);
 };
 
 /**

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { velveAuth } from "@/lib/auth";
 import { requireMember } from "@/lib/authorize";
 import { setMustChangePassword, updateOwnProfile } from "@/lib/editorial/members";
+import { refreshPublic } from "@/lib/refresh";
 import { callFields, readSessionToken, writeSessionToken } from "@/lib/session";
 
 export const saveProfileAction = async (form: FormData) => {
@@ -16,6 +17,10 @@ export const saveProfileAction = async (form: FormData) => {
 
   await updateOwnProfile(member, { name, bio: bio.length === 0 ? null : bio });
   revalidatePath("/admin/konto");
+  // Both fields are public: the name stands under every article and in the
+  // pills on the home page, the biography on /redaktion. Without this the
+  // person who just rewrote theirs goes looking and finds the old one.
+  refreshPublic.editorial();
 };
 
 export type ChangePasswordState = { readonly problem: string | null; readonly done: boolean };
@@ -71,7 +76,26 @@ export const changePasswordAction = async (
       return { problem: "Das neue Passwort erfüllt die Regeln nicht.", done: false };
     }
 
-    return { problem: "Das aktuelle Passwort stimmt nicht.", done: false };
+    if (code === "invalid_credentials") {
+      return { problem: "Das aktuelle Passwort stimmt nicht.", done: false };
+    }
+
+    // The lockout of lib/auth.ts counts this route too, and it refuses the
+    // fourth attempt even when the password is right. Saying "das aktuelle
+    // Passwort stimmt nicht" there sends somebody who has mistyped three times
+    // into trying a fourth, a fifth and a sixth, each one refused for a reason
+    // the sentence never names.
+    if (code === "rate_limited") {
+      return {
+        problem: "Zu viele Versuche. Dieses Konto ist für drei Minuten gesperrt.",
+        done: false,
+      };
+    }
+
+    // Anything else is not the reader's password. It used to be reported as
+    // one, which made every connection failure an accusation.
+    console.error("error", "a password change did not complete", { cause });
+    return { problem: "Das hat gerade nicht geklappt. Versuch es gleich noch einmal.", done: false };
   }
 
   await setMustChangePassword(member.id, false);

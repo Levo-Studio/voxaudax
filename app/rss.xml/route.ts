@@ -1,4 +1,4 @@
-import { environment } from "@/lib/env";
+import { siteUrl } from "@/lib/env";
 import { recentArticles } from "@/lib/queries";
 import { articleHref } from "@/lib/routes";
 
@@ -27,7 +27,7 @@ const recentArticlesOrNoneAtBuildTime = async () => {
 };
 
 export const GET = async () => {
-  const site = environment().NEXT_PUBLIC_SITE_URL;
+  const site = siteUrl();
   const articles = await recentArticlesOrNoneAtBuildTime();
   const url = (path: string) => new URL(path, site).toString();
 

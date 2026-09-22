@@ -607,4 +607,87 @@ export const PAGES: readonly {
       },
     ],
   },
+  /**
+   * Abgelesen aus dem, was die Anwendung tatsächlich tut, statt aus einem
+   * Muster übernommen: jeder Absatz steht für eine Verarbeitung, die im Code
+   * nachweisbar ist. Vier Angaben kann die Anwendung nicht belegen, weil sie
+   * dem Betrieb gehören — die stehen im Text als „Betriebszusage" und müssen
+   * vor dem Livegang zutreffen.
+   */
+  {
+    slug: "datenschutz",
+    title: "Datenschutz",
+    body: [
+      {
+        p: "Diese Seite sagt, was beim Lesen und beim Schreiben dieser Zeitung mit Daten geschieht. Sie ist aus dem Verhalten der Anwendung geschrieben und nicht aus einer Vorlage übernommen.",
+      },
+      { h2: "Verantwortlich" },
+      {
+        p: "Schülerzeitung Vox Audax, Uhland-Gymnasium, Uhlandstraße 12, 72072 Tübingen. Verantwortlich im Sinne der DSGVO ist die Chefredaktion: Lina Brenner und Jonas Weidmann, redaktion@voxaudax.de. Betreuende Lehrkraft: Dr. Annika Halm. Die vollständigen Angaben stehen im Impressum.",
+      },
+      { h2: "Was diese Seite nicht tut" },
+      {
+        p: "Kein Tracking, keine Reichweitenmessung, keine Werbenetzwerke, keine Profilbildung. Schriften, Bilder, Stile und Skripte kommen von diesem Server; beim Lesen fragt der Browser keinen fremden Host. Einen Cookie-Banner gibt es nicht, weil außer dem Sitzungscookie der Redaktion kein Cookie gesetzt wird.",
+      },
+      { h2: "Beim Aufruf einer Seite" },
+      {
+        p: "Der Server protokolliert IP-Adresse, Zeitpunkt, angefragte Adresse, Statuscode und Browserkennung. Das ist nötig, um die Seite auszuliefern und Angriffe abzuwehren, und stützt sich auf das berechtigte Interesse nach Art. 6 Abs. 1 lit. f DSGVO. Betriebszusage: Diese Protokolle werden nach sieben Tagen gelöscht.",
+      },
+      { h2: "Helles und dunkles Farbschema" },
+      {
+        p: "Die Wahl zwischen hell und dunkel liegt im localStorage des Browsers, nicht in einem Cookie. Sie wird nicht übertragen und verlässt das Gerät nicht.",
+      },
+      { h2: "Kontaktformular" },
+      {
+        p: "Übermittelt werden Name, wahlweise Klasse oder Rolle, E-Mail-Adresse, das gewählte Anliegen und die Nachricht. Grundlage ist die Einwilligung mit dem Haken über dem Absenden-Knopf, Art. 6 Abs. 1 lit. a DSGVO. In der Datenbank wird nichts davon gespeichert: die Angaben gehen als E-Mail an redaktion@voxaudax.de, mit der angegebenen Adresse als Antwortadresse, und liegen danach so lange im Postfach der Redaktion, wie das Anliegen es braucht.",
+      },
+      {
+        p: "Damit das Formular nicht als Weiterleitung missbraucht wird, merkt sich die Anwendung pro E-Mail-Adresse, wie oft in den letzten Minuten gesendet wurde — drei Nachrichten, dann eine Wartezeit. Dieser Zähler steht nur im Arbeitsspeicher, wird nicht gespeichert und ist nach Ablauf vergessen.",
+      },
+      {
+        p: "Betriebszusage: Die E-Mail wird über den Dienstleister Resend versandt, der seinen Sitz in den USA hat. Mit ihm besteht ein Auftragsverarbeitungsvertrag samt Standardvertragsklauseln nach Art. 46 DSGVO.",
+      },
+      { h2: "Konten der Redaktion" },
+      {
+        p: "Wer für die Zeitung schreibt, bekommt ein Konto mit Name, E-Mail-Adresse, Initialen, Rolle, Ressorts, wahlweise einer Kurzbiografie und einem Profilbild. Das Passwort wird nur als Hash gespeichert, nie im Klartext. Grundlage ist die Mitarbeit in der Redaktion, Art. 6 Abs. 1 lit. b DSGVO; angelegt wird ein Konto per Einladung durch die Chefredaktion.",
+      },
+      {
+        p: "Zu jeder Anmeldung gehören ein Sitzungscookie und, in der Datenbank, die auf das Netz gekürzte IP-Adresse (IPv4 auf /24, IPv6 auf /64) sowie die Browser- und Systemfamilie, etwa „Firefox on Android\". Beides steht auf der eigenen Kontoseite, damit eine fremde Anmeldung auffällt. Eine Sitzung endet nach sieben Tagen ohne Nutzung, spätestens nach 30 Tagen, und beim Abmelden sofort.",
+      },
+      { h2: "Veröffentlichte Beiträge, Fotos und Memes" },
+      {
+        p: "An einem veröffentlichten Beitrag stehen Name, Kurzbiografie, Ressorts und Profilbild der Autorin oder des Autors öffentlich. Das gehört zur journalistischen Arbeit dieser Zeitung und stützt sich auf Art. 6 Abs. 1 lit. f DSGVO.",
+      },
+      {
+        p: "Wer auf einem Foto oder einem Meme zu erkennen ist und das nicht möchte, schreibt an redaktion@voxaudax.de. Der Beitrag wird dann von der Seite genommen und das Bild samt Datei gelöscht.",
+      },
+      { h2: "Bilder und Dateien" },
+      {
+        p: "Hochgeladene Bilder liegen in einem nicht öffentlichen Objektspeicher. Der Browser erreicht ihn nie: die Bytes werden von dieser Anwendung ausgeliefert, weshalb in keiner Adresse und in keinem Link ein fremder Speicher-Host auftaucht. Betriebszusage: Dieser Objektspeicher steht in der Europäischen Union.",
+      },
+      { h2: "Wer die Daten sonst bekommt" },
+      {
+        p: "Niemand außer den unten genannten. Betrieb und Technik dieser Anwendung liegen bei Levo Studio als Auftragsverarbeiter. Betriebszusage: Die Server stehen in der Europäischen Union. Hinzu kommt der Versanddienstleister für E-Mails, der im Abschnitt zum Kontaktformular steht. Eine Weitergabe zu Werbezwecken findet nicht statt.",
+      },
+      { h2: "Deine Rechte" },
+      {
+        ul: [
+          "Auskunft darüber, welche Daten vorliegen (Art. 15 DSGVO)",
+          "Berichtigung falscher Daten (Art. 16 DSGVO)",
+          "Löschung (Art. 17 DSGVO)",
+          "Einschränkung der Verarbeitung (Art. 18 DSGVO)",
+          "Datenübertragbarkeit (Art. 20 DSGVO)",
+          "Widerspruch gegen eine Verarbeitung auf Grundlage berechtigter Interessen (Art. 21 DSGVO)",
+          "Widerruf einer Einwilligung für die Zukunft (Art. 7 Abs. 3 DSGVO)",
+        ],
+      },
+      {
+        p: "Für all das genügt eine Nachricht an redaktion@voxaudax.de. Wer sich beschweren möchte, kann das bei jeder Aufsichtsbehörde tun, zuständig ist hier: Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit Baden-Württemberg, Lautenschlagerstraße 20, 70173 Stuttgart.",
+      },
+      { h2: "Minderjährige" },
+      {
+        p: "Diese Zeitung wird von Schülerinnen und Schülern gemacht und gelesen, also überwiegend von Minderjährigen. Deshalb wird so wenig erhoben wie möglich, und ein Löschwunsch wird ohne Rückfrage nach dem Grund erfüllt.",
+      },
+    ],
+  },
 ];

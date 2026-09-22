@@ -26,12 +26,34 @@ export const setNewPasswordAction = async (
       newPassword: password,
       call: await callFields("mutation"),
     });
-  } catch {
+  } catch (cause) {
+    const code = (cause as { code?: unknown }).code;
+
     // An expired token, a spent one, an invented one and one minted for another
     // purpose are one answer in the library, and they stay one answer here.
+    if (code === "invalid_token") {
+      return {
+        problem:
+          "Der Link gilt eine Stunde und lässt sich nur einmal verwenden. Fordere einen neuen an.",
+      };
+    }
+
+    if (code === "password_unacceptable") {
+      return { problem: "Das Passwort wurde nicht akzeptiert. Wähl ein anderes." };
+    }
+
+    if (code === "rate_limited") {
+      return {
+        problem:
+          "Zu viele Versuche. Warte ein paar Minuten und öffne den Link dann noch einmal.",
+      };
+    }
+
+    // Anything else is the infrastructure, not the link. Sending somebody for a
+    // new link over a database that is down costs them the second one too.
+    console.error("error", "a password reset could not be redeemed", { cause });
     return {
-      problem:
-        "Der Link gilt eine Stunde und lässt sich nur einmal verwenden. Fordere einen neuen an.",
+      problem: "Das hat gerade nicht geklappt. Versuch es in ein paar Minuten noch einmal.",
     };
   }
 

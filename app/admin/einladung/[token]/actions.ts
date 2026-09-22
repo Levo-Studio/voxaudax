@@ -32,8 +32,29 @@ export const acceptInvitationAction = async (
       password,
       call: await callFields("mutation"),
     });
-  } catch {
-    return { problem: "Das Passwort wurde nicht akzeptiert. Wähl ein längeres." };
+  } catch (cause) {
+    // Only the library's own verdict is a statement about the password, and it
+    // cannot be about the length: the ten characters are checked above, so the
+    // refusal that used to be reported here — "wähl ein längeres" — was a
+    // sentence about the password for a database that was down. Somebody
+    // reading it types a longer one, reads it again, and concludes it is them.
+    const code = (cause as { code?: unknown }).code;
+
+    if (code === "password_unacceptable") {
+      return { problem: "Das Passwort wurde nicht akzeptiert. Wähl ein anderes." };
+    }
+
+    if (code === "rate_limited") {
+      return {
+        problem:
+          "Zu viele Versuche. Warte ein paar Minuten und öffne den Link dann noch einmal.",
+      };
+    }
+
+    console.error("error", "an invitation could not be redeemed", { cause });
+    return {
+      problem: "Das hat gerade nicht geklappt. Versuch es in ein paar Minuten noch einmal.",
+    };
   }
 
   if (!outcome.accepted) return { problem: PROBLEMS[outcome.reason] };

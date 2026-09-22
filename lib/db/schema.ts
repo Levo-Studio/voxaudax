@@ -213,6 +213,21 @@ export const articles = pgTable(
       table.status,
       table.updatedAt.desc(),
     ),
+
+    /**
+     * The three indexes above are partial on `status = 'published'`, and the
+     * back office asks without a status: an author's list, their count and the
+     * count per status all filter on `author_id` alone, which no partial index
+     * and no foreign key covers.
+     */
+    index("articles_author_updated_idx").on(table.authorId, table.updatedAt.desc()),
+
+    /**
+     * `imageAccess` asks which article a picture stands in, and it asks on
+     * every delivered byte. `jsonb_path_ops` indexes exactly the one question
+     * put to this column — containment — and nothing else about the document.
+     */
+    index("articles_body_idx").using("gin", sql`${table.body} jsonb_path_ops`),
     index("articles_search_idx").using(
       "gin",
       sql`to_tsvector('german', ${table.title} || ' ' || ${table.teaser})`,

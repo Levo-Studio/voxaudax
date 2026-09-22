@@ -54,6 +54,34 @@ export const mailEnvironment = () =>
   );
 
 /**
+ * The two keys that carry no secret: both stand in `.env.example` with their
+ * real value, and every public page prints one or the other. Read on their own
+ * because `environment()` validates the whole core schema, so a page that needs
+ * nothing but an address would otherwise demand the database, the storage
+ * credentials and the root key as well — none of which a build is given.
+ *
+ * Read out of the environment as a whole rather than as
+ * `process.env.NEXT_PUBLIC_SITE_URL`: Next replaces a literal access to a
+ * NEXT_PUBLIC_ key with its value at build time, which would freeze the address
+ * the image was built with into the bundle and never read the one the container
+ * is started with.
+ */
+const siteSchema = environmentSchema.pick({ NEXT_PUBLIC_SITE_URL: true });
+const editorialSchema = environmentSchema.pick({ MAIL_TO_EDITORIAL: true });
+
+export const siteUrl = () =>
+  read(
+    siteSchema,
+    "The public address of this site is unusable, so no absolute link can be written",
+  ).NEXT_PUBLIC_SITE_URL;
+
+export const editorialAddress = () =>
+  read(
+    editorialSchema,
+    "The editorial address is unusable, so no page can name one",
+  ).MAIL_TO_EDITORIAL;
+
+/**
  * The connection string on its own, validated on its own.
  *
  * The pool is built while the module graph is being evaluated, and validating

@@ -26,7 +26,7 @@ export function Segmented<Value extends string>({
         return (
           <label
             key={option.value}
-            className={`flex flex-1 cursor-pointer items-center justify-center rounded-[7px] px-2.5 py-2 text-center font-control text-[12.5px] font-bold transition-[background,color] duration-200 ease-out ${
+            className={`flex flex-1 cursor-pointer items-center justify-center rounded-[7px] px-2.5 py-2 text-center font-control text-[12.5px] font-bold transition-[background,color] duration-200 ease-out has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ac ${
               active ? "bg-tx text-s1" : "text-tm hover:text-tx"
             }`}
           >

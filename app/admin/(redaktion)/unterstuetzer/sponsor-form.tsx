@@ -34,7 +34,7 @@ export function SponsorForm({ today }: { today: string }) {
   return (
     <form action={submit} className="contents">
       <div className="border-b border-bd px-[18px] py-4">
-        <label className="block cursor-pointer rounded-[10px] border-[1.5px] border-dashed border-bd p-[18px] text-center text-[12.5px] font-semibold text-tm">
+        <label className={`block cursor-pointer rounded-[10px] border-[1.5px] border-dashed border-bd p-[18px] text-center text-[12.5px] font-semibold text-tm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ac`}>
           Logo hierher ziehen
           <span className="mt-1 block text-[11.5px] font-medium">SVG oder PNG mit Transparenz</span>
           <input type="file" name="logo" accept="image/svg+xml,image/png" className="sr-only" />

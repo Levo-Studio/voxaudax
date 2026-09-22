@@ -3,13 +3,22 @@ import { NextResponse } from "next/server";
 
 import { databaseCheck } from "@/lib/checks/database";
 import { mailCheck } from "@/lib/checks/mail";
+import { migrationsCheck } from "@/lib/checks/migrations";
+import { storageCheck } from "@/lib/checks/storage";
 import { httpStatusFor, inspectDependencies } from "@/lib/health";
 import { SERVICE_NAME, nowAsIso8601 } from "@/lib/service-identity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DEPENDENCIES = [databaseCheck, mailCheck];
+/**
+ * Everything the running service depends on and cannot see for itself. Storage
+ * and the migration state joined the list because their absence looked exactly
+ * like health: a bucket that was gone left every picture broken while this
+ * route answered `ok`, and a database a release had outrun answered `select 1`
+ * happily while the back office was refusing every page.
+ */
+const DEPENDENCIES = [databaseCheck, migrationsCheck, storageCheck, mailCheck];
 
 /**
  * Read directly rather than through the validated environment, so that the one

@@ -8,9 +8,12 @@ import { acceptHref } from "@/lib/tiptap";
  * and the preview all read the same document rather than three shapes that
  * happen to agree today.
  *
- * A list item is its own block rather than a list holding items: consecutive
- * items group into one list on the way out and flatten on the way in, which
- * keeps every block a single editable line and needs no nested editing.
+ * A list item is its own block rather than a list holding items, and a quoted
+ * paragraph its own block rather than a quote holding paragraphs: consecutive
+ * blocks of one kind group on the way out and flatten on the way in, which
+ * keeps every block a single editable line and needs no nested editing. Two
+ * quotes written one directly under the other therefore come back as one quote
+ * of two paragraphs, the same way two adjacent lists come back as one list.
  */
 export type BlockKind =
   | "paragraph"
@@ -168,11 +171,18 @@ export const documentToBlocks = (document: TipTapDocument): Block[] => {
     }
 
     if (node.type === "blockquote") {
-      blocks.push({
-        id: nextId(),
-        kind: "blockquote",
-        html: (node.content ?? []).map((inner) => inlineToHtml(inner.content)).join(" "),
-      });
+      // One block per quoted paragraph, the way a list item is its own block:
+      // joining them into one line made the break disappear at the next
+      // autosave, and a quote written in the Markdown mode lost its second
+      // paragraph the first time anybody opened the article in the rich text.
+      const quoted = node.content ?? [];
+      for (const inner of quoted.length === 0 ? [undefined] : quoted) {
+        blocks.push({
+          id: nextId(),
+          kind: "blockquote",
+          html: inlineToHtml(inner?.content),
+        });
+      }
       continue;
     }
 
@@ -230,11 +240,15 @@ export const blocksToDocument = (
     }
 
     if (block.kind === "blockquote") {
-      content.push({
-        type: "blockquote",
-        content: [{ type: "paragraph", content: inline(block.html) }],
-      });
-      index += 1;
+      // Grouped the way consecutive list items are: the quote came apart into
+      // one block per paragraph on the way in, and this is the seam it goes
+      // back together at.
+      const paragraphs: TipTapNode[] = [];
+      while (index < blocks.length && blocks[index]!.kind === "blockquote") {
+        paragraphs.push({ type: "paragraph", content: inline(blocks[index]!.html) });
+        index += 1;
+      }
+      content.push({ type: "blockquote", content: paragraphs });
       continue;
     }
 

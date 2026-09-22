@@ -2,6 +2,7 @@ import { RejectionNote } from "@/components/admin/rejection-note";
 import { FilterPill, PANEL_CLASS, PANEL_HEADING_CLASS } from "@/components/admin/controls";
 import { ToggleSwitch } from "@/components/admin/toggle-switch";
 import { toggleMemeVisibilityAction } from "@/app/admin/(redaktion)/memes/actions";
+import { DeleteMeme } from "@/app/admin/(redaktion)/memes/delete-meme";
 import { MemeUploadForm } from "@/app/admin/(redaktion)/memes/upload-form";
 import { requireMember } from "@/lib/authorize";
 import { countMemes, isMemeFilter, listMemes, MEME_FILTERS } from "@/lib/editorial/memes";
@@ -66,6 +67,8 @@ export default async function MemesPage({
                     alt={meme.alt ?? ""}
                     width={meme.width}
                     height={meme.height}
+                    loading="lazy"
+                    decoding="async"
                     className={`block w-full rounded-xl border border-bd bg-s2 ${online ? "" : "opacity-60"}`}
                   />
                   <figcaption className="mt-[9px] flex flex-wrap items-center gap-2.5 text-[11.5px] font-semibold text-tm">
@@ -82,14 +85,19 @@ export default async function MemesPage({
                     </span>
                     <RejectionNote reason={meme.rejectionReason} />
                     {mayDecide ? (
-                      <form action={toggleMemeVisibilityAction} className="ml-auto">
-                        <input type="hidden" name="memeId" value={meme.id} />
-                        <ToggleSwitch
-                          name="visible"
-                          checked={meme.visible}
-                          label={`Sichtbarkeit von Meme vom ${DAY.format(meme.createdAt)}`}
-                        />
-                      </form>
+                      <>
+                        <span className="ml-auto">
+                          <DeleteMeme memeId={meme.id} day={DAY.format(meme.createdAt)} />
+                        </span>
+                        <form action={toggleMemeVisibilityAction}>
+                          <input type="hidden" name="memeId" value={meme.id} />
+                          <ToggleSwitch
+                            name="visible"
+                            checked={meme.visible}
+                            label={`Sichtbarkeit von Meme vom ${DAY.format(meme.createdAt)}`}
+                          />
+                        </form>
+                      </>
                     ) : null}
                   </figcaption>
                   {meme.caption === null ? null : (

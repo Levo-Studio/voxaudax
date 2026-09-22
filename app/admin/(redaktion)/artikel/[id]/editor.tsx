@@ -48,6 +48,8 @@ export type EditorArticle = {
   readonly categoryId: string;
   readonly status: "draft" | "review" | "published";
   readonly publishAt: string | null;
+  /** The stand every write from this screen is pinned to. */
+  readonly updatedAt: string;
   readonly authorName: string;
   readonly authorInitials: string;
 };
@@ -55,11 +57,19 @@ export type EditorArticle = {
 const STATUS_LABELS = { draft: "Entwurf", review: "Review", published: "Veröffentlicht" } as const;
 
 const TAB_CLASS = (active: boolean) =>
-  `cursor-pointer border-none bg-transparent px-1 pt-3 pb-[11px] font-control text-xs font-bold tracking-[0.02em] transition-[color,box-shadow] duration-200 ease-out ${
+  `inline-flex min-h-11 cursor-pointer items-center border-none bg-transparent px-1 font-control text-xs font-bold tracking-[0.02em] transition-[color,box-shadow] duration-200 ease-out md:min-h-0 md:pt-3 md:pb-[11px] ${
     active ? "text-tx shadow-[inset_0_-2px_0_var(--ac)]" : "text-tm hover:text-tx"
   }`;
 
 const AUTOSAVE_DELAY_MS = 1200;
+
+/**
+ * What a writer is told when the draft moved under them. It names the reload
+ * rather than offering a button, because merging two versions of a text is not
+ * something this screen can do on their behalf.
+ */
+const OVERTAKEN_NOTICE =
+  "Der Entwurf wurde woanders geändert. Lade die Seite neu — sonst überschreibst du fremde Änderungen.";
 
 const CLOCK = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" });
 
@@ -142,8 +152,18 @@ export function Editor({
   const edits = useRef(0);
   const router = useRouter();
 
+  /**
+   * The stand of the row every write is pinned to, in a reference rather than
+   * in state: it changes with each save and must not set the autosave off
+   * again. Once the server has refused a write because somebody else moved the
+   * row, nothing more is sent — a second attempt would carry the same document
+   * and the same answer, and the only way on is a reload.
+   */
+  const knownUpdatedAt = useRef(article.updatedAt);
+  const [overtaken, setOvertaken] = useState(false);
+
   useEffect(() => {
-    if (!dirty.current) return;
+    if (!dirty.current || overtaken) return;
 
     const handle = window.setTimeout(() => {
       // What the document stood at when this save was sent. Anything typed
@@ -152,25 +172,43 @@ export function Editor({
       const sentAt = edits.current;
 
       startTransition(async () => {
-        const answer = await autosaveAction(article.id, {
-          title,
-          teaser,
-          body: JSON.stringify(document_),
-          coverWord: cover.word,
-          coverLine: cover.line,
-          colorId: cover.colorId,
-          coverGrid: cover.grid ?? true,
-          categoryId,
-          publishAt,
-        });
+        let answer: Awaited<ReturnType<typeof autosaveAction>>;
+
+        // The same reason `storeNow` catches: a write that throws would take
+        // the editor down through the boundary, with everything typed since
+        // the last save inside it. The next keystroke starts the timer again.
+        try {
+          answer = await autosaveAction(article.id, {
+            title,
+            teaser,
+            body: JSON.stringify(document_),
+            coverWord: cover.word,
+            coverLine: cover.line,
+            colorId: cover.colorId,
+            coverGrid: cover.grid ?? true,
+            categoryId,
+            publishAt,
+            knownUpdatedAt: knownUpdatedAt.current,
+          });
+        } catch {
+          toast("Gerade ließ sich nichts speichern. Der Text steht noch hier.", "problem");
+          return;
+        }
+
+        if (answer.conflict) {
+          setOvertaken(true);
+          toast(OVERTAKEN_NOTICE, "problem");
+          return;
+        }
         if (answer.savedAt === null) return;
+        knownUpdatedAt.current = answer.savedAt;
         setSavedAt(new Date(answer.savedAt));
         if (edits.current === sentAt) setUnsaved(false);
       });
     }, AUTOSAVE_DELAY_MS);
 
     return () => window.clearTimeout(handle);
-  }, [article.id, title, teaser, document_, cover, categoryId, publishAt]);
+  }, [article.id, title, teaser, document_, cover, categoryId, publishAt, overtaken]);
 
   const touch = <T,>(set: (value: T) => void) => (value: T) => {
     dirty.current = true;
@@ -185,7 +223,7 @@ export function Editor({
    * the function it was mounted with — and with it the title and the text as
    * they were at that moment.
    */
-  const store = useRef<() => Promise<void>>(async () => undefined);
+  const store = useRef<() => Promise<boolean>>(async () => true);
 
   /**
    * Leaving with something unsaved writes it instead of asking about it. The
@@ -217,8 +255,9 @@ export function Editor({
       const going = destination.pathname + destination.search;
 
       startTransition(async () => {
-        await store.current();
-        router.push(going as Route);
+        // Only once it is written. Leaving anyway after a write that never
+        // arrived would be the one thing this interception exists to prevent.
+        if (await store.current()) router.push(going as Route);
       });
     };
 
@@ -258,6 +297,7 @@ export function Editor({
   };
 
   const markdownBox = useRef<HTMLTextAreaElement>(null);
+  const slugDialog = useRef<HTMLDialogElement>(null);
 
   /** At the caret, on its own line, the way a picture sits between paragraphs. */
   const insertIntoMarkdown = (address: string) => {
@@ -305,6 +345,7 @@ export function Editor({
   const openRename = () => {
     setSlugDraft(slug);
     setSlugStanding(null);
+    slugDialog.current?.showModal();
   };
 
   useEffect(() => {
@@ -327,9 +368,12 @@ export function Editor({
       const answer = await renameSlugAction(article.id, wanted);
       if (answer.slug !== null) {
         setSlug(answer.slug);
+        // The rename wrote the row, so the next autosave is pinned to what it
+        // left behind rather than to the stand from before the rename.
+        if (answer.updatedAt !== null) knownUpdatedAt.current = answer.updatedAt;
         toast(`Die Adresse lautet jetzt /artikel/${answer.slug}`);
       }
-      setSlugDraft(null);
+      slugDialog.current?.close();
     });
   };
 
@@ -341,26 +385,50 @@ export function Editor({
    * the page afterwards — cannot go through the button's handler.
    */
   const storeNow = async () => {
-    const answer = await autosaveAction(article.id, {
-      title,
-      teaser,
-      body: JSON.stringify(document_),
-      coverWord: cover.word,
-      coverLine: cover.line,
-      colorId: cover.colorId,
-      coverGrid: cover.grid ?? true,
-      categoryId,
-      publishAt,
-    });
+    let answer: Awaited<ReturnType<typeof autosaveAction>>;
+
+    /**
+     * The action reports a refused write, but it throws on a database that is
+     * not there — and a rejected action inside a transition reaches the error
+     * boundary, which replaces this editor along with the page of text that has
+     * not been written yet. Caught here, the text stays on screen and the
+     * notice says what happened; `false` also keeps the interception above from
+     * navigating away from it.
+     */
+    try {
+      answer = await autosaveAction(article.id, {
+        title,
+        teaser,
+        body: JSON.stringify(document_),
+        coverWord: cover.word,
+        coverLine: cover.line,
+        colorId: cover.colorId,
+        coverGrid: cover.grid ?? true,
+        categoryId,
+        publishAt,
+        knownUpdatedAt: knownUpdatedAt.current,
+      });
+    } catch {
+      toast("Gerade ließ sich nichts speichern. Der Text steht noch hier.", "problem");
+      return false;
+    }
+
+    if (answer.conflict) {
+      setOvertaken(true);
+      toast(OVERTAKEN_NOTICE, "problem");
+      return true;
+    }
 
     if (answer.savedAt === null) {
       toast("Der Entwurf ließ sich nicht speichern.", "problem");
-      return;
+      return true;
     }
 
+    knownUpdatedAt.current = answer.savedAt;
     setSavedAt(new Date(answer.savedAt));
     setUnsaved(false);
     toast("Als Entwurf gespeichert.");
+    return true;
   };
 
   /**
@@ -369,7 +437,10 @@ export function Editor({
    * changes is knowing: somebody who has typed a page should be able to press
    * something and be told it is stored, rather than read a timestamp and hope.
    */
-  const saveDraft = () => startTransition(storeNow);
+  const saveDraft = () =>
+    startTransition(async () => {
+      await storeNow();
+    });
   store.current = storeNow;
 
   const submit = () =>
@@ -474,17 +545,21 @@ export function Editor({
           </div>
         </div>
 
-        {slugDraft === null ? null : (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Slug ändern"
-            className="fixed inset-0 z-50 flex justify-center bg-black/40 px-5 pt-6 md:pt-10"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setSlugDraft(null);
-            }}
-          >
-            <div className={`${PANEL_CLASS} va-in h-fit w-full max-w-[420px]`}>
+        {/* A real dialog, not a div that only says `aria-modal`: the browser
+            keeps the focus inside it, closes it on Escape from every element
+            and hands the focus back to „bearbeiten" afterwards. Kept above the
+            middle, as the other dialogs are. */}
+        <dialog
+          ref={slugDialog}
+          aria-label="Slug ändern"
+          onClose={() => setSlugDraft(null)}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) slugDialog.current?.close();
+          }}
+          className={`${PANEL_CLASS} mx-auto mt-6 mb-auto w-[min(420px,calc(100vw-40px))] p-0 text-tx backdrop:bg-black/40 md:mt-10`}
+        >
+          {slugDraft === null ? null : (
+            <div className="va-in">
               <div className={PANEL_HEADING_CLASS}>Adresse des Artikels</div>
               <div className="flex flex-col gap-3 p-5">
                 <label className={LABEL_CLASS} htmlFor="slug-draft">
@@ -497,7 +572,6 @@ export function Editor({
                     value={slugDraft}
                     onChange={(event) => setSlugDraft(event.target.value)}
                     onKeyDown={(event) => {
-                      if (event.key === "Escape") setSlugDraft(null);
                       if (event.key === "Enter" && slugStanding?.free === true) rename();
                     }}
                     className={`${FIELD_CLASS} font-mono`}
@@ -545,7 +619,7 @@ export function Editor({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSlugDraft(null)}
+                    onClick={() => slugDialog.current?.close()}
                     className={QUIET_BUTTON_CLASS}
                   >
                     Abbrechen
@@ -553,8 +627,8 @@ export function Editor({
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </dialog>
 
         <div className="mt-5 flex flex-wrap items-center gap-2.5 border-y border-bd px-4 py-2.5 md:px-[30px]">
           <div className="min-w-[190px]">
@@ -632,14 +706,17 @@ export function Editor({
       </div>
 
       <aside className={PANEL_CLASS}>
-        <div role="tablist" aria-label="Artikel-Einstellungen" className="grid grid-cols-3 border-b border-bd px-4">
-          <button type="button" role="tab" aria-selected={tab === "cover"} onClick={() => setTab("cover")} className={TAB_CLASS(tab === "cover")}>
+        {/* Drawn as tabs, announced as what they are: three toggles in a
+            group. `role="tab"` would promise a panel to jump to and the arrow
+            keys to move between them, and neither is here. */}
+        <div role="group" aria-label="Artikel-Einstellungen" className="grid grid-cols-3 border-b border-bd px-4">
+          <button type="button" aria-pressed={tab === "cover"} onClick={() => setTab("cover")} className={TAB_CLASS(tab === "cover")}>
             Cover
           </button>
-          <button type="button" role="tab" aria-selected={tab === "meta"} onClick={() => setTab("meta")} className={TAB_CLASS(tab === "meta")}>
+          <button type="button" aria-pressed={tab === "meta"} onClick={() => setTab("meta")} className={TAB_CLASS(tab === "meta")}>
             Details
           </button>
-          <button type="button" role="tab" aria-selected={tab === "publish"} onClick={() => setTab("publish")} className={TAB_CLASS(tab === "publish")}>
+          <button type="button" aria-pressed={tab === "publish"} onClick={() => setTab("publish")} className={TAB_CLASS(tab === "publish")}>
             Veröffentlichen
           </button>
         </div>
@@ -735,7 +812,7 @@ export function Editor({
                     track and not its sibling — which is what that variant
                     selects. */}
                 <span
-                  className={`flex h-6 w-[42px] items-center rounded-full p-[2px] transition-[background,border-color] duration-200 ease-out ${
+                  className={`flex h-6 w-[42px] items-center rounded-full p-[2px] transition-[background,border-color] duration-200 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ac ${
                     cover.grid === false
                       ? "justify-start border border-bd bg-s2"
                       : "justify-end border border-transparent bg-ac"

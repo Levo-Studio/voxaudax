@@ -52,9 +52,14 @@ export const acceptHref = (value: unknown) => {
  *
  * The only images this installation has are the ones it serves itself, so that
  * is the whole of what an image may point at.
+ *
+ * It has to be the address the editor actually writes — `imageHref`, which is
+ * `/bild/<id>`. Spelling it any other way here does not refuse the picture, it
+ * drops the node: the next autosave writes the body back without it and the
+ * upload is left behind as a row nothing points at.
  */
 const IMAGE_SOURCE =
-  /^\/api\/bilder\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^\/bild\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const acceptImageSource = (value: unknown) =>
   typeof value === "string" && IMAGE_SOURCE.test(value) ? value : null;

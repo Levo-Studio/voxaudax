@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
 import { DocumentPage, MissingDocument } from "@/components/document-page";
-import { environment } from "@/lib/env";
-import { pageBySlug } from "@/lib/queries";
+import { editorialAddress } from "@/lib/env";
+import { alternates } from "@/lib/metadata";
+import { orNoneAtBuildTime, pageBySlug } from "@/lib/queries";
 
 export const revalidate = 300;
 
@@ -13,17 +14,18 @@ export const revalidate = 300;
  * binding, so the page exists and says it is empty until the operator fills it.
  */
 export const generateMetadata = async (): Promise<Metadata> => {
-  const page = await pageBySlug("datenschutz");
+  const page = await orNoneAtBuildTime(pageBySlug("datenschutz"), undefined);
 
   return {
     title: "Datenschutz",
     description: "Datenschutzerklärung der Schülerzeitung Vox Audax.",
     robots: page === undefined ? { index: false, follow: true } : undefined,
+    alternates: alternates("/datenschutz"),
   };
 };
 
 export default async function PrivacyPage() {
-  const page = await pageBySlug("datenschutz");
+  const page = await orNoneAtBuildTime(pageBySlug("datenschutz"), undefined);
 
   return (
     <DocumentPage
@@ -32,7 +34,7 @@ export default async function PrivacyPage() {
       missing={
         <MissingDocument
           what="Eine Datenschutzerklärung ist eine rechtsverbindliche Erklärung darüber, was mit den Daten der Leserinnen und Leser geschieht, und kann deshalb nicht aus der Anwendung heraus erzeugt werden."
-          editorialEmail={environment().MAIL_TO_EDITORIAL}
+          editorialEmail={editorialAddress()}
         />
       }
       trailing={{ label: "Impressum →", href: "/impressum" }}

@@ -2,7 +2,7 @@ import { Avatar, COLUMN_HEADING_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS } from "
 import { MemberRow } from "@/components/admin/member-row";
 import { InviteForm } from "@/app/admin/(redaktion)/nutzer/invite-form";
 import { requireCapability } from "@/lib/authorize";
-import { countMembers, listMembers, openInvitationFor } from "@/lib/editorial/members";
+import { countMembers, listMembers } from "@/lib/editorial/members";
 import { roleLabel } from "@/lib/roles";
 
 export const metadata = { title: "Nutzer · Vox Audax Redaktion" };
@@ -21,13 +21,6 @@ export default async function UsersPage() {
   const admin = await requireCapability("manageUsers");
 
   const [members, counts] = await Promise.all([listMembers(), countMembers()]);
-
-  const rows = await Promise.all(
-    members.map(async (member) => ({
-      ...member,
-      invitation: member.status === "eingeladen" ? await openInvitationFor(member.email) : null,
-    })),
-  );
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_330px]">
@@ -48,9 +41,9 @@ export default async function UsersPage() {
           <span className={`${COLUMN_HEADING_CLASS} text-right`}>Aktionen</span>
         </div>
 
-        {rows.map((member) => {
+        {members.map((member) => {
           const invited = member.status === "eingeladen";
-          const expired = invited && member.invitation === null;
+          const expired = invited && !member.hasOpenInvitation;
           const former = member.status === "ehemalig";
 
           const cells = (

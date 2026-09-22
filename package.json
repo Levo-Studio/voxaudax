@@ -17,7 +17,9 @@
     "rustfs:key": "node scripts/rustfs-access-key.mts",
     "shots": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file=.env scripts/shots.ts",
     "start": "next start --port 7896",
-    "test": "node --test --experimental-strip-types --conditions=react-server --import ./test/register-alias.mjs --env-file=.env \"test/**/*.test.mts\" && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env --test tests/",
+    "test": "pnpm test:integration && pnpm test:unit",
+    "test:integration": "node --test --experimental-strip-types --conditions=react-server --import ./test/register-alias.mjs --env-file=.env \"test/**/*.test.mts\"",
+    "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env --test tests/",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -35,6 +35,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # The other half talks to a real database, which this job has no route to
+      # and is given no credential for; those tests stay where one exists.
+      - name: The tests that need no database must pass
+        run: pnpm test:unit
+
       - name: The env example must match the schema
         run: pnpm check:env
 
@@ -96,8 +101,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify image exists on GHCR
+        env:
+          DIGEST: ${{ needs.build-and-push.outputs.digest }}
         run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
+          # GitHub hands the repository back in its canonical case, and a Docker
+          # reference carries no uppercase letter in its path; the push survives
+          # that only because docker/metadata-action lowercases the name for the
+          # tags it writes. The digest names the image that was just pushed
+          # rather than whatever happens to be wearing the tag.
+          if [ -z "$DIGEST" ]; then
+            echo "The build produced no digest, so nothing was pushed"
+            exit 1
+          fi
+          IMAGE="${REGISTRY}/$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')@${DIGEST}"
           echo "Verifying $IMAGE"
           docker buildx imagetools inspect "$IMAGE"
 

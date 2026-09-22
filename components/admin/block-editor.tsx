@@ -415,7 +415,7 @@ export function BlockEditor({
               onKeyDown={onKeyDown}
               onPaste={onPaste}
               onInput={onInput}
-              className={`min-h-[1.7em] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ac ${BLOCK_CLASS[block.kind]}`}
+              className={`min-h-[1.7em] ${BLOCK_CLASS[block.kind]}`}
             />
           ),
         )}

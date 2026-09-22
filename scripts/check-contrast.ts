@@ -17,6 +17,9 @@ const BRAND_PANEL = [
 
 const MINIMUM_RATIO = 4.5;
 
+/** What a boundary owes when it is the only thing drawing a control: SC 1.4.11. */
+const MINIMUM_NON_TEXT_RATIO = 3;
+
 const channel = (value: number) => {
   const scaled = value / 255;
   return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
@@ -48,8 +51,8 @@ const contrastRatio = (a: string, b: string) => {
  * measured here beside the cover colours.
  */
 const THEMES = {
-  hell: { s1: "#fbfaff", s2: "#efedfa", tx: "#100c1f", tm: "#5f5a78", ac: "#4b34e6", ac2: "#c8410c" },
-  dunkel: { s1: "#0e0c16", s2: "#171326", tx: "#f3f1fb", tm: "#a09ab8", ac: "#a99bff", ac2: "#ff8c5e" },
+  hell: { s1: "#fbfaff", s2: "#efedfa", tx: "#100c1f", tm: "#5f5a78", bd: "#dcd8ef", bd2: "#8a85a8", ac: "#4b34e6", ac2: "#c8410c" },
+  dunkel: { s1: "#0e0c16", s2: "#171326", tx: "#f3f1fb", tm: "#a09ab8", bd: "#2a2440", bd2: "#6d6694", ac: "#a99bff", ac2: "#ff8c5e" },
 } as const;
 
 type Token = keyof (typeof THEMES)["hell"];
@@ -64,6 +67,22 @@ const INTERFACE_PAIRS: readonly (readonly [string, Token, Token])[] = [
   ["accent link", "ac", "s1"],
   ["refusal", "ac2", "s1"],
   ["ink on the accent", "s1", "ac"],
+];
+
+/**
+ * Not ink on ground: the line or the fill that draws a control and carries its
+ * state. It is measured separately because the threshold is 3:1, and because
+ * measuring only ink is how a field ended up outlined at 1.2:1 against its own
+ * fill while the checker reported everything in order.
+ *
+ * `bd` is deliberately absent: it is the hairline between panel rows, which is
+ * decoration. Where a boundary is the control, the token is `bd2`.
+ */
+const NON_TEXT_PAIRS: readonly (readonly [string, Token, Token])[] = [
+  ["field outline against the panel", "bd2", "s1"],
+  ["field outline against its own fill", "bd2", "s2"],
+  ["knob on the switched-on track", "s1", "ac"],
+  ["switched-on track against the panel", "ac", "s1"],
 ];
 
 /**
@@ -101,7 +120,7 @@ const opacities = renderedOpacities(COMPONENT);
 const panelOpacities = renderedOpacities(...BRAND_PANEL);
 const panelColour = coverColorById("violett");
 
-type Failure = { readonly what: string; readonly ratio: number; readonly ink: string; readonly ground: string };
+type Failure = { readonly what: string; readonly ratio: number; readonly ink: string; readonly ground: string; readonly wanted: number };
 
 const failures: Failure[] = [];
 
@@ -115,6 +134,7 @@ for (const opacity of opacities) {
         ratio,
         ink,
         ground: colour.value,
+        wanted: MINIMUM_RATIO,
       });
     }
   }
@@ -129,6 +149,7 @@ for (const opacity of panelOpacities) {
       ratio,
       ink,
       ground: panelColour.value,
+      wanted: MINIMUM_RATIO,
     });
   }
 }
@@ -142,6 +163,22 @@ for (const [theme, palette] of Object.entries(THEMES)) {
         ratio,
         ink: palette[ink],
         ground: palette[ground],
+        wanted: MINIMUM_RATIO,
+      });
+    }
+  }
+}
+
+for (const [theme, palette] of Object.entries(THEMES)) {
+  for (const [what, ink, ground] of NON_TEXT_PAIRS) {
+    const ratio = contrastRatio(palette[ink], palette[ground]);
+    if (ratio < MINIMUM_NON_TEXT_RATIO) {
+      failures.push({
+        what: `${what} (${theme}, ${ink} auf ${ground})`,
+        ratio,
+        ink: palette[ink],
+        ground: palette[ground],
+        wanted: MINIMUM_NON_TEXT_RATIO,
       });
     }
   }
@@ -149,14 +186,14 @@ for (const [theme, palette] of Object.entries(THEMES)) {
 
 for (const failure of failures) {
   console.error(
-    `${failure.what}: ${failure.ink} on ${failure.ground} is ${failure.ratio.toFixed(2)}:1, below ${MINIMUM_RATIO}:1`,
+    `${failure.what}: ${failure.ink} on ${failure.ground} is ${failure.ratio.toFixed(2)}:1, below ${failure.wanted}:1`,
   );
 }
 
 const checked =
   opacities.length * COVER_COLORS.length +
   panelOpacities.length +
-  Object.keys(THEMES).length * INTERFACE_PAIRS.length;
+  Object.keys(THEMES).length * (INTERFACE_PAIRS.length + NON_TEXT_PAIRS.length);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} of ${checked} colour pairs fail WCAG AA.`);

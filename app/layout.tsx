@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 
-import { environment } from "@/lib/env";
+import { siteUrl } from "@/lib/env";
 import { fontVariables } from "@/lib/fonts";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(environment().NEXT_PUBLIC_SITE_URL),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Vox Audax",
     template: "%s — Vox Audax",
   },
   description: "Schülerzeitung des Uhland-Gymnasiums",
   applicationName: "Vox Audax",
+  // No canonical here: it would be inherited unchanged by every page that does
+  // not name its own, and each of them would declare itself the front page.
   alternates: {
-    canonical: "/",
     types: { "application/rss+xml": "/rss.xml" },
   },
   openGraph: {

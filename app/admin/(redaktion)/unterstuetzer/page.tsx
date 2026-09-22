@@ -84,6 +84,8 @@ export default async function SponsorsPage() {
                   <img
                     src={`/api/bilder/${sponsor.logoImageId}`}
                     alt={sponsor.logoAlt ?? ""}
+                    loading="lazy"
+                    decoding="async"
                     className="h-10 w-10 flex-none rounded-[9px] border border-bd bg-s2 object-contain"
                   />
                 )}

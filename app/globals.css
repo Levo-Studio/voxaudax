@@ -5,6 +5,12 @@
  * on bare :root; dark is stated twice — once for the system preference, once
  * for an explicit choice — so that the switcher can override the system in
  * either direction rather than only towards dark.
+ *
+ * `bd2` is the one addition: `bd` is the template's hairline between panel
+ * rows, which is decoration and has no contrast requirement, but the same
+ * hairline was also the whole outline of a text field, and at 1.2:1 against
+ * the fill it left the field invisible. A control's own boundary owes 3:1,
+ * so it gets its own token — measured in `scripts/check-contrast.ts`.
  */
 :root {
   --s1: #fbfaff;
@@ -12,6 +18,7 @@
   --tx: #100c1f;
   --tm: #5f5a78;
   --bd: #dcd8ef;
+  --bd2: #8a85a8;
   --ac: #4b34e6;
   --ac2: #c8410c;
   color-scheme: light;
@@ -24,6 +31,7 @@
     --tx: #f3f1fb;
     --tm: #a09ab8;
     --bd: #2a2440;
+    --bd2: #6d6694;
     --ac: #a99bff;
     --ac2: #ff8c5e;
       color-scheme: dark;
@@ -36,6 +44,7 @@
   --tx: #f3f1fb;
   --tm: #a09ab8;
   --bd: #2a2440;
+  --bd2: #6d6694;
   --ac: #a99bff;
   --ac2: #ff8c5e;
   color-scheme: dark;
@@ -56,6 +65,7 @@
   --color-tx: var(--tx);
   --color-tm: var(--tm);
   --color-bd: var(--bd);
+  --color-bd2: var(--bd2);
   --color-ac: var(--ac);
   --color-ac2: var(--ac2);
 }
@@ -74,7 +84,8 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible {
+select:focus-visible,
+[contenteditable]:focus-visible {
   outline: 2px solid var(--ac);
   outline-offset: 3px;
   border-radius: 2px;

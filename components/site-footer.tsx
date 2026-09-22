@@ -46,8 +46,6 @@ export function SiteFooter() {
         <span className="hidden font-medium md:inline">
           Konzept, Design und Umsetzung — danke an Julius.
         </span>
-        <div className="mt-4 md:mt-0 md:ml-auto">
-        </div>
       </div>
     </footer>
   );

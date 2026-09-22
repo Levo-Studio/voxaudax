@@ -19,10 +19,12 @@ export function ArticleFilter({
   query,
   sort,
   sorts,
+  shown,
 }: {
   query: string;
   sort: string;
   sorts: readonly { readonly key: string; readonly label: string }[];
+  shown: number;
 }) {
   const router = useRouter();
   const current = useSearchParams();
@@ -103,9 +105,19 @@ export function ArticleFilter({
           </option>
         ))}
       </select>
-      <button type="submit" className="sr-only">
+      {/* Out of the tab order: `sr-only` clips the focus ring away with the
+          rest of the element, so tabbing here landed on a stop that showed
+          nothing anywhere on the page. It stays in the form, because that is
+          what makes Enter in the field submit it without script. */}
+      <button type="submit" tabIndex={-1} className="sr-only">
         Anwenden
       </button>
+
+      {/* The list narrows without a submit and without the focus leaving the
+          field, so this is the only thing that says it happened. */}
+      <span role="status" aria-atomic="true" className="sr-only">
+        {`${shown} Artikel`}
+      </span>
     </form>
   );
 }

@@ -9,8 +9,9 @@ import { ArticleProse } from "@/components/prose";
 import { ShareControls } from "@/components/share-controls";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { environment } from "@/lib/env";
+import { siteUrl } from "@/lib/env";
 import { longDate, machineDate, readingMinutes, shortDate } from "@/lib/format";
+import { alternates } from "@/lib/metadata";
 import {
   articleBySlug,
   currentSlugForRetiredSlug,
@@ -53,7 +54,7 @@ export const generateMetadata = async ({
   return {
     title: article.title,
     description: article.teaser,
-    alternates: { canonical: articleHref(article.slug) },
+    alternates: alternates(articleHref(article.slug)),
     openGraph: {
       type: "article",
       title: article.title,
@@ -80,7 +81,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
   const related = await relatedArticles(article);
   const minutes = readingMinutes(article.wordCount);
   const author = roleTitle(article.authorRole, article.authorForm);
-  const site = environment().NEXT_PUBLIC_SITE_URL;
+  const site = siteUrl();
 
   /**
    * Search engines and aggregators read the article from this block rather
@@ -93,6 +94,11 @@ export default async function ArticlePage({ params }: ArticleParams) {
     description: article.teaser,
     datePublished: article.publishedAt.toISOString(),
     articleSection: article.categoryName,
+    // The cover the link preview already gets, named here too: otherwise the
+    // picture beside the article in a search result is a guess at the markup.
+    image: [
+      new URL(`${articleHref(article.slug)}/opengraph-image`, site).toString(),
+    ],
     inLanguage: "de-DE",
     wordCount: article.wordCount,
     author: { "@type": "Person", name: article.authorName },

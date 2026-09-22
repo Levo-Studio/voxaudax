@@ -46,6 +46,7 @@ export default async function ArticleEditorPage({
         categoryId: article.categoryId,
         status: article.status,
         publishAt: localDateTime(article.publishAt),
+        updatedAt: article.updatedAt.toISOString(),
         authorName: article.authorName,
         authorInitials: article.authorInitials,
       }}

@@ -62,9 +62,10 @@ export function MissingDocument({
         Für diese Seite liegt noch kein Text vor.
       </p>
       <p className="mt-2.5 text-[17px] leading-[1.7] font-medium text-tm">
-        {what} Die Redaktion trägt den Text im Redaktionssystem unter{" "}
-        <span className="font-mono text-[15px]">pages</span> nach; bis dahin
-        steht hier absichtlich nichts. Fragen dazu beantwortet{" "}
+        {what} Der Betrieb setzt den Text mit dem Seed in{" "}
+        <span className="font-mono text-[15px]">pages</span> — das
+        Redaktionssystem verwaltet Beiträge und Memes, aber keine Seiten. Bis
+        dahin steht hier absichtlich nichts. Fragen dazu beantwortet{" "}
         <a
           href={`mailto:${editorialEmail}`}
           className="py-[15px] font-bold text-ac"

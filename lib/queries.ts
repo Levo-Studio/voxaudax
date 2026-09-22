@@ -18,6 +18,7 @@ import {
 } from "@/lib/db/schema";
 import { toSlug } from "@/lib/format";
 import { LIKE_ESCAPE, likeContains } from "@/lib/search";
+import { freeSlug } from "@/lib/slug";
 
 /**
  * Every public read of the database lives here. The pages are server
@@ -25,6 +26,19 @@ import { LIKE_ESCAPE, likeContains } from "@/lib/search";
  * HTML response and no browser ever asks this application for content a second
  * time.
  */
+
+/**
+ * A build has no route to the database and is given no credential for one — the
+ * same reason `app/sitemap.ts`, `app/rss.xml` and `generateStaticParams` already
+ * answer for themselves. A prerendered page therefore has to be able to come
+ * out empty, and its empty state is the one it already draws before the first
+ * article exists; the revalidate window renders it again on the first request
+ * after deployment, against the database the container does have.
+ */
+export const orNoneAtBuildTime = <Result, None>(
+  query: Promise<Result>,
+  none: None,
+) => query.catch((): Result | None => none);
 
 /**
  * Published is not the same as due: an article can carry the status while its
@@ -248,34 +262,47 @@ export const publishedYears = async () => {
 
 export type ArchiveAuthor = { name: string; slug: string };
 
-/** Only people with something to read: an empty filter would be a dead link. */
-export const publishedAuthors = async (): Promise<ArchiveAuthor[]> => {
-  const rows = await db
-    .selectDistinct({ name: users.name })
-    .from(articles)
-    .innerJoin(users, eq(users.id, articles.authorId))
-    .where(live())
-    .orderBy(asc(users.name));
-
-  return rows.map((row) => ({ name: row.name, slug: toSlug(row.name) }));
-};
-
 /**
  * The author is addressed by the slug of their name rather than by an id, so a
  * filtered archive can be read, spoken and pasted. The slug is made in
  * JavaScript, so resolving it means comparing names here rather than in SQL —
  * but only the names of people who have published, which is what the filter
  * offers and a good deal less than the user table.
+ *
+ * Two people can arrive at one slug: "Anna-Lena" and "Anna Lena" are spelled
+ * apart and slugified the same, and two members may simply share a name. Both
+ * the menu and the lookup are built from this one list, in one order, so the
+ * suffix a collision gets is the same on both sides — otherwise the second
+ * person's filter leads to the first person's articles, under their own name.
  */
-const authorIdForSlug = cache(async (slug: string) => {
+const authorsOfPublished = cache(async () => {
   const rows = await db
     .selectDistinct({ id: users.id, name: users.name })
     .from(articles)
     .innerJoin(users, eq(users.id, articles.authorId))
-    .where(live());
+    .where(live())
+    // The id decides between two people with the same name, so the order — and
+    // with it who keeps the plain slug — does not change from request to request.
+    .orderBy(asc(users.name), asc(users.id));
 
-  return rows.find((row) => toSlug(row.name) === slug)?.id;
+  const taken = new Set<string>();
+
+  return rows.map((row) => {
+    const slug = freeSlug(toSlug(row.name), taken);
+    taken.add(slug);
+    return { id: row.id, name: row.name, slug };
+  });
 });
+
+/** Only people with something to read: an empty filter would be a dead link. */
+export const publishedAuthors = async (): Promise<ArchiveAuthor[]> =>
+  (await authorsOfPublished()).map((author) => ({
+    name: author.name,
+    slug: author.slug,
+  }));
+
+const authorIdForSlug = async (slug: string) =>
+  (await authorsOfPublished()).find((author) => author.slug === slug)?.id;
 
 export type ArchiveFilters = {
   query?: string;
@@ -474,20 +501,4 @@ export const publishedMemeSummary = async () => {
     .where(and(eq(memes.status, "published"), eq(memes.visible, true)));
 
   return row;
-};
-
-export const imageRecord = async (id: string) => {
-  const [image] = await db
-    .select({
-      key: images.key,
-      mime: images.mime,
-      alt: images.alt,
-      width: images.width,
-      height: images.height,
-    })
-    .from(images)
-    .where(eq(images.id, id))
-    .limit(1);
-
-  return image;
 };

@@ -24,6 +24,20 @@ const lastSeen = sql<string | null>`(
   select max(s.last_used_at) from velve.session s where s.user_id = ${users.velveUserId}
 )`;
 
+/**
+ * Whether the row screen 8a shows as "Eingeladen" still has an invitation
+ * behind it — without one it reads "Abgelaufen".
+ *
+ * Asked alongside the row and not once per row: the list already reads every
+ * member, and a September that invites twenty-five people turned every render
+ * of this page into twenty-five more round trips for a question that is one
+ * `exists` on `invitations_open_idx`.
+ */
+const openInvitation = sql<boolean>`exists (
+  select 1 from ${invitations}
+  where ${invitations.email} = ${users.email} and ${invitations.acceptedAt} is null
+)`;
+
 export const listMembers = async () => {
   const rows = await db
     .select({
@@ -37,6 +51,7 @@ export const listMembers = async () => {
       invitedAt: users.invitedAt,
       velveUserId: users.velveUserId,
       lastSeenAt: lastSeen,
+      hasOpenInvitation: openInvitation,
     })
     .from(users)
     // People who have left sit at the bottom: they are on the list so that an
@@ -98,22 +113,6 @@ export const setRoleAndForm = (memberId: string, role: Role, form: Form) =>
 
 export const setMustChangePassword = (memberId: string, mustChange: boolean) =>
   db.update(users).set({ mustChangePassword: mustChange }).where(eq(users.id, memberId));
-
-/** The open invitation behind a row screen 8a shows as "Eingeladen" or "Abgelaufen". */
-export const openInvitationFor = async (email: string) => {
-  const [row] = await db
-    .select({
-      id: invitations.id,
-      expiresAt: invitations.expiresAt,
-      createdAt: invitations.createdAt,
-    })
-    .from(invitations)
-    .where(sql`${invitations.email} = ${email} and ${invitations.acceptedAt} is null`)
-    .orderBy(sql`${invitations.createdAt} desc`)
-    .limit(1);
-
-  return row ?? null;
-};
 
 /**
  * Whether anything of this person's is published. Nothing here stops a removal

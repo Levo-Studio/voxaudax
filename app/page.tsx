@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ArticleBrief, ArticleCard } from "@/components/article-card";
@@ -16,10 +17,12 @@ import {
   toSlug,
 } from "@/lib/format";
 import { splitEditorialPage } from "@/lib/editorial-page";
+import { alternates } from "@/lib/metadata";
 import {
   activeSponsors,
   editorialMembers,
   homepageArticles,
+  orNoneAtBuildTime,
   pageBySlug,
   publishedArticleCount,
 } from "@/lib/queries";
@@ -32,15 +35,19 @@ import { archiveHref, articleHref } from "@/lib/routes";
  */
 export const revalidate = 300;
 
+export const metadata: Metadata = {
+  alternates: alternates("/"),
+};
+
 const MEMBER_PILLS = 8;
 
 export default async function HomePage() {
   const [articles, total, supporters, members, editorialPage] = await Promise.all([
-    homepageArticles(),
-    publishedArticleCount(),
-    activeSponsors(),
-    editorialMembers(),
-    pageBySlug("redaktion"),
+    orNoneAtBuildTime(homepageArticles(), []),
+    orNoneAtBuildTime(publishedArticleCount(), 0),
+    orNoneAtBuildTime(activeSponsors(), []),
+    orNoneAtBuildTime(editorialMembers(), []),
+    orNoneAtBuildTime(pageBySlug("redaktion"), undefined),
   ]);
 
   const { invitation } = splitEditorialPage(editorialPage?.body.content ?? []);

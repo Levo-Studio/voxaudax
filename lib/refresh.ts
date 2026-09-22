@@ -19,6 +19,12 @@ export const refreshPublic = {
     revalidatePath("/");
   },
 
+  /**
+   * `/memes` reads its cursor from the query and is rendered per request, so
+   * there is nothing cached here to replace today. Named all the same: a reader
+   * of this list should find every public page a meme appears on, and the day
+   * the gallery gets a cacheable first page this is the line that has to exist.
+   */
   memes: () => {
     revalidatePath("/memes");
   },

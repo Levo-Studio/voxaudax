@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { environment } from "@/lib/env";
+import { siteUrl } from "@/lib/env";
 import { everyPublishedArticle } from "@/lib/queries";
 import { articleHref } from "@/lib/routes";
 
@@ -35,7 +35,7 @@ const publishedArticlesOrNoneAtBuildTime = async () => {
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = environment().NEXT_PUBLIC_SITE_URL;
+  const site = siteUrl();
   const articles = await publishedArticlesOrNoneAtBuildTime();
   const url = (path: string) => new URL(path, site).toString();
 

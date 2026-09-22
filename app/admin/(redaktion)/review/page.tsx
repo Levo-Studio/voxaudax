@@ -11,7 +11,7 @@ import {
 } from "@/app/admin/(redaktion)/review/actions";
 import { DecisionButtons } from "@/app/admin/(redaktion)/review/decision-buttons";
 import { requireCapability } from "@/lib/authorize";
-import { listSubmittedArticles, missingAltText } from "@/lib/editorial/articles";
+import { listSubmittedArticles, submittedArticlesBlockedByAltText } from "@/lib/editorial/articles";
 import { listSubmittedMemes } from "@/lib/editorial/memes";
 import { listSubmittedSponsors } from "@/lib/editorial/sponsors";
 import { formatWordCount } from "@/lib/reading-time";
@@ -32,7 +32,7 @@ const waited = (since: Date | null) => {
 };
 
 const TAB_CLASS = (active: boolean) =>
-  `border-none bg-transparent px-1 pt-3 pb-[11px] font-control text-xs font-bold no-underline transition-[color,box-shadow] duration-200 ease-out ${
+  `inline-flex min-h-11 items-center border-none bg-transparent px-1 font-control text-xs font-bold no-underline transition-[color,box-shadow] duration-200 ease-out md:min-h-0 md:pt-3 md:pb-[11px] ${
     active ? "text-tx shadow-[inset_0_-2px_0_var(--ac)]" : "text-tm hover:text-tx"
   }`;
 
@@ -53,18 +53,19 @@ export default async function ReviewPage({
   const parameters = await searchParams;
   const tab: Tab = isTab(parameters.tab) ? parameters.tab : "artikel";
 
-  const [articles, memes, sponsors] = await Promise.all([
+  const [articles, memes, sponsors, blockedArticles] = await Promise.all([
     listSubmittedArticles(),
     listSubmittedMemes(),
     listSubmittedSponsors(),
+    // Only the tab that draws the articles asks about their alt texts, and
+    // only that question needs the document itself.
+    tab === "artikel" ? submittedArticlesBlockedByAltText() : new Set<string>(),
   ]);
 
-  const articleRows = await Promise.all(
-    articles.map(async (row) => ({
-      ...row,
-      blocked: missingAltText({ body: row.body }),
-    })),
-  );
+  const articleRows = articles.map((row) => ({
+    ...row,
+    blocked: blockedArticles.has(row.id),
+  }));
 
   const tabs: readonly { readonly key: Tab; readonly label: string; readonly count: number }[] = [
     { key: "artikel", label: "Artikel", count: articles.length },
@@ -83,19 +84,21 @@ export default async function ReviewPage({
           </p>
         </div>
 
-        <div role="tablist" aria-label="Art der Einreichung" className="mt-3.5 flex gap-[22px] border-b border-bd px-4 md:px-[22px]">
+        {/* Drawn as tabs, but every one of them is a link that reloads the
+            page with another query — so it is announced as navigation, with
+            `aria-current` on the one being shown. */}
+        <nav aria-label="Art der Einreichung" className="mt-3.5 flex gap-[22px] border-b border-bd px-4 md:px-[22px]">
           {tabs.map((entry) => (
             <Link
               key={entry.key}
               href={{ pathname: "/admin/review", query: { tab: entry.key } }}
-              role="tab"
-              aria-selected={tab === entry.key}
+              aria-current={tab === entry.key ? "page" : undefined}
               className={TAB_CLASS(tab === entry.key)}
             >
               {entry.label} {entry.count}
             </Link>
           ))}
-        </div>
+        </nav>
 
         {tab === "artikel" ? (
           <div className="va-in">
@@ -158,6 +161,8 @@ export default async function ReviewPage({
                       alt={meme.alt ?? ""}
                       width={meme.width}
                       height={meme.height}
+                      loading="lazy"
+                      decoding="async"
                       className="block w-full rounded-[10px] border border-bd bg-s2 object-cover"
                     />
                     <figcaption className={`mt-[9px] text-xs font-semibold ${blocked ? "text-ac2" : "text-tm"}`}>

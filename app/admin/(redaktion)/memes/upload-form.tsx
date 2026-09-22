@@ -41,7 +41,7 @@ export function MemeUploadForm() {
           }
         }}
       >
-        <label className="block cursor-pointer rounded-xl border-[1.5px] border-dashed border-ac px-4 py-[26px] text-center text-[13px] font-bold text-ac">
+        <label className={`block cursor-pointer rounded-xl border-[1.5px] border-dashed border-ac px-4 py-[26px] text-center text-[13px] font-bold text-ac has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ac`}>
           Bild hierher ziehen
           <span className="mt-[5px] block text-[11.5px] font-medium text-tm">
             JPG, PNG, WebP oder GIF · max 8 MB

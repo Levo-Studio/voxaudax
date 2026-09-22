@@ -4,8 +4,9 @@ import { Avatar, toneForPosition } from "@/components/avatar";
 import { ContactForm } from "@/components/contact-form";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { environment } from "@/lib/env";
-import { editorialMembers } from "@/lib/queries";
+import { editorialAddress } from "@/lib/env";
+import { alternates } from "@/lib/metadata";
+import { editorialMembers, orNoneAtBuildTime } from "@/lib/queries";
 
 export const revalidate = 300;
 
@@ -13,11 +14,12 @@ export const metadata: Metadata = {
   title: "Kontakt",
   description:
     "Themenvorschlag, Korrektur, Leserbrief oder Interesse an der Redaktion.",
+  alternates: alternates("/kontakt"),
 };
 
 export default async function ContactPage() {
-  const editorialEmail = environment().MAIL_TO_EDITORIAL;
-  const members = await editorialMembers();
+  const editorialEmail = editorialAddress();
+  const members = await orNoneAtBuildTime(editorialMembers(), []);
   const editorsInChief = members.filter((member) => member.role === "admin");
 
   return (

@@ -21,24 +21,72 @@ Kopf- und Fußzeile, dieselben Abschnittsüberschriften, derselbe Zeilenabstand.
 Der Text liegt in `pages` und ist damit ohne Deploy änderbar — wie das Impressum,
 das 5c ebenfalls als redaktionellen Inhalt behandelt.
 
-Der Text ist inzwischen geschrieben, und zwar aus dem Verhalten der Anwendung
-abgelesen statt aus einer Vorlage übernommen: kein Tracking und keine fremden
-Hosts, das Farbschema im `localStorage` statt in einem Cookie, das
-Kontaktformular ohne jede Speicherung in der Datenbank, die Ratenbremse nur im
-Arbeitsspeicher und nur auf die Adresse, das eine Sitzungscookie, sowie IP und
-Browserkennung in `velve.session` samt ihrer Fristen.
+Der Text stand bis jetzt nur hier beschrieben und nirgends im Repository: `PAGES`
+in `scripts/seed-content.mts` kannte `impressum` und `redaktion`, und `pages`
+wird sonst von nichts beschrieben, also zeigte `/datenschutz` dauerhaft den
+Platzhalter. Diese Datei behauptete das Gegenteil — das war falsch und ist
+hiermit berichtigt.
 
-**Drei Angaben darin kann die Anwendung nicht belegen, weil sie dem Betrieb
-gehören, und sie müssen vor dem Livegang zutreffen:** die Aufbewahrung der
-Server-Protokolle von sieben Tagen (im Reverse Proxy einzustellen), ein
-Auftragsverarbeitungsvertrag mit Resend samt Standardvertragsklauseln, und dass
-der Objektspeicher tatsächlich in der EU steht.
+→ Der Text steht jetzt als dritter Eintrag in `PAGES` und kommt mit
+`pnpm db:seed` in die Tabelle, genau wie Impressum und Redaktionsseite. Er ist
+aus dem Verhalten der Anwendung abgelesen statt aus einer Vorlage übernommen:
+kein Tracking und keine fremden Hosts, das Farbschema im `localStorage` statt in
+einem Cookie, das Kontaktformular ohne jede Speicherung in der Datenbank, die
+Ratenbremse nur im Arbeitsspeicher und nur auf die Adresse, das eine
+Sitzungscookie, sowie die auf das Netz gekürzte IP-Adresse und die Browser- und
+Systemfamilie in `velve.session` samt ihrer Fristen (sieben Tage ohne Nutzung,
+spätestens 30 Tage — die Vorgaben von `@velve/auth`, die diese Anwendung nicht
+überschreibt).
+
+**Vier Angaben darin kann die Anwendung nicht belegen, weil sie dem Betrieb
+gehören. Sie stehen im Text sichtbar als „Betriebszusage" und müssen vor dem
+Livegang zutreffen:** die Aufbewahrung der Server-Protokolle von sieben Tagen
+(im Reverse Proxy einzustellen), ein Auftragsverarbeitungsvertrag mit Resend
+samt Standardvertragsklauseln, dass der Objektspeicher tatsächlich in der EU
+steht, und dass die Server in der EU stehen. Die vierte kam dazu, weil eine
+Erklärung, die den Betreiber als Empfänger nennt, auch sagen muss, wo er die
+Daten hält.
+
+**Der Wortlaut ist juristisch nicht geprüft.** Er beschreibt, was der Code tut;
+ob er als Erklärung genügt, entscheidet nicht die Anwendung.
+
+Der Platzhalter, den die Seite ohne Text zeigt, nennt jetzt den Betrieb und den
+Seed. Vorher schickte er die Redaktion in eine Seitenverwaltung, die es im
+Backoffice nicht gibt — `pages` hat dort keine Oberfläche —, und wies die
+Aufgabe damit der Partei zu, die sie nicht erledigen kann.
 
 ### 404
 
 Nicht entworfen. Kopf- und Fußzeile wie auf jeder öffentlichen Seite, ein Satz,
 und zwei Wege zurück: Startseite und Archiv. Die beiden Ziele stehen so in der
 Aufgabenstellung; die Gestaltung folgt der Lesespalte aus 5c.
+
+### Fehlerseite
+
+Ebenfalls nicht entworfen, und bis hierher gab es keine: Ohne eine Fehlergrenze
+zeichnet Next.js seine eingebaute Seite — weiß, ungestaltet, englisch, ohne
+Kopf- und Fußzeile und ohne Weg zurück. Das traf jeden Pfad, der zur Anfragezeit
+gerendert wird, sobald die Datenbank nicht antwortete: `/archiv` und `/memes`
+lesen `searchParams`, ein Artikel außerhalb des Prerenders ebenso.
+
+→ Drei Grenzen, alle nach demselben Muster wie die 404-Seite:
+
+- `app/error.tsx` für die öffentliche Seite, in der Lesespalte aus 5c, mit
+  Kopf- und Fußzeile, „Noch einmal versuchen" und dem Weg zur Startseite.
+- `app/admin/(redaktion)/error.tsx` für das Backoffice, als Panel innerhalb der
+  Shell, damit die Navigation stehen bleibt.
+- `app/global-error.tsx` als letzte Grenze. Sie ersetzt das Wurzel-Layout und
+  hat deshalb weder `globals.css` noch Schrift noch Farbschema-Skript zur
+  Verfügung; sie ist die einzige Seite des Projekts, die ihre paar Angaben
+  selbst mitbringt.
+
+Alle drei protokollieren den `digest` und zeigen ihn an, damit die Meldung im
+Dokploy-Log wiederzufinden ist.
+
+Eine Fehlergrenze rettet keinen ungesicherten Text: Sie ersetzt die Oberfläche
+des Abschnitts, das Formular ist mit ihr fort. Der Editor fängt seine Sicherung
+deshalb selbst ab (Abschnitt 6, „Beim Verlassen des Editors wird gesichert") und
+bleibt mit dem Text stehen, statt in die Grenze zu laufen.
 
 ---
 
@@ -66,6 +114,13 @@ Weiter-Notizen als **noch nicht entworfen**.
 → Aufgelöst als Verweis ins **Archiv mit gesetztem Autorenfilter**. Es gibt keine
 Autorenseite. Dasselbe gilt für Kategorie-Chips: sie führen ins Archiv, nicht auf
 eine Kategorieseite.
+
+→ Der Filter adressiert die Person über den Namen, und zwei Namen können
+denselben Slug ergeben — „Anna-Lena“ und „Anna Lena“ werden gleich geschrieben,
+und zwei Mitglieder können schlicht gleich heißen. Die zweite Person bekommt in
+diesem Fall ein angehängtes „-2“, vergeben in einer festen Reihenfolge (Name,
+dann Id). Menü und Auflösung werden aus derselben Liste gebaut, damit beide
+Seiten dieselbe Antwort geben; ohne Namensgleichheit ändert sich keine Adresse.
 
 ### Cover-Anordnung
 
@@ -127,9 +182,9 @@ Desktop haben beide eine.
 
 ## 4. Barrierefreiheit über die Vorlage hinweg
 
-Die Abnahme verlangt WCAG AA in beiden Themes, rechnerisch geprüft. An zwei
-Stellen kollidiert das mit der Vorlage. Beide Male ist die kleinstmögliche
-Änderung gewählt.
+Die Abnahme verlangt WCAG AA in beiden Themes, rechnerisch geprüft. An mehreren
+Stellen kollidiert das mit der Vorlage. Jedes Mal ist die kleinstmögliche
+Änderung gewählt: die Zeichnung bleibt, was sie ankündigt, wird richtig.
 
 ### Weiß auf Akzent
 
@@ -168,6 +223,76 @@ Vorgabe verlangt mindestens 44×44px.
 Unterstreichung des aktiven Eintrags sitzt auf einem inneren Element, damit sie
 am Text klebt und nicht an den Rand der 44px-Fläche rutscht.
 
+→ Das „×" der Meldungen oben rechts war die einzige Stelle, an der diese Regel
+nicht angewandt war: ohne Polsterung und mit `leading-none` ist das Ziel so
+groß wie das Zeichen, rund 8×15px. Es sitzt jetzt in einer 44×44-Fläche, deren
+negative Ränder genau den Platz zurückgeben, den sie einnimmt — die Meldung
+behält ihre gezeichnete Höhe, das Zeichen steht, wo es stand.
+
+### Ein zweites Rahmentoken für Bedienelemente
+
+`--bd` ist in der Vorlage die Haarlinie zwischen zwei Panelzeilen. Dieselbe
+Linie war aber auch die ganze Umrandung eines Eingabefeldes, und dort misst sie
+1,34:1 gegen das Panel und 1,20:1 gegen die eigene Füllung. SC 1.4.11 verlangt
+3:1 für das, was ein Bedienelement überhaupt als solches erkennbar macht — bei
+einem Feld ohne Platzhalter ist das ausschließlich diese Linie.
+
+→ `--bd` bleibt unverändert; Trennlinien sind Dekoration und schulden nichts.
+Neu ist `--bd2` allein für die Umrandung von Bedienelementen: `#8a85a8` hell
+(3,37:1 gegen `--s1`, 3,03:1 gegen `--s2`) und `#6d6694` dunkel (3,67:1 und
+3,44:1). Es trägt `FIELD_CLASS` und damit jedes Textfeld im Backoffice.
+
+→ `scripts/check-contrast.ts` konnte diese Klasse von Fehlern bauartbedingt
+nicht sehen: seine Palette kannte `bd` nicht, und es maß ausschließlich Tinte
+auf Grund. Es kennt jetzt beide Rahmentoken und hat eine zweite Paarliste mit
+der 3:1-Schwelle für Nicht-Text-Kontraste — Feldumrandung und Schalter.
+
+### Fokus auf Bedienelementen, die als `sr-only` unter einer Zeichnung liegen
+
+Die Vorlage zeichnet Segmentschalter, Rollen-Chips, Schalter und Dateifelder
+als Flächen. Gebaut sind sie als echte Formularfelder unter dieser Fläche —
+`sr-only`, und `sr-only` schneidet mit `clip-path` auch den Fokusring weg, den
+`globals.css` zieht. Der Fokus war damit nicht schwach, sondern unsichtbar.
+
+→ Die gezeichnete Fläche bekommt den Ring: `peer-focus-visible:` dort, wo das
+Feld ihr Geschwister ist, `has-[:focus-visible]:` dort, wo sie das Label um das
+Feld ist. Dieselben 2px Akzentfarbe wie überall, nur eine Ebene höher gezogen.
+
+→ Aus demselben Grund zeichnet der Blockeditor im Artikel jetzt einen Ring: die
+editierbare Zeile ist ein `div[contenteditable]`, das die Regel in
+`globals.css` nicht erfasste, und ihr `outline-none` hatte in Tailwind v4 auch
+den Ring im Fokuszustand mit abgeschaltet. `[contenteditable]` steht jetzt in
+derselben Regel wie `a, button, input, textarea, select`.
+
+→ Die beiden `sr-only`-Absendeknöpfe (Archivsuche, Artikelfilter) bekommen
+keinen Ring, sondern `tabIndex={-1}`: sie sind da, damit die Eingabetaste im
+Feld ohne Skript abschickt, und nicht, um gedrückt zu werden. Ein Tabstopp, der
+nirgends auf der Seite etwas anzeigt, ist schlimmer als keiner.
+
+### Was sich beim Tippen ändert, wird auch gesagt
+
+Suchfeld im Archiv und Filter im Backoffice schreiben 180 ms nach dem letzten
+Anschlag in die Adresse; die Liste und die Trefferzahl werden neu gerendert,
+während der Fokus im Feld sitzt. Ohne Fokuswechsel und ohne Live-Region erfährt
+ein Screenreader davon nichts (SC 4.1.3).
+
+→ Eine `role="status"`-Zeile je Formular, `sr-only`, mit einem Satz, der allein
+stehend trägt: „3 von 38 Artikeln". Die gezeichnete Zählung im Kasten bleibt,
+wo sie ist, wird aber `aria-hidden` — sie stand im `<label>` und gehörte damit
+zum Namen des Feldes („Im Archiv suchen 38 von 120").
+
+### Was als Registerkarte gezeichnet ist, ist keine
+
+Die Vorlage zeichnet im Editor drei Reiter (Cover, Details, Veröffentlichen)
+und auf der Freigabeseite zwei. Gebaut waren sie mit `role="tab"`, ohne
+`tabpanel`, ohne `aria-controls` und ohne Pfeiltastensteuerung — die Rolle
+kündigt einem Screenreader also ein Muster an, das es nicht gibt (SC 4.1.2).
+
+→ Die Zeichnung bleibt, die Ankündigung wird ehrlich statt das Muster
+nachgerüstet. Im Editor sind es drei Umschaltknöpfe mit `aria-pressed` in einer
+benannten `role="group"`. Auf der Freigabeseite sind es Verweise, die die Seite
+mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
+
 ---
 
 ## 5. Was die Vorlage offenlässt
@@ -182,6 +307,27 @@ am Text klebt und nicht an den Rand der 44px-Fläche rutscht.
 | Verweis auf Levo Studio | `https://levo-studio.com` | — |
 | Verteilung der Cover-Farbe | Hash über den Titel, Avalanche-Stufe vor dem Modulo | Ohne sie liegen vier der zwölf echten Überschriften auf einer Farbe |
 | „Weiterlesen" auf dem Artikel | Gleiche Kategorie zuerst, dann die neuesten | 13a zeigt zwei aus der eigenen Kategorie und einen fremden |
+| Dürfen zwei Archivfilter gleichzeitig offen stehen? | Nein, die drei Menüs schließen einander (gemeinsames `name`) | 5a zeichnet nur geschlossene Chips. Unter `md` hängen alle drei Felder am linken Seitenrand der Chipreihe und lägen offen deckungsgleich übereinander |
+
+### Das Zeichen im Reiter, auf dem Home-Bildschirm und in der Adresszeile
+
+Die Vorlage zeichnet kein Symbol. Bisher gab es nur `app/icon.svg` — das
+„VA" der Wortmarke auf dem Akzentviolett. Das reicht dem Browserreiter, aber
+nicht überall:
+
+- `/favicon.ico` wurde nie ausgeliefert. Wer die Adresse hart abfragt, statt
+  den Kopf der Seite zu lesen — ältere Aggregatoren, manche Feed-Reader —,
+  bekam die 404-Seite als HTML zurück.
+- iOS nimmt für „Zum Home-Bildschirm" kein SVG. Ohne ein eigenes Bild legt es
+  einen Bildschirmabzug der Seite auf den Home-Bildschirm.
+
+Beide Dateien sind aus demselben Zeichen abgeleitet, nichts Neues entworfen:
+`app/favicon.ico` (16, 32 und 48 Pixel) trägt die abgerundete Ecke wie das
+SVG, `app/apple-icon.png` (180 Pixel) nicht — iOS legt seine eigene Maske
+darüber, und eine zweite Rundung darunter schnitte die Ecken doppelt ab.
+
+Ein Web-App-Manifest gibt es weiter nicht: die Zeitung soll gelesen, nicht
+installiert werden.
 
 ### Systemmails: was der Entwurf zeigt und was nicht
 
@@ -321,6 +467,40 @@ ist öffentlich.
 → `CDN_BASE_URL` entfällt, es bleibt `S3_ENDPOINT`. `next.config` deklariert keine
 `remotePatterns`; der Server liest das Objekt und liefert es aus eigener Herkunft.
 
+→ Damit ist die Route die Zugriffsregel, und nicht der Bucket. `/bild/[id]` —
+die Adresse, die jede Seite schreibt — fragt deshalb `lib/editorial/images`,
+wem ein Bild gehört und wer es sehen darf, genau wie `/api/bilder/[id]` es für
+das Backoffice tut. Ein Jahr Cache bekommt nur, was öffentlich ist; alles andere
+geht mit `private, no-store` hinaus, weil ein wieder ausgeblendetes Meme sonst
+aus fremden Zwischenspeichern nicht mehr zurückzuholen wäre.
+
+→ **Die Bytes werden durchgereicht, nicht gesammelt.** Beide Bildrouten geben
+den Lesestrom des Objektspeichers unmittelbar als Antwortkörper aus. Ein Meme
+darf 8 MB groß sein, und eine Galerie fragt Dutzende auf einmal ab — jedes
+davon vorher vollständig in den Speicher zu legen, wäre pro Aufruf ein
+Vielfaches davon, das der Node-Prozess so lange hält, wie die lesende Leitung
+braucht.
+
+→ **Ein SVG-Logo wird als Datei ausgeliefert, nicht als Seite.** Bildschirm 14
+lässt SVG als Logoformat zu, und ein SVG ist ein Dokument: ruft jemand die
+Bildadresse unmittelbar auf, führt der Browser ein `<script>` darin unter der
+Herkunft von Vox Audax und in der Sitzung des Aufrufenden aus. Hochladen darf
+ein Logo jeder mit `manageSponsors`, also auch die Redaktion; aufrufen würde die
+Adresse am ehesten die Chefredaktion, wenn ein Logo im Backoffice falsch
+aussieht. Gezeichnet wird ein Logo überall über `<img>`, und ein `<img>` führt
+nie etwas aus — deshalb bleibt das erlaubte Dateiformat, wie die Vorlage es
+nennt, und die **Antwort** ändert sich: `content-disposition: attachment` und
+`content-security-policy: sandbox`, beides nur für aktive Typen. Sichtbar ist
+das allein, wenn man die Bildadresse von Hand öffnet — dann lädt die Datei
+herunter, statt sich zu zeigen. Alle anderen Bilder bleiben `inline`.
+
+→ Beide Bildrouten setzen diese Kopfzeilen aus derselben Funktion
+(`imageHeaders` in `lib/editorial/images`). Zwei Ausliefernde derselben Bytes
+haben schon einmal zwei verschiedene Antworten gegeben; die Regel und die
+Kopfzeilen stehen deshalb an einer Stelle, und ein Test in
+`test/gate-coverage.test.mts` hält fest, dass niemand im ganzen Routenbaum ein
+Objekt liest, ohne vorher `mayReadImage` zu fragen.
+
 ### Kein presigned PUT aus dem Browser
 
 Folgt zwingend aus dem Vorigen: eine vorsignierte URL enthält den Speicher-Host
@@ -395,9 +575,27 @@ gezielt nach `type = 'image'` und dem genauen `src`, nicht als Textsuche, weil
 eine im Absatz zufällig auftauchende Kennung sonst einen falschen Eigentümer
 bestimmt hätte.
 
+→ Gefragt wird als Enthaltensein (`@>`) und nicht über die entfalteten Knoten:
+dieselbe Frage, aber die einzige Form, die ein Index beantworten kann. Sie
+steht auf dem Weg jedes ausgelieferten Bildbytes, und entfaltet hätte sie jedes
+Mal jeden Artikelkörper gelesen. `articles_body_idx` (GIN, `jsonb_path_ops`)
+bedient sie.
+
 → Der Alt-Text eines Bildes im Text steht im Dokumentknoten, nicht in der
 Spalte `images.alt`. Diese Spalte gehört jetzt allein den Memes und den
 Sponsorenlogos.
+
+→ **Ein Bild, auf das noch nichts zeigt, sieht nur, wer es hochgeladen hat.**
+Zwischen dem Upload und dem Autosave, der den Bildknoten in den Körper
+schreibt, gehört ein Bild zu nichts — und bisher hiess „gehört zu nichts"
+angemeldet genügt. Das machte jede fehlschlagende Zuordnung still zu einer
+Freigabe: als Editor und Parser sich über die Adressform uneinig waren, stand
+kein Bildknoten in irgendeinem Körper, und damit war jedes Bild jedes fremden
+Entwurfs für die ganze Redaktion erreichbar. Jetzt entscheidet in diesem Fall
+`images.uploaded_by`. Memes und Sponsorenlogos bleiben unverändert: über sie
+entscheidet eine Backoffice-Liste, die jedes Mitglied vor sich hat, also bleibt
+das Bild für jedes Mitglied erreichbar. 7c — fremder Entwurf „weder sichtbar
+noch aufrufbar" — gilt damit auch für die Sekunde vor dem ersten Speichern.
 
 ### Bilder im Text werden abgelegt, nicht adressiert
 
@@ -473,6 +671,21 @@ Weggehenden keine Zeit mehr für eine Anfrage, und `beforeunload` dürfte nur
 wieder fragen. Was dort noch auf dem Spiel steht, ist die Wartezeit der
 Selbstsicherung von gut einer Sekunde — nicht mehr die Minuten, die eine Frage
 abgedeckt hätte.
+
+### Die Sicherung schreibt nur über den Stand, den sie gelesen hat
+
+Nicht in der Vorlage. Die Sicherung schickt jedes Mal das ganze Dokument, und
+denselben Entwurf können zwei Fenster offen haben: derselbe Autor in zwei Tabs,
+oder eine Redakteurin, die über `readOthersDrafts` hineinsieht und speichern
+darf. Wer zuletzt schrieb, ersetzte Absätze, die er nie gelesen hatte — und es
+gibt keine Fassungsgeschichte, aus der sie zurückzuholen wären.
+
+→ Jeder Schreibvorgang nennt den Stand (`updated_at`), auf dem er aufsetzt, und
+wird nur ausgeführt, solange die Zeile noch dort steht. Sonst wird nichts
+geschrieben, die Meldung oben rechts sagt „Der Entwurf wurde woanders geändert.
+Lade die Seite neu — sonst überschreibst du fremde Änderungen.“, und der Editor
+schickt nichts mehr. Ein Zusammenführen zweier Fassungen bietet er nicht an:
+das ist keine Entscheidung, die eine Sicherung im Hintergrund treffen darf.
 
 ### „- " am Zeilenanfang macht eine Aufzählung
 
@@ -582,7 +795,17 @@ eigene Backoffice-Seite auf.
 Änderung erreicht: ein Unterstützer die Startseite, ein Meme die Meme-Seite,
 ein Artikel vier Seiten und zwei Feeds, eine Personenänderung Start-,
 Redaktions- und Kontaktseite. Jede Freigabe, jede Ablehnung und jede Änderung
-ruft das auf.
+ruft das auf — auch das eigene Profil, das mit Name und Biografie auf drei
+öffentlichen Seiten steht.
+
+→ **Zwei Seiten sind davon ausgenommen, weil sie gar nicht zwischengespeichert
+werden.** `/memes` liest seinen Cursor und `/archiv` seine Filter aus der
+Abfragezeichenkette; Next rendert beide deshalb pro Aufruf. `/memes` trug
+trotzdem ein `revalidate = 300` — eine Frist auf einen Eintrag, den es im
+Routen-Zwischenspeicher nie gab. Die Angabe ist entfernt, `/archiv` hatte nie
+eine. `refreshPublic.memes()` bleibt stehen: es beschreibt, welche Seite ein
+Meme zeigt, und wird richtig, sobald die erste Galerieseite ohne Cursor
+auskommt.
 
 ### Eigene Artikel in der Liste erkennbar
 
@@ -645,6 +868,32 @@ eigene Höhe mit.
 Mittig auf einer langen Seite heißt irgendwo im Text. Die Frage „ungesicherte
 Änderungen" und der Slug-Dialog stehen jetzt am oberen Rand, wo der Blick
 ohnehin hinfällt.
+
+→ Der Slug-Dialog war dabei ein `div`, das `aria-modal` behauptete, ohne es zu
+sein: Tab lief dahinter in den Editor weiter, Escape schloss nur aus dem
+Eingabefeld heraus, und beim Schließen fiel der Fokus auf `document.body`. Er
+ist jetzt ein natives `<dialog>` mit `showModal()`, wie die beiden anderen
+Dialoge im Backoffice — Fokuseinschluss, Escape aus jedem Element und die
+Rückgabe an „bearbeiten" kommen damit vom Browser. Die Position oben bleibt
+über `margin-block-start` am `<dialog>` erhalten.
+
+→ Beide älteren Dialoge bekommen zusätzlich einen Namen (`aria-labelledby` auf
+die Überschrift, `aria-label` dort, wo die Überschrift ein gestaltetes `div`
+ist). `showModal()` setzt den Fokus auf den ersten Knopf, und das ist in beiden
+Fällen der zerstörende — angekündigt wurde also „Dialog — Endgültig entfernen",
+und die Zeile, die die Person nennt, nie.
+
+### Eine frühere eigene Adresse lässt sich zurücknehmen
+
+3b sagt „alte Slugs leiten weiter". Das galt auch gegen den Artikel selbst: wer
+„smv-beschluss" zu „smv-entscheidung" gemacht hatte und es sich anders überlegte,
+bekam „smv-beschluss-2" — obwohl die Live-Prüfung im Dialog „frei" meldete. Das
+Gleiche traf, wer den Dialog öffnete und ohne Änderung bestätigte.
+
+→ Belegt sind Adressen anderer Artikel. Die eigenen — die aktuelle und die
+früheren — zählen für diesen Artikel nicht mit, also antworten Prüfung und
+Umbenennung wieder dasselbe. Wird eine frühere Adresse zurückgenommen, fällt ihre
+Zeile aus der Weiterleitungshistorie: sie führt ja wieder zum Artikel selbst.
 
 ### Knopf „Als Entwurf speichern"
 
@@ -734,6 +983,42 @@ Zeile gedacht, die es nie hätte geben sollen — ein Tippfehler, ein Test, eine
 geplatzte Zusage. Das Logo geht mit, in der Datenbank **und** im Objektspeicher:
 ein Bild, das die Anwendung nicht mehr erreichen kann, entfernt sonst nie
 jemand. `lib/storage.ts` hatte dafür bis jetzt gar keine Funktion.
+
+→ Dieselbe Begründung gilt für das **ersetzte** Logo: wird ein neues
+hochgeladen, zeigt auf das alte nichts mehr. Es wird in derselben Transaktion
+gelöscht, und sein Objekt fällt nach dem Commit aus dem Bucket — nach drei
+Logowechseln lägen dort sonst drei tote Dateien, die niemand mehr zuordnen kann.
+
+### Der Link eines Unterstützers bekommt sein Schema selbst
+
+Die Vorlage zeigt auf 11c „osiander.de“ — ohne `https://`. Ein Browser liest das
+als Pfad, der Klick auf der Startseite landete also auf der 404-Seite dieser
+Seite statt beim Unterstützer.
+
+→ Das Feld bleibt, wie die Vorlage es zeigt; ergänzt wird serverseitig. Fehlt
+das Schema, wird `https://` vorangestellt, und was danach keine Web-Adresse ist,
+wird mit „Der Link ist keine Webadresse." abgewiesen statt gespeichert.
+
+### Memes lassen sich ebenfalls löschen
+
+Die Vorlage kennt auf 10a und 11c nur den Schalter, der ein Meme von der Wand
+nimmt. Das genügt nicht: ausgeblendet liegt die Bilddatei weiter im
+Objektspeicher und wird über `/api/bilder/[id]` weiterhin an jedes angemeldete
+Mitglied ausgeliefert. Wer auf einem Meme zu sehen ist und die Löschung
+verlangt, wäre damit auf einen Eingriff per SQL und S3-Client angewiesen
+gewesen.
+
+→ Neben dem Schalter steht jetzt „Löschen" mit derselben Rückfrage im
+Seitendesign wie bei den Unterstützern, für alle, die auch über die Freigabe
+entscheiden. Zeile in `memes`, Zeile in `images` und Objekt im Bucket gehen
+zusammen; die Reihenfolge ist dieselbe wie beim Logo, weil `memes.image_id` auf
+`restrict` steht.
+
+**Artikelbilder haben diesen Weg weiterhin nicht.** Ein Bild, das aus einem
+Artikeltext wieder entfernt wird, verliert nur seinen Besitzer im Join von
+`lib/editorial/images.ts`; Zeile und Datei bleiben. Bis dafür etwas gebaut ist,
+ist der Ersatzweg der Betrieb: Zeile in `images` löschen, Objekt im Bucket
+löschen. Das steht unten auch unter „Offen".
 
 ### Abgelehnte Einreichungen bleiben stehen, mit Begründung
 
@@ -860,6 +1145,70 @@ Empfehlenswert, aber nicht erzwungen: den Anzeigenamen mitgeben, also
 `MAIL_FROM=Vox Audax Redaktion <noreply@mail.voxaudax.de>`. Sonst zeigt der
 Posteingang die nackte Adresse.
 
+### Der Build bekommt Platzhalter, keine Geheimnisse
+
+`next build` rendert jede öffentliche Seite vor. Dabei wertet das Root-Layout
+`metadataBase` aus, die Seiten fragen die Datenbank, und der Pool entsteht schon
+beim Auswerten des Modulgraphen. Ohne `NEXT_PUBLIC_SITE_URL`,
+`MAIL_TO_EDITORIAL`, `DATABASE_URL` und `TZ` bricht der Build also ab, bevor
+überhaupt ein Image entsteht — und ein echtes Geheimnis darf nicht hinein, weil
+es in einer Layer liegen bliebe.
+
+→ Die Build-Stage setzt genau die vier Werte, die keine Geheimnisse sind. Die
+ersten beiden stehen mit ihrem echten Wert in `.env.example`; die
+Verbindungszeichenfolge zeigt auf `127.0.0.1`, wo im Build-Container nichts
+lauscht. Jede Abfrage scheitert dort, und die Seiten fallen auf denselben leeren
+Zustand zurück, den sie vor dem ersten Artikel ohnehin zeichnen. Die echten
+Werte liefert Dokploy zur Laufzeit, und innerhalb des Revalidate-Fensters von
+300 Sekunden ist jede Seite mit ihnen neu gerendert.
+
+Damit Next die Bauzeit-Adresse nicht in den Server-Bundle einbackt, liest
+`lib/env.ts` sie aus dem Umgebungsobjekt als Ganzem und nicht als
+`process.env.NEXT_PUBLIC_SITE_URL`: einen solchen Einzelzugriff ersetzt Next
+beim Bauen durch seinen damaligen Wert.
+
+### Die detaillierte Healthroute prüft vier Abhängigkeiten, nicht zwei
+
+Die Vorlage zeigt keine Healthroute; die Hausregel schreibt sie vor und zeigt in
+ihrem Beispielbericht neben der Datenbank auch einen Eintrag `migrations` mit
+`pending`. Geprüft wurden aber nur Datenbank und Mail — und beides sah im
+Störfall gesund aus, wo es darauf ankam: Ein ausgefallener Objektspeicher ließ
+jedes Bild und jeden Upload liegen, während die Route `ok` meldete, und eine
+Datenbank, die ein Release überholt hatte, beantwortete `select 1` munter,
+während das Backoffice an einer fehlenden Spalte jede Seite mit 500 abwies.
+
+→ Zwei Prüfungen kommen dazu:
+
+- `storage` — ein `HeadBucket` mit eigener Frist von 1,5 s, **nicht** kritisch:
+  ein Artikel ohne Bilder ist immer noch ein Artikel, und die Instanz dafür aus
+  dem Verkehr zu ziehen kostete die Leser auch den Text.
+- `migrations` — die Anzahl geschriebener, aber nicht angewandter Migrationen,
+  **kritisch**. Das Journal (`drizzle/meta/_journal.json`) reist im Bundle mit,
+  verglichen wird gegen `drizzle.__drizzle_migrations` nach derselben Regel, die
+  der Migrator selbst anwendet. Das ändert nichts daran, dass Migrationen von
+  Hand aus einem Checkout angewandt werden — es macht nur sichtbar, wenn es
+  jemand vergessen hat.
+
+Der Dienstname in beiden Healthrouten heißt dazu passend
+`voxaudax-levo-studio` statt `voxaudax`: Die Hausregel benennt Dienste
+`<projekt>-levo-studio`, und eine Überwachung, die danach gruppiert, ordnet eine
+Antwort ohne dieses Muster keinem Projekt zu.
+
+### Ein Zitat ist im Editor eine Zeile je Absatz
+
+Die Vorlage zeichnet ein Zitat als einen Kasten und sagt nichts darüber, wie es
+bearbeitet wird. Der Editor bearbeitet Blöcke, und ein Block ist genau eine
+Zeile — bei einem Zitat aus zwei Absätzen hieß das bisher: beide Absätze in eine
+Zeile geklebt. Geschrieben werden konnte so ein Zitat nur im Markdown-Feld;
+einmal im Rich Text geöffnet, war der Umbruch beim nächsten Autosave weg, ohne
+Historie, aus der er zurückzuholen wäre.
+
+→ Ein Zitat wird in eine Zeile je Absatz aufgeteilt, so wie eine Aufzählung in
+eine Zeile je Punkt. Aufeinanderfolgende Zitatzeilen wachsen beim Speichern
+wieder zu einem Zitat zusammen. Die Folge ist dieselbe wie bei Aufzählungen:
+zwei Zitate, die direkt untereinander stehen, sind danach ein Zitat mit zwei
+Absätzen.
+
 ---
 
 ## 8. Offen — braucht eine Entscheidung
@@ -870,6 +1219,11 @@ Posteingang die nackte Adresse.
   Solange sie dort steht, startet die Anwendung nicht.
 - **`.design/`** liegt lokal und ist nicht versioniert. Ein Commit wandert
   unumkehrbar in die Historie eines öffentlichen Repositorys.
+- **Kein Löschweg für Artikelbilder.** Memes und Sponsorenlogos lassen sich
+  vollständig entfernen, ein Bild aus einem Artikeltext nicht: es bleibt in
+  `images` und im Objektspeicher stehen, auch wenn es aus dem Text verschwindet.
+  Ein Löschersuchen nach Art. 17 DSGVO ist bis dahin nur vom Betrieb aus zu
+  erfüllen.
 - **Resend** ist ein US-Anbieter. Die globalen Regeln schließen Dienste aus, die
   Daten außerhalb der EU speichern; die Aufgabenstellung schreibt Resend
   ausdrücklich vor. Über das Kontaktformular laufen Namen und Nachrichten von

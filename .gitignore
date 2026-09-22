@@ -44,6 +44,10 @@ next-env.d.ts
 # design source of record, kept locally rather than published
 /.design/
 
+# macOS copies a file it cannot overwrite to "<name> 2"; three of those had been
+# committed and did nothing, while looking exactly like the file that does
+* [0-9]
+
 # playwright output: the screenshots stay local, the Lighthouse table is committed
 /shots/*
 !/shots/lighthouse.md

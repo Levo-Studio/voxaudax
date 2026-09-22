@@ -128,6 +128,7 @@ export default async function ArticlesPage({
           query={query}
           sort={sort}
           sorts={Object.entries(SORTS).map(([key, value]) => ({ key, label: value.label }))}
+          shown={rows.length}
         />
 
         <div className={`${ROW_GRID} hidden border-b border-bd px-[22px] py-[11px] md:grid`}>

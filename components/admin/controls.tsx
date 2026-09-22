@@ -9,7 +9,7 @@ import type { ComponentProps, ReactNode } from "react";
  */
 
 export const FIELD_CLASS =
-  "w-full rounded-lg border border-bd bg-s2 px-[11px] py-[9px] font-control text-[13.5px] font-semibold text-tx outline-ac placeholder:text-tm";
+  "w-full rounded-lg border border-bd2 bg-s2 px-[11px] py-[9px] font-control text-[13.5px] font-semibold text-tx outline-ac placeholder:text-tm";
 
 export const FIELD_ERROR_CLASS = `${FIELD_CLASS} border-ac2`;
 
@@ -70,7 +70,7 @@ export function FilterPill({
   return (
     <Link
       href={href}
-      className={`rounded-full px-3 py-1.5 text-[12.5px] font-bold no-underline transition-colors duration-200 ease-out ${
+      className={`inline-flex min-h-11 items-center rounded-full px-3 text-[12.5px] font-bold no-underline transition-colors duration-200 ease-out md:min-h-0 md:py-1.5 ${
         active ? "bg-ac text-s1" : "border border-bd text-tm hover:text-tx"
       }`}
     >

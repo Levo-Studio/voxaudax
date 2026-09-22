@@ -57,7 +57,7 @@ export async function AdminShell({
           <form action={signOutAction}>
             <button
               type="submit"
-              className="cursor-pointer border-none bg-transparent p-1 font-control text-[12.5px] font-semibold text-tm transition-colors duration-200 ease-out hover:text-tx"
+              className="inline-flex min-h-11 cursor-pointer items-center border-none bg-transparent px-1 font-control text-[12.5px] font-semibold text-tm transition-colors duration-200 ease-out hover:text-tx md:min-h-0 md:p-1"
             >
               Abmelden
             </button>

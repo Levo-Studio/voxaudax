@@ -36,7 +36,7 @@ const Chevron = ({ open }: { open: boolean }) => (
 );
 
 const CHIP = (selected: boolean) =>
-  `cursor-pointer rounded-full px-[11px] py-2 transition-colors duration-200 ease-out ${
+  `cursor-pointer rounded-full px-[11px] py-2 transition-colors duration-200 ease-out has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ac ${
     selected ? "bg-ac text-s1" : "border border-bd text-tm hover:border-ac"
   }`;
 
@@ -62,6 +62,9 @@ export function MemberRow({ member, children, rowClassName }: MemberRowProps) {
   const [state, remove, removing] = useActionState(removeMemberAction, NO_PROBLEM);
   const dialog = useRef<HTMLDialogElement>(null);
   const panelId = useId();
+  // `showModal()` puts the focus on „Endgültig entfernen", so without this the
+  // announcement is the button and never the line naming the person.
+  const removeHeadingId = useId();
 
   // A refusal comes back from the server after the dialog has closed, so the
   // dialog is what closes on success and the row is what reports the refusal.
@@ -173,12 +176,13 @@ export function MemberRow({ member, children, rowClassName }: MemberRowProps) {
           and can say which person and what it costs. */}
       <dialog
         ref={dialog}
+        aria-labelledby={removeHeadingId}
         className="m-auto w-[min(440px,calc(100vw-32px))] rounded-[14px] border border-bd bg-s1 p-0 text-tx backdrop:bg-black/40"
       >
         <form action={remove} className="flex flex-col gap-3.5 p-5">
           <input type="hidden" name="memberId" value={member.id} />
 
-          <h2 className="m-0 text-[17px] font-extrabold tracking-[-0.02em]">
+          <h2 id={removeHeadingId} className="m-0 text-[17px] font-extrabold tracking-[-0.02em]">
             {member.name} entfernen?
           </h2>
           <p className="m-0 text-[13.5px] leading-[1.55] font-medium text-tm">

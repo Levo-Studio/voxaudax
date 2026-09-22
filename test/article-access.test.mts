@@ -12,9 +12,12 @@ import {
   type ArticlePatch,
   articleForEditor,
   countArticlesByStatus,
+  countPendingReview,
   listArticles,
+  listSubmittedArticles,
   missingAltText,
   renameSlug,
+  returnToDraft,
   saveArticle,
   submitForReview,
 } from "@/lib/editorial/articles";
@@ -130,6 +133,7 @@ describe("an author cannot reach another author's draft by URL", () => {
       cover: { word: "X", line: "", colorId: "violett" },
       categoryId: (await articleForEditor(owner, draftId))!.categoryId,
       publishAt: null,
+      knownUpdatedAt: (await articleForEditor(owner, draftId))!.updatedAt,
     });
 
     assert.equal(saved, null);
@@ -257,7 +261,9 @@ describe("an approved article is not editable by the author who submitted it", (
   let author: Member;
   let articleId: string;
 
-  const patch = (title: string): Omit<ArticlePatch, "categoryId"> => ({
+  const patch = (
+    title: string,
+  ): Omit<ArticlePatch, "categoryId" | "knownUpdatedAt"> => ({
     title,
     teaser: "Nach der Freigabe ersetzt.",
     body: { type: "doc", content: [] },
@@ -294,24 +300,45 @@ describe("an approved article is not editable by the author who submitted it", (
   });
 
   const categoryOf = async () => (await articleForEditor(author, articleId))!.categoryId;
+  const standOf = async () => (await articleForEditor(author, articleId))!.updatedAt;
 
   it("saves while the article is still a draft", async () => {
     const saved = await saveArticle(author, articleId, {
       ...patch("Noch ein Entwurf"),
       categoryId: await categoryOf(),
+      knownUpdatedAt: await standOf(),
     });
 
     assert.notEqual(saved, null);
     assert.equal((await articleForEditor(author, articleId))?.title, "Noch ein Entwurf");
   });
 
+  /**
+   * Two tabs, or an author and a redakteur in the same draft. Autosave sends
+   * the whole document, so the second write would replace text it never read.
+   */
+  it("refuses a write pinned to a stand the row has moved past", async () => {
+    const stale = new Date(Date.now() - 60_000);
+
+    const saved = await saveArticle(author, articleId, {
+      ...patch("Aus einem Tab, der den Entwurf von vorhin hält"),
+      categoryId: await categoryOf(),
+      knownUpdatedAt: stale,
+    });
+
+    assert.equal(saved, "conflict");
+    assert.equal((await articleForEditor(author, articleId))?.title, "Noch ein Entwurf");
+  });
+
   it("refuses the write once the article waits for a review", async () => {
     const categoryId = await categoryOf();
+    const stand = await standOf();
     await db.update(articles).set({ status: "review" }).where(eq(articles.id, articleId));
 
     const saved = await saveArticle(author, articleId, {
       ...patch("Zwischen Lesen und Freigeben getauscht"),
       categoryId,
+      knownUpdatedAt: stand,
     });
 
     assert.equal(saved, null);
@@ -320,6 +347,7 @@ describe("an approved article is not editable by the author who submitted it", (
 
   it("refuses the write once the article is published", async () => {
     const categoryId = await categoryOf();
+    const stand = await standOf();
     await db
       .update(articles)
       .set({ status: "published", publishedAt: new Date() })
@@ -328,6 +356,7 @@ describe("an approved article is not editable by the author who submitted it", (
     const saved = await saveArticle(author, articleId, {
       ...patch("Nach der Freigabe uebernommen"),
       categoryId,
+      knownUpdatedAt: stand,
     });
 
     assert.equal(saved, null);
@@ -339,6 +368,101 @@ describe("an approved article is not editable by the author who submitted it", (
 
     assert.equal(await renameSlug(author, articleId, "ganz-neue-adresse"), null);
     assert.equal((await articleForEditor(author, articleId))?.slug, before);
+  });
+});
+
+/**
+ * The approving half of the review is read above. This is the other half, which
+ * nothing read at all: an article goes in, comes back with a reason, is handed
+ * in again and is approved. Two of the lines it turns on are single fields in a
+ * single `set` — `submittedAt: null` on the way back and `rejectionReason: null`
+ * on the way in again — and losing either is silent. EXTRAPOLATION.md makes the
+ * second one a promise: the objection is to the draft that was sent back, and
+ * an author who has already answered it must not still be reading it.
+ */
+describe("an article goes back with a reason and comes round again", () => {
+  let author: Member;
+  let reviewer: Member;
+  let articleId: string;
+
+  const REASON = "Die zweite Quelle fehlt noch.";
+
+  before(async () => {
+    author = await memberFor("emil.radtke@voxaudax.de");
+    reviewer = await memberFor("mira.oezkan@voxaudax.de");
+
+    const [category] = await db
+      .execute<{ id: string }>("select id from categories order by position limit 1")
+      .then((result) => result.rows);
+
+    const [created] = await db
+      .insert(articles)
+      .values({
+        slug: `test-ruecklauf-${crypto.randomUUID()}`,
+        title: "Auf dem Weg durch die Freigabe",
+        teaser: "Einreichen, zurückweisen, erneut einreichen, freigeben.",
+        // No picture in the body: the alt-text rule is read elsewhere and would
+        // answer before any of this.
+        body: { type: "doc", content: [{ type: "paragraph", content: [] }] },
+        cover: { word: "TEST", line: "", colorId: "violett" },
+        categoryId: category!.id,
+        authorId: author.id,
+        status: "draft",
+      })
+      .returning({ id: articles.id });
+
+    articleId = created!.id;
+  });
+
+  after(async () => {
+    await db.delete(articles).where(eq(articles.id, articleId));
+  });
+
+  const standing = async () => (await articleForEditor(author, articleId))!;
+
+  const waiting = async () =>
+    (await listSubmittedArticles()).some((row) => row.id === articleId);
+
+  it("waits in the queue once the author hands it in", async () => {
+    assert.equal(await submitForReview(author, articleId), "submitted");
+
+    const row = await standing();
+    assert.equal(row.status, "review");
+    assert.notEqual(row.submittedAt, null);
+    assert.equal(await waiting(), true);
+  });
+
+  it("leaves the queue when it is sent back, and takes the reason with it", async () => {
+    const pending = await countPendingReview();
+
+    assert.equal(await returnToDraft(reviewer, articleId, REASON), "returned");
+
+    const row = await standing();
+    assert.equal(row.status, "draft");
+    assert.equal(row.submittedAt, null);
+    assert.equal(row.rejectionReason, REASON);
+    assert.equal(await waiting(), false);
+    assert.equal(await countPendingReview(), pending - 1);
+  });
+
+  it("cannot be sent back a second time, because it is no longer in the queue", async () => {
+    assert.equal(await returnToDraft(reviewer, articleId, REASON), "unknown");
+  });
+
+  it("drops the reason when the author hands the article in again", async () => {
+    assert.equal(await submitForReview(author, articleId), "submitted");
+
+    const row = await standing();
+    assert.equal(row.status, "review");
+    assert.equal(row.rejectionReason, null);
+  });
+
+  it("is published by somebody who did not write it", async () => {
+    assert.equal(await approveArticle(reviewer, articleId), "approved");
+
+    const row = await standing();
+    assert.equal(row.status, "published");
+    assert.notEqual(row.publishedAt, null);
   });
 });
 

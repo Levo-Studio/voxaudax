@@ -5,9 +5,10 @@ import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { splitEditorialPage } from "@/lib/editorial-page";
-import { environment } from "@/lib/env";
+import { editorialAddress } from "@/lib/env";
 import { toSlug } from "@/lib/format";
-import { editorialMembers, pageBySlug } from "@/lib/queries";
+import { alternates } from "@/lib/metadata";
+import { editorialMembers, orNoneAtBuildTime, pageBySlug } from "@/lib/queries";
 import { roleTitle } from "@/lib/roles";
 import { archiveHref } from "@/lib/routes";
 
@@ -17,16 +18,17 @@ export const metadata: Metadata = {
   title: "Die Redaktion",
   description:
     "Wer die Vox Audax schreibt, worüber, und wie man mitmacht.",
+  alternates: alternates("/redaktion"),
 };
 
 export default async function EditorialPage() {
   const [page, members] = await Promise.all([
-    pageBySlug("redaktion"),
-    editorialMembers(),
+    orNoneAtBuildTime(pageBySlug("redaktion"), undefined),
+    orNoneAtBuildTime(editorialMembers(), []),
   ]);
 
   const { intro, invitation, note } = splitEditorialPage(page?.body.content ?? []);
-  const editorialEmail = environment().MAIL_TO_EDITORIAL;
+  const editorialEmail = editorialAddress();
 
   return (
     <div className="flex min-h-dvh flex-col">

@@ -6,6 +6,7 @@ import { FormerTag } from "@/components/former-tag";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { longDate, machineDate, shortDate } from "@/lib/format";
+import { alternates } from "@/lib/metadata";
 import {
   archiveResults,
   publishedArticleCount,
@@ -45,7 +46,7 @@ export const generateMetadata = async ({
     title: "Archiv",
     description: "Alle veröffentlichten Beiträge der Vox Audax.",
     robots: narrowed ? { index: false, follow: true } : undefined,
-    alternates: narrowed ? { canonical: "/archiv" } : undefined,
+    alternates: alternates("/archiv"),
   };
 };
 
@@ -75,7 +76,9 @@ type MenuOption = { label: string; href: Route; current: boolean };
  *
  * Below md the panel is positioned against the row rather than against its own
  * chip, so it opens at the page's left margin and cannot reach past the right
- * one: anchored to the third chip it pushed a 360px page 36px sideways.
+ * one: anchored to the third chip it pushed a 360px page 36px sideways. That
+ * anchoring puts all three panels on the same point, so the menus share a
+ * `name` and close one another: two open ones lay exactly on top of each other.
  */
 function FilterMenu({
   label,
@@ -89,7 +92,7 @@ function FilterMenu({
   const active = value !== undefined;
 
   return (
-    <details className="md:relative">
+    <details name="archiv-filter" className="md:relative">
       <summary
         className={`inline-flex min-h-11 cursor-pointer list-none items-center rounded-full px-3 text-xs font-semibold [&::-webkit-details-marker]:hidden md:min-h-0 md:px-[13px] md:py-[7px] md:text-[12.5px] ${
           active ? "bg-ac text-s1" : "border border-bd text-tm"

@@ -64,10 +64,14 @@ and production alike.
 ### Environment
 
 Every variable is required and declared in one Zod schema. Validation runs the
-first time the environment is read rather than at import, so a build that never
-reaches the database still succeeds; a missing or malformed value then stops the
-process with a message naming the key. `.env.example` lists the keys and
-nothing else; the values below say what each one expects.
+first time a value is read rather than at import, and each read asks only for
+what it needs: a missing or malformed value stops the process with a message
+naming the key, and an unusable mail key is not a reason the database cannot be
+reached. A build still needs four of them — `NEXT_PUBLIC_SITE_URL`,
+`MAIL_TO_EDITORIAL`, `DATABASE_URL` and `TZ` — because it prerenders every
+public page; `Dockerfile.dokploy` supplies those four as placeholders and no
+secret ever enters the image. `.env.example` lists the keys and nothing else;
+the values below say what each one expects.
 
 | Variable | Purpose |
 |---|---|
@@ -99,7 +103,7 @@ nothing else; the values below say what each one expects.
 | Route | Purpose |
 |---|---|
 | `GET /api/health` | Public. Answers 200 while the process is alive, touching no dependency. The container health check points here. |
-| `GET /api/health/detailed` | Guarded by `HEALTH_TOKEN`. Runs one check per dependency, each under a 2 s timeout, and never reports a host, a port or a driver message. 200 when healthy or degraded, 503 when a critical check fails. Currently checks the database; object storage and pending migrations join it with the data layer. |
+| `GET /api/health/detailed` | Guarded by `HEALTH_TOKEN`. Runs one check per dependency, each under a 2 s timeout, and never reports a host, a port or a driver message. 200 when healthy or degraded, 503 when a critical check fails. Checks the database and the migration state (both critical), object storage and mail (both degrading only). |
 
 ## Deployment
 

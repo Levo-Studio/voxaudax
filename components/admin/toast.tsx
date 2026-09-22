@@ -72,11 +72,15 @@ export function ToastHost() {
             }`}
           />
           <span className="flex-1">{notice.text}</span>
+          {/* The cross is 8 x 15px, which is no target on a telephone. The box
+              around it is 44 x 44, and the negative margins give back exactly
+              the room that box takes — so the notice keeps its drawn height
+              and the cross stays where it was. */}
           <button
             type="button"
             onClick={() => setNotices((open) => open.filter((one) => one.id !== notice.id))}
             aria-label="Meldung schließen"
-            className="-mt-0.5 cursor-pointer border-none bg-transparent p-0 text-[15px] leading-none text-tm transition-colors duration-200 ease-out hover:text-tx"
+            className="-mx-2 -my-3 inline-flex size-11 flex-none cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[15px] leading-none text-tm transition-colors duration-200 ease-out hover:text-tx md:-mx-1 md:-my-1 md:size-6"
           >
             ×
           </button>

@@ -25,12 +25,12 @@ export function ToggleSwitch({
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
       />
       <span
-        className={`flex h-6 w-[42px] items-center rounded-full p-[2px] transition-[background,border-color] duration-200 ease-out ${
+        className={`flex h-6 w-[42px] items-center rounded-full p-[2px] transition-[background,border-color] duration-200 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ac ${
           checked ? "border border-transparent bg-ac justify-end" : "border border-bd bg-s2 justify-start"
         }`}
       >
         <span
-          className={`block h-[18px] w-[18px] rounded-full ${checked ? "bg-white" : "bg-tm"}`}
+          className={`block h-[18px] w-[18px] rounded-full ${checked ? "bg-s1" : "bg-tm"}`}
         />
       </span>
     </label>

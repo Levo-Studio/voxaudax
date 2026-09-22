@@ -77,10 +77,19 @@ export function ArchiveSearch({
           autoComplete="off"
           className="min-w-0 flex-1 bg-transparent text-[15px] font-semibold text-tx placeholder:text-tm"
         />
-        <span className="text-[11.5px] font-semibold whitespace-nowrap text-tm md:text-[12.5px]">
+        {/* Inside the label it was part of the field's name — „Im Archiv
+            suchen 38 von 120". It stays where it is drawn and says the same
+            thing once more below, where a screen reader hears it change. */}
+        <span aria-hidden="true" className="text-[11.5px] font-semibold whitespace-nowrap text-tm md:text-[12.5px]">
           {formatNumber(shown)} von {formatNumber(total)}
         </span>
       </label>
+
+      {/* The list is rewritten by the address, not by a submit, so nothing else
+          tells anyone that the number of hits just changed. */}
+      <span role="status" aria-atomic="true" className="sr-only">
+        {`${formatNumber(shown)} von ${formatNumber(total)} Artikeln`}
+      </span>
 
       {/* The other filters travel with the search so submitting the field
           narrows the list the reader is looking at rather than resetting it. */}
@@ -93,7 +102,11 @@ export function ArchiveSearch({
       {filters.author === undefined ? null : (
         <input type="hidden" name={ARCHIVE_PARAMS.author} value={filters.author} />
       )}
-      <button type="submit" className="sr-only">
+      {/* Out of the tab order: `sr-only` clips the focus ring away with the
+          rest of the element, so tabbing here landed on a stop that showed
+          nothing anywhere on the page. It stays in the form, because that is
+          what makes Enter in the field submit it without script. */}
+      <button type="submit" tabIndex={-1} className="sr-only">
         Suchen
       </button>
     </form>

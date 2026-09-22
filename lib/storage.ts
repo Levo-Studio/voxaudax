@@ -116,9 +116,10 @@ export const readObject = async (key: string) => {
   if (body === undefined) return null;
 
   return {
-    // Copied into a buffer of its own: the SDK hands back a view over an
-    // ArrayBufferLike, which may be shared, and a Response body may not be.
-    bytes: Uint8Array.from(await body.transformToByteArray()),
+    // Handed on as a stream rather than as a buffer: an 8 MB meme read into
+    // the heap is 8 MB the process holds for as long as the reader takes, and
+    // a gallery asks for dozens of them at once. The bytes pass through.
+    stream: body.transformToWebStream(),
     mime: object.ContentType ?? "application/octet-stream",
   };
 };

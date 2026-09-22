@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
 import type { TipTapDocument, TipTapNode } from "@/lib/content";
+import { FIGURE_WORD, figureNumbers } from "@/lib/figures";
 import { safeHref } from "@/lib/links";
 
 /**
@@ -102,9 +103,11 @@ const Quotation = ({ node }: { node: TipTapNode }) => {
 const ArticleBlock = ({
   node,
   isLead,
+  figure,
 }: {
   node: TipTapNode;
   isLead: boolean;
+  figure?: string | null;
 }) => {
   if (node.type === "heading") {
     return headingLevel(node) >= 3 ? (
@@ -126,7 +129,39 @@ const ArticleBlock = ({
     );
   }
 
+  if (node.type === "orderedList") {
+    return (
+      <ol className="mt-3 list-decimal pl-5 text-[17px] leading-[1.72] font-medium md:mt-3.5 md:pl-[22px] md:text-[18px]">
+        {listItems(node)}
+      </ol>
+    );
+  }
+
   if (node.type === "blockquote") return <Quotation node={node} />;
+
+  if (node.type === "horizontalRule") {
+    return <hr className="mt-[22px] border-0 border-t border-bd md:mt-[30px]" />;
+  }
+
+  if (node.type === "image") {
+    const source = attribute(node.attrs, "src") ?? "";
+    const alt = attribute(node.attrs, "alt") ?? "";
+
+    return (
+      <figure className="m-0 mt-[22px] md:mt-[30px]">
+        {/* The bytes come from the application's own image route, whose size is
+            not known here; next/image would need one and would inline a guess. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={source} alt={alt} className="max-w-full rounded-[10px]" />
+        {figure === null || figure === undefined ? null : (
+          <figcaption className="mt-2 text-[12.5px] font-semibold text-tm">
+            {FIGURE_WORD} {figure}
+            {alt.length === 0 ? "" : ` · ${alt}`}
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
 
   // The opening paragraph carries the reader in and is set a step larger.
   return (
@@ -141,16 +176,35 @@ const ArticleBlock = ({
 };
 
 /**
- * 13a's label reads "Fließtext auf 65 Zeichen" while its markup sets no
- * maximum. The label wins: a line of 140 characters is not a newspaper column.
+ * No maximum line length here: on the published page the text runs the full
+ * column, and the limit stays in the editor alone — see EXTRAPOLATION.md,
+ * "Artikeltext ohne Zeilenlängenbegrenzung".
+ *
+ * The figure numbers are counted off `lib/figures`, the same function the
+ * editor's preview reads, so a caption cannot say one thing before the release
+ * and another after it.
  */
-export const ArticleProse = ({ document }: { document: TipTapDocument }) => (
-  <div>
-    {document.content.map((node, index) => (
-      <ArticleBlock key={index} node={node} isLead={index === 0} />
-    ))}
-  </div>
-);
+export const ArticleProse = ({ document }: { document: TipTapDocument }) => {
+  const numbers = figureNumbers(
+    document.content.map((node) => ({
+      kind:
+        node.type === "heading" && headingLevel(node) === 2 ? "heading2" : node.type,
+    })),
+  );
+
+  return (
+    <div>
+      {document.content.map((node, index) => (
+        <ArticleBlock
+          key={index}
+          node={node}
+          isLead={index === 0}
+          figure={numbers[index]}
+        />
+      ))}
+    </div>
+  );
+};
 
 type Section = { heading?: TipTapNode; body: TipTapNode[] };
 
