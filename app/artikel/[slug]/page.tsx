@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
+import { Suspense } from "react";
+
 import { ArticleRelated } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar } from "@/components/avatar";
@@ -15,33 +17,24 @@ import { alternates } from "@/lib/metadata";
 import {
   articleBySlug,
   currentSlugForRetiredSlug,
-  everyPublishedArticle,
   relatedArticles,
 } from "@/lib/queries";
 import { roleTitle } from "@/lib/roles";
 import { archiveHref, articleHref } from "@/lib/routes";
 
-export const revalidate = 300;
+/**
+ * Rendered for every request, like every other public page.
+ *
+ * Not streamed as a whole, though, and this is the one page where that would be
+ * wrong: a slug nobody wrote answers 404 and a retired one redirects, and both
+ * are decisions about the response itself — they cannot be made after the first
+ * byte of it has gone out. So the article is awaited before anything is sent,
+ * and only "Weiterlesen" underneath it, which is a query of its own about other
+ * articles entirely, is allowed to arrive late.
+ */
+export const dynamic = "force-dynamic";
 
 type ArticleParams = { params: Promise<{ slug: string }> };
-
-/**
- * Whatever the build can reach is prerendered: with a DATABASE_URL in the
- * environment that is every published article, and in CI — which has no route
- * to the database and is not given one, because handing a build a credential
- * bakes it into a layer — that is nothing at all. Either way a slug that is not
- * prerendered is rendered on its first request and held by the revalidate
- * window above, so a new article never waits for a deploy.
- */
-export const generateStaticParams = async () => {
-  try {
-    return (await everyPublishedArticle()).map((article) => ({
-      slug: article.slug,
-    }));
-  } catch {
-    return [];
-  }
-};
 
 export const generateMetadata = async ({
   params,
@@ -78,7 +71,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
     notFound();
   }
 
-  const related = await relatedArticles(article);
+
   const minutes = readingMinutes(article.wordCount);
   const author = roleTitle(article.authorRole, article.authorForm);
   const site = siteUrl();
@@ -199,18 +192,9 @@ export default async function ArticlePage({ params }: ArticleParams) {
           </div>
         </article>
 
-        {related.length === 0 ? null : (
-          <section className="border-t border-bd bg-s2 px-[18px] py-5 md:px-10 md:pt-[30px] md:pb-10">
-            <h2 className="mb-3 text-[11px] font-bold tracking-[0.14em] text-tm uppercase md:mb-4 md:text-xs">
-              Weiterlesen
-            </h2>
-            <div className="md:grid md:grid-cols-3 md:gap-[18px]">
-              {related.map((other) => (
-                <ArticleRelated key={other.slug} article={other} />
-              ))}
-            </div>
-          </section>
-        )}
+        <Suspense fallback={null}>
+          <ReadOn article={article} />
+        </Suspense>
       </main>
 
       <SiteFooter />
@@ -220,5 +204,34 @@ export default async function ArticlePage({ params }: ArticleParams) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(newsArticle) }}
       />
     </div>
+  );
+}
+
+/**
+ * The three at the foot. Their own query, about other articles, and nothing
+ * above them depends on it — so the piece the reader came for is on screen
+ * before this one has been asked. No skeleton: an empty strip that fills in is
+ * quieter than three grey boxes under a finished article, and the section draws
+ * nothing at all when there is nothing to show.
+ */
+async function ReadOn({
+  article,
+}: {
+  article: NonNullable<Awaited<ReturnType<typeof articleBySlug>>>;
+}) {
+  const related = await relatedArticles(article);
+  if (related.length === 0) return null;
+
+  return (
+    <section className="border-t border-bd bg-s2 px-[18px] py-5 md:px-10 md:pt-[30px] md:pb-10">
+      <h2 className="mb-3 text-[11px] font-bold tracking-[0.14em] text-tm uppercase md:mb-4 md:text-xs">
+        Weiterlesen
+      </h2>
+      <div className="md:grid md:grid-cols-3 md:gap-[18px]">
+        {related.map((other) => (
+          <ArticleRelated key={other.slug} article={other} />
+        ))}
+      </div>
+    </section>
   );
 }

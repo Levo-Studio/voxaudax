@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { Avatar, toneForPosition } from "@/components/avatar";
 import { ContactForm } from "@/components/contact-form";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { MembersSkeleton } from "@/components/skeleton";
 import { editorialAddress } from "@/lib/env";
 import { alternates } from "@/lib/metadata";
 import { editorialMembers, orNoneAtBuildTime } from "@/lib/queries";
 
-export const revalidate = 300;
+/**
+ * Rendered for every request. Prerendering built this page inside an image with
+ * no route to the database, so what got baked in was its empty state — the note
+ * on `app/page.tsx` has the whole of it. Here only the editors-in-chief need a
+ * query: the form is in the first response and does not wait for them.
+ */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Kontakt",
@@ -17,10 +25,8 @@ export const metadata: Metadata = {
   alternates: alternates("/kontakt"),
 };
 
-export default async function ContactPage() {
+export default function ContactPage() {
   const editorialEmail = editorialAddress();
-  const members = await orNoneAtBuildTime(editorialMembers(), []);
-  const editorsInChief = members.filter((member) => member.role === "admin");
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -58,29 +64,9 @@ export default async function ContactPage() {
             </div>
           </div>
 
-          {editorsInChief.length === 0 ? null : (
-            <div>
-              <div className="text-[11px] font-bold tracking-[0.12em] text-tm uppercase">
-                Chefredaktion
-              </div>
-              <div className="mt-2.5 flex flex-col gap-2.5">
-                {editorsInChief.map((member, position) => (
-                  <a
-                    key={member.email}
-                    href={`mailto:${member.email}`}
-                    className="flex min-h-11 items-center gap-2.5 text-[14.5px] font-semibold md:min-h-0"
-                  >
-                    <Avatar
-                      initials={member.initials}
-                      size="aside"
-                      tone={toneForPosition(position)}
-                    />
-                    {member.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          <Suspense fallback={<MembersSkeleton count={2} />}>
+            <EditorsInChief />
+          </Suspense>
 
           {/* No tracking on this page and none anywhere else, which is worth
               saying where someone is about to type their name. */}
@@ -92,6 +78,38 @@ export default async function ContactPage() {
       </main>
 
       <SiteFooter />
+    </div>
+  );
+}
+
+/** The only part of this page that waits for the database. */
+async function EditorsInChief() {
+  const members = await orNoneAtBuildTime(editorialMembers(), []);
+  const editorsInChief = members.filter((member) => member.role === "admin");
+
+  if (editorsInChief.length === 0) return null;
+
+  return (
+    <div>
+      <div className="text-[11px] font-bold tracking-[0.12em] text-tm uppercase">
+        Chefredaktion
+      </div>
+      <div className="mt-2.5 flex flex-col gap-2.5">
+        {editorsInChief.map((member, position) => (
+          <a
+            key={member.email}
+            href={`mailto:${member.email}`}
+            className="flex min-h-11 items-center gap-2.5 text-[14.5px] font-semibold md:min-h-0"
+          >
+            <Avatar
+              initials={member.initials}
+              size="aside"
+              tone={toneForPosition(position)}
+            />
+            {member.name}
+          </a>
+        ))}
+      </div>
     </div>
   );
 }

@@ -7,16 +7,16 @@ import type { TipTapDocument } from "@/lib/content";
  * The narrow reading column of 5c, which the imprint and the privacy statement
  * share. Both are editorial text in the `pages` table, so changing them is an
  * edit and not a deploy.
+ *
+ * The shell alone: header, column, the link at the foot. What goes inside it
+ * comes from that table and therefore from a query, so each page hands it a
+ * `<Suspense>` — the shell is in the first response and the text streams in.
  */
 export function DocumentPage({
-  title,
-  document,
-  missing,
+  children,
   trailing,
 }: {
-  title: string;
-  document?: TipTapDocument;
-  missing: React.ReactNode;
+  children: React.ReactNode;
   trailing: { label: string; href: string };
 }) {
   return (
@@ -24,11 +24,7 @@ export function DocumentPage({
       <SiteHeader />
 
       <main className="max-w-[760px] flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-11 md:pb-[52px]">
-        <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[46px] md:leading-none">
-          {title}
-        </h1>
-
-        {document === undefined ? missing : <DocumentProse document={document} />}
+        {children}
 
         <a
           href={trailing.href}
@@ -40,6 +36,27 @@ export function DocumentPage({
 
       <SiteFooter />
     </div>
+  );
+}
+
+/** The half that waits for the database: the heading and the text under it. */
+export function DocumentBody({
+  title,
+  document,
+  missing,
+}: {
+  title: string;
+  document?: TipTapDocument;
+  missing: React.ReactNode;
+}) {
+  return (
+    <>
+      <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[46px] md:leading-none">
+        {title}
+      </h1>
+
+      {document === undefined ? missing : <DocumentProse document={document} />}
+    </>
   );
 }
 
