@@ -319,10 +319,20 @@ export function Editor({
     });
   };
 
+  const [submitProblem, setSubmitProblem] = useState<string | null>(null);
+
   const submit = () =>
     startTransition(async () => {
-      const answer = await submitAction(article.id);
-      if (answer.submitted) setStatus("review");
+      const { outcome } = await submitAction(article.id);
+
+      if (outcome === "alt_text_missing") {
+        setSubmitProblem("Ein Bild ohne Alt-Text lässt sich nicht veröffentlichen.");
+        return;
+      }
+
+      setSubmitProblem(null);
+      if (outcome === "published") setStatus("published");
+      if (outcome === "submitted") setStatus("review");
     });
 
 
@@ -360,7 +370,7 @@ export function Editor({
               disabled={status !== "draft"}
               className={`${PRIMARY_BUTTON_CLASS} py-2 text-[12.5px]`}
             >
-              Zur Freigabe
+              {canPublish ? "Veröffentlichen" : "Zur Freigabe"}
             </button>
           </div>
         </div>
@@ -841,7 +851,7 @@ export function Editor({
 
             <div className="flex flex-col gap-2 px-[18px] pt-4 pb-[18px]">
               <button type="button" onClick={submit} disabled={status !== "draft"} className={PRIMARY_BUTTON_CLASS}>
-                Zur Freigabe einreichen
+                {canPublish ? "Jetzt veröffentlichen" : "Zur Freigabe einreichen"}
               </button>
               <Link
                 href={`/admin/artikel/${article.id}/vorschau`}
@@ -852,6 +862,11 @@ export function Editor({
               {canPublish ? null : (
                 <p className="text-[11.5px] font-medium text-tm">
                   Als Autor kannst du einreichen, aber nicht selbst veröffentlichen.
+                </p>
+              )}
+              {submitProblem === null ? null : (
+                <p role="alert" className="text-[11.5px] font-semibold text-ac2">
+                  {submitProblem}
                 </p>
               )}
             </div>

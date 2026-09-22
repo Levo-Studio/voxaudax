@@ -139,7 +139,7 @@ describe("an author cannot reach another author's draft by URL", () => {
   });
 
   it("refuses to submit it for review on the other author's behalf", async () => {
-    assert.equal(await submitForReview(stranger, draftId), false);
+    assert.equal(await submitForReview(stranger, draftId), "unknown");
   });
 
   it("keeps it out of the other author's list and out of their counts", async () => {

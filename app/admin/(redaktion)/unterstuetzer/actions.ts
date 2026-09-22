@@ -57,7 +57,7 @@ export const saveSponsorAction = async (
   const identifier =
     sponsorId.length === 0
       ? (await createSponsor(member, input))[0]!.id
-      : (await updateSponsor(sponsorId, input), sponsorId);
+      : (await updateSponsor(member, sponsorId, input), sponsorId);
 
   const logo = form.get("logo");
   const alt = String(form.get("logoAlt") ?? "").trim();

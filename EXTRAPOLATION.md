@@ -478,6 +478,27 @@ ein Artikel vier Seiten und zwei Feeds, eine Personenänderung Start-,
 Redaktions- und Kontaktseite. Jede Freigabe, jede Ablehnung und jede Änderung
 ruft das auf.
 
+### Wer freigeben darf, reicht nichts ein
+
+Die Vorlage zeigt auf 3b den Knopf „Zur Freigabe einreichen" für alle und auf
+11a die Warteschlange dahinter.
+
+→ Auf Ansage: nur ein **Autor** reicht ein. Redakteur und Chefredakteur
+veröffentlichen unmittelbar — sie sind diejenigen, an die die Warteschlange
+übergeben würde, und die eigene Arbeit einzureichen, um sie einen Bildschirm
+später selbst freizugeben, ist Zeremonie, keine Prüfung. Gleiches gilt für
+Memes und Unterstützer, und eine Änderung an einem veröffentlichten
+Unterstützer schickt ihn nicht mehr in die Warteschlange zurück, wenn die
+ändernde Person freigeben darf.
+
+→ **Eine Regel gilt weiter für alle:** der Alt-Text. Ein Bild, das niemand
+hören kann, ist nicht fertig, gleich wer den Artikel geschrieben hat — die
+Prüfung, die eine Freigabe blockiert, blockiert jetzt auch das unmittelbare
+Veröffentlichen, mit derselben Meldung.
+
+→ Der Knopf heißt entsprechend: „Veröffentlichen" für die einen, „Zur Freigabe"
+für die anderen.
+
 ### Vier Augen, solange es zwei gibt
 
 Bildschirm 11a sagt: „niemand gibt die eigene Einreichung frei." So war es

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireCapability } from "@/lib/authorize";
+import { refreshPublic } from "@/lib/refresh";
 import type { ArticleCover } from "@/lib/content";
 import { isCoverColorId } from "@/lib/cover";
 import { db } from "@/lib/db/client";
@@ -102,9 +103,15 @@ export const checkSlugAction = async (articleId: string, wanted: string) => {
 
 export const submitAction = async (articleId: string) => {
   const member = await requireCapability("writeOwnArticles");
-  const submitted = await submitForReview(member, articleId);
-  if (submitted) revalidatePath(`/admin/artikel/${articleId}`);
-  return { submitted };
+  const outcome = await submitForReview(member, articleId);
+
+  if (outcome !== "unknown" && outcome !== "alt_text_missing") {
+    revalidatePath(`/admin/artikel/${articleId}`);
+  }
+  // Only the one that reaches readers rebuilds their pages.
+  if (outcome === "published") refreshPublic.articles();
+
+  return { outcome };
 };
 
 export type ImageUploadResult =

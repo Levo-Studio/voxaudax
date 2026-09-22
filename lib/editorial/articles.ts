@@ -306,24 +306,52 @@ export const renameSlug = async (
   return slug;
 };
 
+/**
+ * What "Zur Freigabe" does depends on who presses it.
+ *
+ * An author hands the article in and it waits. A redakteur or a chefredakteur
+ * does not hand anything in: they are who the queue would hand it to, and
+ * asking them to file their own work so that they can approve it a screen later
+ * is ceremony, not review.
+ *
+ * What does not depend on the role is the alt text. A picture nobody can hear
+ * is not finished whoever wrote the article, so the same rule that blocks an
+ * approval blocks this — and the answer says so, in the same words the review
+ * screen uses.
+ */
 export const submitForReview = async (member: Member, articleId: string) => {
   const existing = await articleForEditor(member, articleId);
-  if (existing === null || existing.status !== "draft") return false;
+  if (existing === null || existing.status !== "draft") return "unknown" as const;
 
-  // The reason described the draft that was sent back; once it is handed in
-  // again it describes nothing, and leaving it would have the author reading
-  // an objection to work they have already redone.
+  const publishes = may(member.role, "approveArticlesAndMemes");
+  if (publishes && (await missingAltText(existing))) return "alt_text_missing" as const;
+
   await db
     .update(articles)
-    .set({
-      status: "review",
-      submittedAt: new Date(),
-      rejectionReason: null,
-      updatedAt: new Date(),
-    })
+    .set(
+      publishes
+        ? {
+            status: "published",
+            // A scheduled article keeps its hour: the public read asks for
+            // `published_at <= now()`, so a future date is the schedule.
+            publishedAt: existing.publishAt ?? new Date(),
+            submittedAt: new Date(),
+            rejectionReason: null,
+            updatedAt: new Date(),
+          }
+        : {
+            status: "review",
+            submittedAt: new Date(),
+            // The reason described the draft that was sent back; once it is
+            // handed in again it describes nothing, and leaving it would have
+            // the author reading an objection to work they have already redone.
+            rejectionReason: null,
+            updatedAt: new Date(),
+          },
+    )
     .where(eq(articles.id, articleId));
 
-  return true;
+  return publishes ? ("published" as const) : ("submitted" as const);
 };
 
 /** Carries the body as well, because the alt-text question is asked of it. */

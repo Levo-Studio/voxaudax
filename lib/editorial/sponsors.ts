@@ -2,6 +2,7 @@ import "server-only";
 import { asc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
+import { may } from "@/lib/roles";
 import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
 import { db } from "@/lib/db/client";
 import { images, sponsors } from "@/lib/db/schema";
@@ -76,10 +77,15 @@ export type SponsorInput = {
   readonly months: RuntimeMonths;
 };
 
+/**
+ * Entered by somebody who may approve sponsors, it is published as it is
+ * entered: they are who the queue would have handed it to.
+ */
 export const createSponsor = (member: Member, input: SponsorInput) =>
   db
     .insert(sponsors)
     .values({
+      ...(may(member.role, "approveSponsors") ? { status: "published" as const } : {}),
       name: input.name,
       initials: input.initials,
       url: input.url,
@@ -100,7 +106,7 @@ export const createSponsor = (member: Member, input: SponsorInput) =>
  */
 const backIntoReview = sql`case when ${sponsors.status} = 'published' then 'review' else ${sponsors.status} end`;
 
-export const updateSponsor = (sponsorId: string, input: SponsorInput) =>
+export const updateSponsor = (member: Member, sponsorId: string, input: SponsorInput) =>
   db
     .update(sponsors)
     .set({
@@ -109,7 +115,9 @@ export const updateSponsor = (sponsorId: string, input: SponsorInput) =>
       url: input.url,
       startsAt: input.startsAt,
       endsAt: endOfRuntime(input.startsAt, input.months),
-      status: backIntoReview,
+      // An editor who may approve does not send their own change back to a
+      // queue they are the end of; everybody else does.
+      ...(may(member.role, "approveSponsors") ? {} : { status: backIntoReview }),
     })
     .where(eq(sponsors.id, sponsorId));
 

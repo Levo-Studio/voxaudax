@@ -31,30 +31,35 @@ const memberFor = async (email: string): Promise<Member> => {
   };
 };
 
-describe("a published sponsor goes back through the review when it is edited", () => {
-  let creator: Member;
+describe("who has to go through the review and who does not", () => {
+  let author: Member;
   let approver: Member;
   let sponsorId: string;
+  let ownId: string;
 
   const input = (name: string) => ({
     name,
     initials: "TST",
     url: null,
-    kind: "foerderverein" as const,
     startsAt: new Date("2026-01-01T00:00:00.000Z"),
     months: 12 as const,
   });
 
   before(async () => {
-    creator = await memberFor("mira.oezkan@voxaudax.de");
+    // An autor is the only role the queue is for; everybody else is the queue.
+    author = await memberFor("emil.radtke@voxaudax.de");
     approver = await memberFor("lina.brenner@voxaudax.de");
 
-    const [created] = await createSponsor(creator, input("Prüfeintrag"));
+    const [created] = await createSponsor(author, input("Prüfeintrag"));
     sponsorId = created!.id;
+
+    const [own] = await createSponsor(approver, input("Eintrag der Chefredaktion"));
+    ownId = own!.id;
   });
 
   after(async () => {
     await db.delete(sponsors).where(eq(sponsors.id, sponsorId));
+    await db.delete(sponsors).where(eq(sponsors.id, ownId));
   });
 
   const statusOf = async () => {
@@ -65,14 +70,26 @@ describe("a published sponsor goes back through the review when it is edited", (
     return row!;
   };
 
-  it("starts in the review queue and is published by an approval", async () => {
+  const statusById = async (id: string) => {
+    const [row] = await db
+      .select({ status: sponsors.status })
+      .from(sponsors)
+      .where(eq(sponsors.id, id));
+    return row!.status;
+  };
+
+  it("queues what an autor enters, and publishes it on approval", async () => {
     assert.equal((await statusOf()).status, "review");
     assert.equal(await approveSponsor(approver, sponsorId), "approved");
     assert.equal((await statusOf()).status, "published");
   });
 
-  it("returns a published entry to the queue when it is rewritten", async () => {
-    await updateSponsor(sponsorId, input("Prüfeintrag, umbenannt"));
+  it("publishes what somebody who may approve enters, without a queue", async () => {
+    assert.equal(await statusById(ownId), "published");
+  });
+
+  it("returns an autor's published entry to the queue when it is rewritten", async () => {
+    await updateSponsor(author, sponsorId, input("Prüfeintrag, umbenannt"));
 
     const row = await statusOf();
     assert.equal(row.name, "Prüfeintrag, umbenannt");
@@ -80,8 +97,13 @@ describe("a published sponsor goes back through the review when it is edited", (
   });
 
   it("leaves an entry that is already waiting where it is", async () => {
-    await updateSponsor(sponsorId, input("Prüfeintrag, noch einmal"));
+    await updateSponsor(author, sponsorId, input("Prüfeintrag, noch einmal"));
     assert.equal((await statusOf()).status, "review");
+  });
+
+  it("does not send an approver's own change back to the queue", async () => {
+    await updateSponsor(approver, ownId, input("Eintrag der Chefredaktion, geändert"));
+    assert.equal(await statusById(ownId), "published");
   });
 });
 

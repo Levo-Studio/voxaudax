@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
+import { may } from "@/lib/roles";
 import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
 import { db } from "@/lib/db/client";
 import { images, memes, users } from "@/lib/db/schema";
@@ -71,6 +72,11 @@ export const listSubmittedMemes = () =>
  * rather than checked at approval time — a meme with no alt text never reaches
  * the review grid as approvable in the first place.
  */
+/**
+ * A meme uploaded by somebody who may approve memes is published as it is
+ * uploaded. The alt text is required by the form either way, which is the one
+ * thing an approval would have checked.
+ */
 export const createMeme = async (input: {
   readonly member: Member;
   readonly imageKey: string;
@@ -101,6 +107,9 @@ export const createMeme = async (input: {
         caption: input.caption,
         visible: input.visible,
         createdBy: input.member.id,
+        ...(may(input.member.role, "approveArticlesAndMemes")
+          ? { status: "published" as const }
+          : {}),
       })
       .returning({ id: memes.id });
 
