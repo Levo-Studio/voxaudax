@@ -207,7 +207,17 @@ vollständigen Mails.
   legte damit ein Rechteck über die runde Zelle darunter. Die Beschriftung
   bekommt dort jetzt nur noch ihre Farbe.
 - Das freigegebene Meme sitzt **randbündig** zwischen Kopf und Rumpf, wie 11b es
-  zeichnet, nicht als gerahmtes Bild im Text.
+  zeichnet, nicht als gerahmtes Bild im Text — und als **2:1-Streifen**, der
+  zuschneidet. Das hält die Mail kurz: ein Meme ist meist höher als breit, und in
+  voller Höhe stünden vor dem ersten Satz 750px Bild. Geschnitten wird mit
+  `object-fit`, das jedes heutige Programm versteht; Outlook unter Windows
+  ignoriert es und staucht stattdessen. Die Alternative wäre ein Hintergrundbild
+  mit VML-Notnagel — viel Markup für eine Benachrichtigung über ein Meme.
+- **Eckig waren sie alle.** `table { border-collapse: collapse }` im Reset lässt
+  jede Tabelle ihren `border-radius` fallen — Karte und Faktenbox hatten deshalb
+  rechte Winkel, während der Knopf rund blieb, weil seine Rundung auf einer Zelle
+  sitzt und nicht auf der Tabelle. Jetzt `separate` mit `border-spacing: 0`, das
+  die Nahtstellen genauso geschlossen hält.
 - **Vorschautexte** zeichnet der Entwurf nicht. Sie ergänzen, was der Betreff
   weglässt, statt ihn zu wiederholen.
 - **Das Meme hat keinen Titel**, also nutzt seine Freigabemail den ausgeschriebenen

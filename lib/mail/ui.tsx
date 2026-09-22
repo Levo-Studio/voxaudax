@@ -25,7 +25,11 @@ const { light, dark } = palette;
 const darkPalette = `
   :root { color-scheme: light dark; supported-color-schemes: light dark; }
   body { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; margin: 0; padding: 0; }
-  table { border-collapse: collapse; }
+  /* Separate, not collapsed. A collapsed table ignores its own border-radius
+     outright, which squared off every rounded thing in the design at once —
+     the card, the fact box — while the button kept its corners because its
+     radius sits on a cell. border-spacing of zero keeps the seams closed. */
+  table { border-collapse: separate; border-spacing: 0; }
   img { -ms-interpolation-mode: bicubic; }
   @media (prefers-color-scheme: dark) {
     .va-page { background: ${dark.surfaceSunken} !important; }
@@ -297,9 +301,23 @@ export type PreviewImage = {
  * the approved meme. No padding and no rounding of its own: the card clips it,
  * and a line underneath separates it from the first sentence.
  */
+/**
+ * 11b draws the strip at 2:1 and crops whatever is behind it, which is what
+ * keeps the mail short: a meme is usually taller than it is wide, and at full
+ * height a 1080 × 1350 upload would be 750px of picture before the first
+ * sentence.
+ *
+ * `object-fit` does the cropping and is understood by every modern client.
+ * Outlook on Windows ignores it and fits the picture to the box instead, so
+ * there it is squashed rather than cropped — the alternative is a background
+ * image with a VML fallback, which is a great deal of markup for a notice about
+ * a meme.
+ */
+const BANNER_RATIO = 2;
+
 export const BannerImage = ({ image }: { image: PreviewImage }) => {
   const width = MAIL_WIDTH_PX;
-  const height = Math.round((image.height / image.width) * width);
+  const height = Math.round(width / BANNER_RATIO);
 
   return (
     <table
@@ -331,7 +349,8 @@ export const BannerImage = ({ image }: { image: PreviewImage }) => {
                 display: "block",
                 width: "100%",
                 maxWidth: `${width}px`,
-                height: "auto",
+                height: `${height}px`,
+                objectFit: "cover",
               }}
             />
           </td>
