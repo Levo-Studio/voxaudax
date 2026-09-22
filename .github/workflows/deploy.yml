@@ -122,9 +122,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger deployment webhook
+        env:
+          WEBHOOK: ${{ secrets.DEPLOYMENT_WEBHOOK_URL }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
-            "${{ secrets.DEPLOYMENT_WEBHOOK_URL }}")
+          # An unset secret reaches the step as an empty string, and curl then
+          # exits 3 for a malformed URL — a number that says nothing about what
+          # is missing. Named here so the log does.
+          if [ -z "$WEBHOOK" ]; then
+            echo "DEPLOYMENT_WEBHOOK_URL is not set on this repository."
+            echo "The image is built, pushed and verified; only the deployment"
+            echo "was not triggered. Add the secret under Settings > Secrets and"
+            echo "variables > Actions, then re-run this job."
+            exit 1
+          fi
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 -X POST "$WEBHOOK")
           echo "Webhook responded with $STATUS"
           if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
             echo "Deployment webhook failed"
