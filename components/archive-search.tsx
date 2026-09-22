@@ -63,7 +63,10 @@ export function ArchiveSearch({
 
   return (
     <form action="/archiv" method="get">
-      <label className="mt-4 flex items-center gap-2.5 py-[13px] md:mt-[22px] md:gap-3 md:py-[15px]">
+      {/* va-search hands the field's focus ring to the box around it — see the
+          rule in globals.css. The box is already an outline; a second one
+          floating 3px outside it was what the ring looked like. */}
+      <label className="va-search mt-4 flex items-center gap-2.5 rounded-xl border border-bd px-[15px] py-[13px] transition-colors focus-within:border-ac focus-within:ring-1 focus-within:ring-ac md:mt-[22px] md:gap-3 md:px-[18px] md:py-[15px]">
         <span className="sr-only">Im Archiv suchen</span>
         <input
           type="search"

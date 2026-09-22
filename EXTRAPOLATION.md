@@ -217,24 +217,25 @@ im Klartext und landet damit im Browser.
 bleibt server-seitig, wie ohnehin vorgesehen. Kosten: 8-MB-Dateien laufen durch
 den Node-Prozess.
 
-### Suchfeld im Archiv ohne Rahmen, und es sucht beim Tippen
+### Suchfeld im Archiv sucht beim Tippen, und der Fokus sitzt im Kasten
 
-Bildschirm 5a zeichnet das Suchfeld als Kasten: `border:1px solid var(--bd)`,
-`border-radius:12px`, `padding:15px 18px`. Die Vorlage zeigt außerdem nur den
-Zustand *nach* einer Suche — wie die Eingabe abgeschickt wird, sagt sie nicht.
-
-Angewiesen wurde beides: kein Rahmen, und Treffer ohne Absenden.
-
-→ Der Kasten entfällt samt seiner waagerechten Innenabstände, damit die Zeile
-mit der Überschrift und der Trefferliste fluchtet. Sichtbar bleibt das Feld im
-Tastaturbetrieb über den Fokusring aus `globals.css` — 2 px in der Akzentfarbe,
-3 px Abstand.
+Die Vorlage zeigt auf Bildschirm 5a nur den Zustand *nach* einer Suche — wie
+die Eingabe abgeschickt wird, sagt sie nicht. Der Kasten um das Feld
+(`border:1px solid var(--bd)`, `border-radius:12px`, `padding:15px 18px`)
+bleibt wie gezeichnet.
 
 → Die Suche läuft 180 ms nach dem letzten Anschlag als `router.replace` in die
 Adresse. Das Formular bleibt ein echtes GET-Formular mit Absende-Schaltfläche:
 ohne Skript verhält sich das Archiv wie zuvor, und die Adresse bleibt in beiden
 Fällen der ganze Zustand der Seite. `replace` statt `push`, weil ein Wort sonst
 so viele Einträge im Verlauf hinterlässt, wie es Buchstaben hat.
+
+→ Der allgemeine Fokusring aus `globals.css` — 2 px Akzentfarbe, 3 px Abstand —
+schwebte hier als zweite Umrandung um einen Kasten, der schon eine hat.
+Angewiesen wurde, ihn loszuwerden. Statt ihn ersatzlos zu streichen, was
+WCAG 2.4.7 verletzt hätte, färbt sich der Kasten selbst: 1 px Rahmen plus 1 px
+Ring in der Akzentfarbe, also die 2 px Umfang, die SC 2.4.11 verlangt, bei
+6,9:1 gegen die Seite im hellen und 8,1:1 im dunklen Schema.
 
 ### Kein Suche-Knopf im Kopf
 

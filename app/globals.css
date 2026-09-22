@@ -81,6 +81,16 @@ select:focus-visible {
 }
 
 /**
+ * A field that already sits in a drawn box says "focused" by colouring that box
+ * — 1px border plus 1px ring, so the perimeter is the 2px the focus-appearance
+ * rule asks for, at 6.9:1 against the page in light and 8.1:1 in dark. The ring
+ * above would have floated a second outline 3px outside the first.
+ */
+.va-search input:focus-visible {
+  outline: none;
+}
+
+/**
  * The template's own entrance, `@keyframes vaIn`, at the template's own values.
  * The reduced-motion block below flattens it to a single frame, so a reader who
  * asked for no motion sees the finished state and never the offset.
