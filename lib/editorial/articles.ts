@@ -43,6 +43,7 @@ const listColumns = {
   wordCount: articles.wordCount,
   cover: articles.cover,
   categoryName: categories.name,
+  authorId: articles.authorId,
   authorName: users.name,
   authorInitials: users.initials,
 };
@@ -73,6 +74,8 @@ export const listArticles = async (
     readonly status?: ArticleStatus;
     readonly query?: string;
     readonly sort?: SortKey;
+    /** Only what this member wrote — the list a redakteur reads to find their own. */
+    readonly mineOnly?: boolean;
   },
 ) => {
   const search = filter.query?.trim();
@@ -81,6 +84,7 @@ export const listArticles = async (
     .where(
       and(
         reachableBy(member),
+        filter.mineOnly === true ? eq(articles.authorId, member.id) : undefined,
         filter.status === undefined ? undefined : eq(articles.status, filter.status),
         search === undefined || search.length === 0
           ? undefined
@@ -92,6 +96,16 @@ export const listArticles = async (
     )
     .orderBy(SORTS[filter.sort ?? "changed"].order)
     .limit(200);
+};
+
+/** How many of the reachable articles this member wrote themselves. */
+export const countOwnArticles = async (member: Member) => {
+  const [row] = await db
+    .select({ total: count() })
+    .from(articles)
+    .where(and(reachableBy(member), eq(articles.authorId, member.id)));
+
+  return row?.total ?? 0;
 };
 
 export const countArticlesByStatus = async (member: Member) => {

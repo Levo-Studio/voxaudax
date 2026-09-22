@@ -477,6 +477,21 @@ ein Artikel vier Seiten und zwei Feeds, eine Personenänderung Start-,
 Redaktions- und Kontaktseite. Jede Freigabe, jede Ablehnung und jede Änderung
 ruft das auf.
 
+### Eigene Artikel in der Liste erkennbar
+
+Die Vorlage zeigt auf 7c eine Autorenspalte mit Namen. Wer die Liste liest, um
+die eigene Arbeit zu finden, liest dabei den eigenen Namen unter vielen.
+
+→ Die Zeile sagt „Du" statt des Namens, den die lesende Person ohnehin kennt,
+und sagt es in der Akzentfarbe — der einzigen in dieser Spalte. Dazu eine Pille
+„Von mir", die auf die eigenen Artikel filtert und sich mit dem Statusfilter
+kombinieren lässt.
+
+→ Die Pille erscheint nur, wo es etwas zu unterscheiden gibt: ein Autor sieht
+ohnehin nur eigene Artikel, dort sagte sie dasselbe zweimal. „Alle" setzt beide
+Filter zurück und leuchtet nur, wenn keiner gesetzt ist — zwei gleichzeitig
+aktive Pillen in einer Reihe lesen sich wie zwei Antworten auf eine Frage.
+
 ### Knopf „Als Entwurf speichern"
 
 Nicht in der Vorlage: dort speichert nur die Autosave.

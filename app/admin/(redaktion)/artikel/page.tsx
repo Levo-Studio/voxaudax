@@ -6,6 +6,7 @@ import { requireMember } from "@/lib/authorize";
 import {
   countArticlesByStatus,
   isSortKey,
+  countOwnArticles,
   listArticles,
   SORTS,
   STATUS_LABELS,
@@ -63,15 +64,17 @@ export default async function ArticlesPage({
   const status = isStatus(parameters.status) ? parameters.status : undefined;
   const query = typeof parameters.q === "string" ? parameters.q : "";
   const sort = isSortKey(parameters.sort) ? parameters.sort : "changed";
+  const mineOnly = parameters.von === "ich";
 
-  const [rows, counts] = await Promise.all([
-    listArticles(member, { status, query, sort }),
+  const [rows, counts, mine] = await Promise.all([
+    listArticles(member, { status, query, sort, mineOnly }),
     countArticlesByStatus(member),
+    countOwnArticles(member),
   ]);
 
   const link = (next: Record<string, string | undefined>) => {
     const search = new URLSearchParams();
-    const merged = { status, q: query, sort, ...next };
+    const merged = { status, q: query, sort, von: mineOnly ? "ich" : undefined, ...next };
     for (const [key, value] of Object.entries(merged)) {
       if (value !== undefined && value.length > 0 && !(key === "sort" && value === "changed")) {
         search.set(key, value);
@@ -87,7 +90,14 @@ export default async function ArticlesPage({
         <div className="flex flex-wrap items-center gap-3 border-b border-bd px-4 py-[18px] md:px-[22px]">
           <h1 className="m-0 text-xl font-extrabold tracking-[-0.03em]">Artikel</h1>
           <div className="flex flex-wrap gap-1.5">
-            <FilterPill href={link({ status: undefined })} active={status === undefined}>
+            {/* "Alle" clears both filters and is only lit when neither is set:
+                with two independent filters in one row, a pill that stayed
+                active beside another active pill read as two answers to one
+                question. */}
+            <FilterPill
+              href={link({ status: undefined, von: undefined })}
+              active={status === undefined && !mineOnly}
+            >
               Alle {counts.all}
             </FilterPill>
             {STATUSES.map((candidate) => (
@@ -95,6 +105,14 @@ export default async function ArticlesPage({
                 {STATUS_LABELS[candidate]} {counts[candidate]}
               </FilterPill>
             ))}
+            {/* Only where there is something to tell apart: an autor sees their
+                own articles and nothing else, so the filter would say the same
+                thing twice. */}
+            {counts.all === mine ? null : (
+              <FilterPill href={link({ von: mineOnly ? undefined : "ich" })} active={mineOnly}>
+                Von mir {mine}
+              </FilterPill>
+            )}
           </div>
           {may(member.role, "writeOwnArticles") ? (
             <form action={newArticleAction} className="ml-auto">
@@ -156,7 +174,17 @@ export default async function ArticlesPage({
                 <span className="block text-[15.5px] font-bold tracking-[-0.02em]">{row.title}</span>
                 <span className="mt-[3px] block text-[11.5px] font-semibold text-tm">{subtitle(row)}</span>
               </span>
-              <span className="text-[13px] font-semibold text-tm">{row.authorName}</span>
+              {/* The name is what one reads down a column to find one's own
+                  work, so the row says "Du" rather than repeating the name the
+                  reader already knows — and says it in the accent, which is the
+                  only place in this column that carries one. */}
+              <span
+                className={`text-[13px] font-semibold ${
+                  row.authorId === member.id ? "font-bold text-ac" : "text-tm"
+                }`}
+              >
+                {row.authorId === member.id ? "Du" : row.authorName}
+              </span>
               <span className="justify-self-end md:justify-self-start">
                 <span
                   className={`rounded-full px-2.5 py-[5px] text-[11.5px] font-bold ${
