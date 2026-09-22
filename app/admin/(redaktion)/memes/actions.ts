@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { refreshPublic } from "@/lib/refresh";
+
 import { requireCapability } from "@/lib/authorize";
 import { createMeme, editMeme, setMemeVisibility } from "@/lib/editorial/memes";
 import { readDimensions } from "@/lib/image-dimensions";
@@ -59,6 +61,7 @@ export const uploadMemeAction = async (
   });
 
   revalidatePath("/admin/memes");
+  refreshPublic.memes();
   return { problem: null, uploaded: true };
 };
 
@@ -73,6 +76,7 @@ export const toggleMemeVisibilityAction = async (form: FormData) => {
   const memeId = String(form.get("memeId") ?? "");
   await setMemeVisibility(memeId, form.get("visible") === "on");
   revalidatePath("/admin/memes");
+  refreshPublic.memes();
 };
 
 export const editMemeAction = async (form: FormData) => {
@@ -90,4 +94,5 @@ export const editMemeAction = async (form: FormData) => {
   });
 
   revalidatePath("/admin/memes");
+  refreshPublic.memes();
 };

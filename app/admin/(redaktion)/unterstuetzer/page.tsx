@@ -4,7 +4,7 @@ import { ToggleSwitch } from "@/components/admin/toggle-switch";
 import { toggleSponsorAction } from "@/app/admin/(redaktion)/unterstuetzer/actions";
 import { SponsorForm } from "@/app/admin/(redaktion)/unterstuetzer/sponsor-form";
 import { requireMember } from "@/lib/authorize";
-import { countRunningSponsors, isRunning, listSponsors, SPONSOR_KINDS } from "@/lib/editorial/sponsors";
+import { countRunningSponsors, listSponsors } from "@/lib/editorial/sponsors";
 import { may } from "@/lib/roles";
 
 export const metadata = { title: "Unterstützer · Vox Audax Redaktion" };
@@ -76,10 +76,12 @@ export default async function SponsorsPage() {
                   <RejectionNote reason={sponsor.rejectionReason} />
                 </span>
               </span>
-              <span className="text-[13px] font-semibold text-tm">{SPONSOR_KINDS[sponsor.kind]}</span>
               <span className="text-[13px] font-semibold">
                 {DATE.format(sponsor.endsAt)}
-                <span className={`block text-[11px] font-semibold ${isRunning(sponsor) ? "text-tm" : "text-ac2"}`}>
+                {/* One colour for every runtime. "abgelaufen" already says it
+                    has run out; painting it red as well made half the column
+                    look like a fault when nothing is wrong. */}
+                <span className="block text-[11px] font-semibold text-tm">
                   {remaining(sponsor.endsAt)}
                 </span>
               </span>

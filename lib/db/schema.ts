@@ -274,7 +274,13 @@ export const sponsors = pgTable(
       onDelete: "set null",
     }),
     url: text("url"),
-    kind: sponsorKind("kind").notNull(),
+    /**
+     * No longer asked for, no longer shown, and no longer written. The column
+     * stays until somebody decides the four values on the existing rows may be
+     * lost — dropping it is not something an interface change should do behind
+     * a reader's back.
+     */
+    kind: sponsorKind("kind"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     active: boolean("active").notNull().default(true),

@@ -1,4 +1,4 @@
-import type { sponsors, userForm, userRole } from "@/lib/db/schema";
+import type { userForm, userRole } from "@/lib/db/schema";
 
 /**
  * The words and the fixed choices the screens offer, with no database access
@@ -6,18 +6,6 @@ import type { sponsors, userForm, userRole } from "@/lib/db/schema";
  * client component and a repository imports `server-only`: a shared constant
  * that lived beside the queries would drag the pool into the browser bundle.
  */
-
-export type SponsorKind = (typeof sponsors.$inferSelect)["kind"];
-
-export const SPONSOR_KINDS: Record<SponsorKind, string> = {
-  druckkosten: "Druckkosten",
-  material: "Material",
-  technik: "Technik",
-  foerderverein: "Förderverein",
-};
-
-export const isSponsorKind = (value: unknown): value is SponsorKind =>
-  typeof value === "string" && value in SPONSOR_KINDS;
 
 /** Screen 6a offers exactly these three runtimes and no free date entry. */
 export const RUNTIMES = [

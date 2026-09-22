@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
+import { refreshPublic } from "@/lib/refresh";
 import { z } from "zod";
 
 import { velveAuth } from "@/lib/auth";
@@ -150,7 +152,6 @@ export const removeMemberAction = async (
   }
 
   revalidatePath("/admin/nutzer");
-  revalidatePath("/redaktion");
-  revalidatePath("/");
+  refreshPublic.editorial();
   return { problem: null };
 };

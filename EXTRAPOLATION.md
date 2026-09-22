@@ -416,6 +416,34 @@ seinem — zweimal dieselbe Einladung, zweimal eigenständig gesetzt.
 stand der Text der Startseite im Code: eine geänderte Uhrzeit hätte an zwei
 Stellen gepflegt werden müssen und wäre an einer stehen geblieben.
 
+### „Art der Unterstützung" entfernt
+
+Die Vorlage sieht auf 6a vier Arten vor — Druckkosten, Material, Technik,
+Förderverein — und zeigt sie auf 6b unter jedem Namen.
+
+→ Auf Ansage ganz entfernt: nicht mehr abgefragt, nicht mehr angezeigt, nicht
+mehr geschrieben. Die Spalte `sponsors.kind` bleibt vorerst und ist nur nicht
+mehr `not null` (Migration 0007): das Löschen einer Spalte nimmt die vier
+vorhandenen Werte mit, und das ist keine Entscheidung, die eine
+Oberflächenänderung nebenbei treffen sollte.
+
+→ In der Laufzeitspalte ist die Warnfarbe weg. „abgelaufen" sagt bereits, dass
+der Zeitraum vorbei ist; ihn zusätzlich rot zu setzen ließ die halbe Spalte wie
+einen Fehler aussehen, wo keiner ist.
+
+### Was im Backoffice geändert wird, steht sofort auf der Seite
+
+Die öffentlichen Seiten werden einmal gerendert und fünf Minuten lang aus dem
+Zwischenspeicher bedient — richtig für Lesende, falsch für die Person, die
+gerade etwas geändert hat und nachsehen geht. Die Aktionen frischten nur ihre
+eigene Backoffice-Seite auf.
+
+→ `lib/refresh.ts` benennt an einer Stelle, welche öffentlichen Seiten eine
+Änderung erreicht: ein Unterstützer die Startseite, ein Meme die Meme-Seite,
+ein Artikel vier Seiten und zwei Feeds, eine Personenänderung Start-,
+Redaktions- und Kontaktseite. Jede Freigabe, jede Ablehnung und jede Änderung
+ruft das auf.
+
 ### Abgelehnte Einreichungen bleiben stehen, mit Begründung
 
 Die Vorlage zeigt auf 11a den Knopf „Ablehnen", sagt aber nicht, was danach mit

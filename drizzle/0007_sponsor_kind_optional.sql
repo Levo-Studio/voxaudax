@@ -1,0 +1,1 @@
+ALTER TABLE "sponsors" ALTER COLUMN "kind" DROP NOT NULL;

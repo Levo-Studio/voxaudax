@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
+import { refreshPublic } from "@/lib/refresh";
+
 import { requireCapability } from "@/lib/authorize";
 import {
   createSponsor,
   isRuntime,
-  isSponsorKind,
   setSponsorActive,
   setSponsorLogo,
   updateSponsor,
@@ -26,17 +27,15 @@ const read = (form: FormData): SponsorInput | string => {
   const name = String(form.get("name") ?? "").trim();
   const initials = String(form.get("initials") ?? "").trim().toUpperCase();
   const url = String(form.get("url") ?? "").trim();
-  const kind = form.get("kind");
   const months = Number(form.get("months"));
   const startsAt = new Date(String(form.get("startsAt") ?? ""));
 
   if (name.length === 0) return "Ohne Namen lässt sich kein Eintrag anlegen.";
   if (initials.length === 0 || initials.length > 4) return "Das Kürzel hat ein bis vier Zeichen.";
-  if (!isSponsorKind(kind)) return "Wähle eine Art der Unterstützung.";
   if (!isRuntime(months)) return "Wähle eine Laufzeit.";
   if (Number.isNaN(startsAt.getTime())) return "Das Startdatum ist kein Datum.";
 
-  return { name, initials, url: url.length === 0 ? null : url, kind, months, startsAt };
+  return { name, initials, url: url.length === 0 ? null : url, months, startsAt };
 };
 
 export const saveSponsorAction = async (
@@ -86,6 +85,7 @@ export const saveSponsorAction = async (
   }
 
   revalidatePath("/admin/unterstuetzer");
+  refreshPublic.sponsors();
   return { problem: null, saved: true };
 };
 
@@ -93,4 +93,5 @@ export const toggleSponsorAction = async (form: FormData) => {
   await requireCapability("manageSponsors");
   await setSponsorActive(String(form.get("sponsorId") ?? ""), form.get("active") === "on");
   revalidatePath("/admin/unterstuetzer");
+  refreshPublic.sponsors();
 };

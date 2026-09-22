@@ -13,7 +13,7 @@ import { DecisionButtons } from "@/app/admin/(redaktion)/review/decision-buttons
 import { requireCapability } from "@/lib/authorize";
 import { listSubmittedArticles, missingAltText } from "@/lib/editorial/articles";
 import { listSubmittedMemes } from "@/lib/editorial/memes";
-import { listSubmittedSponsors, SPONSOR_KINDS } from "@/lib/editorial/sponsors";
+import { listSubmittedSponsors } from "@/lib/editorial/sponsors";
 import { formatWordCount } from "@/lib/reading-time";
 
 export const metadata = { title: "Freigabe · Vox Audax Redaktion" };
@@ -217,7 +217,6 @@ export default async function ReviewPage({
                         </span>
                       </span>
                     </span>
-                    <span className="text-[13px] font-semibold text-tm">{SPONSOR_KINDS[sponsor.kind]}</span>
                     <span className="text-[13px] font-semibold">{months} Monate</span>
                     <DecisionButtons
                       approve={approveSponsorAction.bind(null, sponsor.id)}

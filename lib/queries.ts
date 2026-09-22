@@ -337,7 +337,6 @@ export const activeSponsors = () =>
       name: sponsors.name,
       initials: sponsors.initials,
       url: sponsors.url,
-      kind: sponsors.kind,
     })
     .from(sponsors)
     .where(

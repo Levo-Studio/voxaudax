@@ -8,9 +8,7 @@ import { saveSponsorAction, type SponsorFormState } from "@/app/admin/(redaktion
 import {
   endOfRuntime,
   RUNTIMES,
-  SPONSOR_KINDS,
   type RuntimeMonths,
-  type SponsorKind,
 } from "@/lib/editorial/vocabulary";
 
 const EMPTY: SponsorFormState = { problem: null, saved: false };
@@ -19,7 +17,6 @@ const DATE = new Intl.DateTimeFormat("de-DE");
 
 export function SponsorForm({ today }: { today: string }) {
   const [state, submit, pending] = useActionState(saveSponsorAction, EMPTY);
-  const [kind, setKind] = useState<SponsorKind>("druckkosten");
   const [months, setMonths] = useState<RuntimeMonths>(6);
   const [startsAt, setStartsAt] = useState(today);
 
@@ -48,30 +45,6 @@ export function SponsorForm({ today }: { today: string }) {
 
         <label className={`${LABEL_CLASS} mt-3 mb-1.5`} htmlFor="sponsor-alt">Alt-Text · Pflichtfeld</label>
         <input id="sponsor-alt" name="logoAlt" placeholder="Logo Buchhandlung Osiander" className={FIELD_CLASS} />
-      </div>
-
-      <div className="border-b border-bd px-[18px] py-4">
-        <span className={`${LABEL_CLASS} mb-[7px]`}>Art der Unterstützung</span>
-        <div className="flex flex-wrap gap-1.5 text-xs font-bold">
-          {Object.entries(SPONSOR_KINDS).map(([value, label]) => (
-            <label
-              key={value}
-              className={`cursor-pointer rounded-full px-[11px] py-1.5 transition-colors duration-200 ease-out ${
-                kind === value ? "bg-ac text-s1" : "border border-bd text-tm hover:text-tx"
-              }`}
-            >
-              <input
-                type="radio"
-                name="kind"
-                value={value}
-                checked={kind === value}
-                onChange={() => setKind(value as SponsorKind)}
-                className="sr-only"
-              />
-              {label}
-            </label>
-          ))}
-        </div>
       </div>
 
       <div className="border-b border-bd px-[18px] py-4">

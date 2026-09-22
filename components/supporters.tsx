@@ -1,19 +1,7 @@
-import type { sponsorKind } from "@/lib/db/schema";
-
-type Kind = (typeof sponsorKind.enumValues)[number];
-
-const KIND_LABELS: Record<Kind, string> = {
-  druckkosten: "Druckkosten",
-  material: "Material",
-  technik: "Technik",
-  foerderverein: "Förderverein",
-};
-
 export type Supporter = {
   name: string;
   initials: string;
   url: string | null;
-  kind: Kind;
 };
 
 /**
@@ -49,9 +37,6 @@ export function Supporters({ supporters }: { supporters: readonly Supporter[] })
               <span>
                 <span className="block text-sm font-bold tracking-[-0.02em] md:text-[14.5px]">
                   {supporter.name}
-                </span>
-                <span className="mt-0.5 block text-[11px] font-semibold text-tm md:text-[11.5px]">
-                  {KIND_LABELS[supporter.kind]}
                 </span>
               </span>
             </>

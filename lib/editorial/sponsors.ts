@@ -7,7 +7,6 @@ import { images, sponsors } from "@/lib/db/schema";
 import {
   endOfRuntime,
   type RuntimeMonths,
-  type SponsorKind,
 } from "@/lib/editorial/vocabulary";
 
 export * from "@/lib/editorial/vocabulary";
@@ -19,7 +18,6 @@ const rows = () =>
       name: sponsors.name,
       initials: sponsors.initials,
       url: sponsors.url,
-      kind: sponsors.kind,
       startsAt: sponsors.startsAt,
       endsAt: sponsors.endsAt,
       active: sponsors.active,
@@ -73,7 +71,6 @@ export type SponsorInput = {
   readonly name: string;
   readonly initials: string;
   readonly url: string | null;
-  readonly kind: SponsorKind;
   readonly startsAt: Date;
   readonly months: RuntimeMonths;
 };
@@ -85,7 +82,6 @@ export const createSponsor = (member: Member, input: SponsorInput) =>
       name: input.name,
       initials: input.initials,
       url: input.url,
-      kind: input.kind,
       startsAt: input.startsAt,
       endsAt: endOfRuntime(input.startsAt, input.months),
       createdBy: member.id,
@@ -110,7 +106,6 @@ export const updateSponsor = (sponsorId: string, input: SponsorInput) =>
       name: input.name,
       initials: input.initials,
       url: input.url,
-      kind: input.kind,
       startsAt: input.startsAt,
       endsAt: endOfRuntime(input.startsAt, input.months),
       status: backIntoReview,
