@@ -1,6 +1,8 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+
+import { toast } from "@/components/admin/toast";
 
 import { FIELD_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
 import { Segmented } from "@/components/admin/segmented";
@@ -17,6 +19,13 @@ const HINTS = {
 /** The "Neues Meme" column of screen 10b: drop, preview, caption, alt, visibility. */
 export function MemeUploadForm() {
   const [state, submit, pending] = useActionState(uploadMemeAction, EMPTY);
+
+  // Every other decision in the back office says so in the corner; this one
+  // said it only in the panel it was made in, which scrolls away.
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+    else if (state.uploaded) toast("Meme hochgeladen. Es wartet auf die Freigabe.");
+  }, [state]);
   const [preview, setPreview] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<"visible" | "hidden">("visible");
   const input = useRef<HTMLInputElement>(null);

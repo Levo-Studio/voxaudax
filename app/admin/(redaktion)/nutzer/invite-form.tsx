@@ -18,7 +18,14 @@ export function InviteForm() {
 
   useEffect(() => {
     if (state.problem !== null) toast(state.problem, "problem");
-    else if (state.link !== null) toast("Einladung angelegt. Der Link steht im Formular.");
+    else if (state.link !== null) {
+      toast(
+        state.mailed === true
+          ? "Einladung verschickt."
+          : "Einladung angelegt, die Mail ging nicht raus.",
+        state.mailed === true ? undefined : "problem",
+      );
+    }
   }, [state]);
   const [role, setRole] = useState<Role>("autor");
   const [form, setForm] = useState<Form>("weiblich");
@@ -86,7 +93,9 @@ export function InviteForm() {
         {state.link === null ? null : (
           <div role="status" className="va-in rounded-[10px] border border-bd bg-s2 p-3">
             <p className="m-0 text-xs font-semibold text-tm">
-              Einladung angelegt. Der Link wird genau einmal angezeigt:
+              {state.mailed === true
+                ? "Einladung verschickt. Der Link steht hier ein einziges Mal, falls die Mail nicht ankommt:"
+                : "Einladung angelegt, aber die Mail ging nicht raus. Gib den Link persönlich weiter — er wird genau einmal angezeigt:"}
             </p>
             <code className="mt-1.5 block font-mono text-[11px] break-all text-tx">{state.link}</code>
           </div>

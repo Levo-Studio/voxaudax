@@ -29,10 +29,27 @@ export function ArticleCard({
   const Heading = headingLevel;
 
   return (
-    <article className="grid grid-cols-[104px_1fr] items-start gap-3.5 md:block">
+    /**
+     * The whole card answers to the pointer, not only the words. Hovering the
+     * cover and hovering the headline are the same gesture towards the same
+     * article, so both lift it: the panel rises a hair, the headline takes the
+     * accent. `group` carries that from here to both, and the transitions are
+     * on transform and colour, which the compositor can do without a reflow.
+     *
+     * No `hover:` without `group-hover:` on a touch screen: a tap there leaves
+     * the hover state stuck on the last thing touched, and a card that stays
+     * lifted reads as selected. The media query below is what keeps it to
+     * devices that actually point.
+     */
+    <article className="group grid grid-cols-[104px_1fr] items-start gap-3.5 md:block">
       {/* The cover repeats the headline's destination. Hidden from keyboard and
           screen reader so the same article is not announced twice in a row. */}
-      <a href={href} tabIndex={-1} aria-hidden className="block">
+      <a
+        href={href}
+        tabIndex={-1}
+        aria-hidden
+        className="block transition-transform duration-200 ease-out can-hover:group-hover:-translate-y-1"
+      >
         <ArticleCover
           variant={variant}
           title={article.title}
@@ -47,7 +64,7 @@ export function ArticleCard({
         <div className="text-[10.5px] font-bold tracking-[0.12em] text-tm uppercase md:hidden">
           {article.categoryName}
         </div>
-        <Heading className="mt-1.5 text-[17.5px] leading-[1.2] font-bold tracking-[-0.02em] md:mt-4 md:text-[22px] md:leading-[1.12] md:tracking-[-0.028em]">
+        <Heading className="mt-1.5 text-[17.5px] leading-[1.2] font-bold tracking-[-0.02em] transition-colors duration-200 ease-out can-hover:group-hover:text-ac md:mt-4 md:text-[22px] md:leading-[1.12] md:tracking-[-0.028em]">
           <a href={href}>{article.title}</a>
         </Heading>
         <p className="mt-[9px] hidden text-sm leading-[1.6] font-medium text-tm md:block">

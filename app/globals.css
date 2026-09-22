@@ -214,3 +214,15 @@ select:focus-visible,
   background-size: 200% 100%;
   animation: vaShimmer 1.6s linear infinite;
 }
+
+/**
+ * A pointer that can actually hover. A tap on a touch screen leaves the hover
+ * state on the last thing touched, so a card that lifts would stay lifted and
+ * read as selected; this keeps every hover of that kind to a mouse or a
+ * trackpad.
+ */
+@custom-variant can-hover {
+  @media (hover: hover) and (pointer: fine) {
+    @slot;
+  }
+}

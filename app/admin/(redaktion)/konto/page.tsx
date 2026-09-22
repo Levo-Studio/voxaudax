@@ -1,5 +1,5 @@
-import { Avatar, FIELD_CLASS, LABEL_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
-import { saveProfileAction } from "@/app/admin/(redaktion)/konto/actions";
+import { PANEL_CLASS, PANEL_HEADING_CLASS } from "@/components/admin/controls";
+import { ProfileForm } from "@/app/admin/(redaktion)/konto/profile-form";
 import { ChangePasswordForm } from "@/app/admin/(redaktion)/konto/change-password-form";
 import {
   EndOtherSessionsButton,
@@ -56,39 +56,15 @@ export default async function AccountPage() {
     <div className="grid items-start gap-5 md:grid-cols-2">
       <div className={PANEL_CLASS}>
         <div className={PANEL_HEADING_CLASS}>Profil</div>
-        <form action={saveProfileAction} className="flex flex-col gap-3 px-5 py-[18px]">
-          <div className="flex items-center gap-3.5">
-            <Avatar initials={member.initials} size={52} />
-            <span className="text-[13px] font-semibold text-tm">
-              {roleLabel(member.role, member.form)}
-            </span>
-          </div>
-
-          <label className="flex flex-col gap-1.5">
-            <span className={LABEL_CLASS}>Anzeigename</span>
-            <input name="name" defaultValue={member.name} required className={FIELD_CLASS} />
-          </label>
-
-          <label className="flex flex-col gap-1.5">
-            <span className={LABEL_CLASS}>E-Mail</span>
-            <input
-              value={member.email}
-              readOnly
-              aria-describedby="email-note"
-              className={`${FIELD_CLASS} text-tm`}
-            />
-          </label>
-          <p id="email-note" className="m-0 text-[11.5px] font-medium text-tm">
-            Die Adresse ist der Anmeldename. Sie ändert die Chefredaktion.
-          </p>
-
-          <label className="flex flex-col gap-1.5">
-            <span className={LABEL_CLASS}>Kurzbio für die Autorenseite</span>
-            <textarea name="bio" rows={3} defaultValue={member.bio ?? ""} className={FIELD_CLASS} />
-          </label>
-
-          <button type="submit" className={`${PRIMARY_BUTTON_CLASS} self-start py-2.5`}>Speichern</button>
-        </form>
+        <ProfileForm
+          member={{
+            name: member.name,
+            email: member.email,
+            initials: member.initials,
+            bio: member.bio,
+            roleLabel: roleLabel(member.role, member.form),
+          }}
+        />
       </div>
 
       <div className="flex flex-col gap-5">

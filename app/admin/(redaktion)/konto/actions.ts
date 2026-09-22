@@ -8,19 +8,39 @@ import { setMustChangePassword, updateOwnProfile } from "@/lib/editorial/members
 import { refreshPublic } from "@/lib/refresh";
 import { callFields, readSessionToken, writeSessionToken } from "@/lib/session";
 
-export const saveProfileAction = async (form: FormData) => {
+export type ProfileState = { readonly problem: string | null; readonly saved: boolean };
+
+/**
+ * Answers what happened, because the form now says so out loud. It used to
+ * return nothing at all: the page re-rendered with the same fields in it and
+ * gave no sign whether anything had been written.
+ */
+export const saveProfileAction = async (
+  _state: ProfileState,
+  form: FormData,
+): Promise<ProfileState> => {
   const member = await requireMember({ allowForcedPasswordChange: true });
 
   const name = String(form.get("name") ?? "").trim();
   const bio = String(form.get("bio") ?? "").trim();
-  if (name.length === 0) return;
+  if (name.length === 0) {
+    return { problem: "Ohne Anzeigenamen geht es nicht.", saved: false };
+  }
 
-  await updateOwnProfile(member, { name, bio: bio.length === 0 ? null : bio });
+  try {
+    await updateOwnProfile(member, { name, bio: bio.length === 0 ? null : bio });
+  } catch (cause) {
+    console.error("error", "a profile could not be saved", { cause });
+    return { problem: "Das ließ sich gerade nicht speichern.", saved: false };
+  }
+
   revalidatePath("/admin/konto");
   // Both fields are public: the name stands under every article and in the
   // pills on the home page, the biography on /redaktion. Without this the
   // person who just rewrote theirs goes looking and finds the old one.
   refreshPublic.editorial();
+
+  return { problem: null, saved: true };
 };
 
 export type ChangePasswordState = { readonly problem: string | null; readonly done: boolean };

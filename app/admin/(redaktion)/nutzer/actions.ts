@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { velveAuth } from "@/lib/auth";
 import { requireCapability } from "@/lib/authorize";
+import { announceInvitation } from "@/lib/editorial/announce";
 import { issueInvitation, invitationPath, isLinkLifetime } from "@/lib/editorial/invitations";
 import {
   deleteInvitationsFrom,
@@ -29,10 +30,13 @@ const invitation = z.object({
 
 export type InviteState = {
   readonly problem: string | null;
+  /** Whether 8b's mail reached the provider. Null before anything was sent. */
+  readonly mailed?: boolean;
   /**
-   * Shown once and never stored in the clear. Screen 8b's mail is what normally
-   * carries it; outbound mail has no key in this environment, so the link is
-   * put in front of the admin who made it rather than lost.
+   * Shown once and never stored in the clear. Screen 8b's mail carries it, and
+   * the link stands here beside it: mail is the one step that leaves the
+   * building, and an invitation that did not arrive must still be one that can
+   * be handed over.
    */
   readonly link: string | null;
 };
@@ -73,11 +77,30 @@ export const inviteAction = async (
     hours: parsed.data.hours,
   });
 
+  const path = invitationPath(token);
+
+  /**
+   * 8b draws this as a mail, and it is now sent as one. The link stays on
+   * screen beside it: mail is the one step of this that leaves the building,
+   * and an invitation that did not arrive must not be an invitation that
+   * cannot be handed over — the person is usually in the same room.
+   */
+  const mailed = await announceInvitation({
+    invitedBy: member,
+    to: parsed.data.email,
+    name: parsed.data.name,
+    role: parsed.data.role,
+    form: parsed.data.form,
+    validity: parsed.data.hours === 24 ? "24-hours" : "7-days",
+    path,
+  });
+
   revalidatePath("/admin/nutzer");
 
   return {
     problem: null,
-    link: new URL(invitationPath(token), environment().NEXT_PUBLIC_SITE_URL).toString(),
+    mailed,
+    link: new URL(path, environment().NEXT_PUBLIC_SITE_URL).toString(),
   };
 };
 

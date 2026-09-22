@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { COLUMN_HEADING_CLASS, FilterPill, PANEL_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
+import { PlacementNote } from "@/components/admin/placement-note";
 import { ArticleFilter } from "@/app/admin/(redaktion)/artikel/article-filter";
 import { newArticleAction } from "@/app/admin/(redaktion)/artikel/actions";
 import { requireMember } from "@/lib/authorize";
@@ -189,6 +190,13 @@ export default async function ArticlesPage({
           weder sichtbar noch aufrufbar.
         </p>
       )}
+
+      {/* The one question this list does not answer: a piece can be published,
+          correct and nowhere in sight because eleven newer ones are in front
+          of it. */}
+      <div className="mt-3.5">
+        <PlacementNote />
+      </div>
     </>
   );
 }

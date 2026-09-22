@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 
 import { requireCapability } from "@/lib/authorize";
+import {
+  announceApprovedArticle,
+  announceApprovedMeme,
+} from "@/lib/editorial/announce";
 import { refreshPublic } from "@/lib/refresh";
 import { approveArticle, returnToDraft } from "@/lib/editorial/articles";
 import { approveMeme, rejectMeme } from "@/lib/editorial/memes";
@@ -31,8 +35,20 @@ const decide = async (
   return { outcome };
 };
 
-export const approveArticleAction = async (articleId: string) =>
-  decide("approveArticlesAndMemes", "articles", (member) => approveArticle(member, articleId));
+export const approveArticleAction = async (articleId: string) => {
+  const answer = await decide("approveArticlesAndMemes", "articles", (member) =>
+    approveArticle(member, articleId),
+  );
+
+  // 11b: everybody who may approve, and the person who wrote it. After the
+  // decision, never as part of it — a freigabe that stood must not come
+  // undone because a mail did not.
+  if (answer.outcome === "approved") {
+    await announceApprovedArticle(await requireCapability("approveArticlesAndMemes"), articleId);
+  }
+
+  return answer;
+};
 
 /**
  * A refusal carries a reason, and the reason is not optional: "abgelehnt" on
@@ -53,8 +69,17 @@ export const returnArticleAction = async (articleId: string, reason: string) => 
   );
 };
 
-export const approveMemeAction = async (memeId: string) =>
-  decide("approveArticlesAndMemes", "memes", (member) => approveMeme(member, memeId));
+export const approveMemeAction = async (memeId: string) => {
+  const answer = await decide("approveArticlesAndMemes", "memes", (member) =>
+    approveMeme(member, memeId),
+  );
+
+  if (answer.outcome === "approved") {
+    await announceApprovedMeme(await requireCapability("approveArticlesAndMemes"), memeId);
+  }
+
+  return answer;
+};
 
 export const rejectMemeAction = async (memeId: string, reason: string) => {
   const written = reasoned(reason);
