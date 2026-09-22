@@ -1,3 +1,4 @@
+import { FormerTag } from "@/components/former-tag";
 import { ArticleCover } from "@/components/article-cover";
 import type { ArticleTeaser } from "@/lib/queries";
 import { machineDate, readingMinutes, shortDate } from "@/lib/format";
@@ -53,7 +54,8 @@ export function ArticleCard({
           {article.teaser}
         </p>
         <div className="mt-[7px] text-[11.5px] font-semibold text-tm md:mt-2.5">
-          {article.authorName} ·{" "}
+          {article.authorName}
+          {article.authorFormer ? <FormerTag /> : null} ·{" "}
           <span className="md:hidden">
             {readingMinutes(article.wordCount)} Min
           </span>
@@ -109,7 +111,8 @@ export function ArticleRelated({ article }: { article: ArticleTeaser }) {
           {article.title}
         </span>
         <span className="mt-1.5 hidden text-[11.5px] font-semibold text-tm md:block">
-          {article.authorName} ·{" "}
+          {article.authorName}
+          {article.authorFormer ? <FormerTag /> : null} ·{" "}
           <time dateTime={machineDate(article.publishedAt)}>
             {shortDate(article.publishedAt)}
           </time>

@@ -121,6 +121,8 @@ export function MemberRow({ member, children, rowClassName }: MemberRowProps) {
 
           <fieldset className="border-none p-0">
             <legend className={LABEL_CLASS}>Rolle</legend>
+            {/* One masculine word per chip: the wording is chosen in the row
+                underneath, so naming it twice only made the two disagree. */}
             <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-bold">
               {ROLES.map((option) => (
                 <label key={option} className={CHIP(option === role)}>
@@ -132,7 +134,7 @@ export function MemberRow({ member, children, rowClassName }: MemberRowProps) {
                     onChange={() => setRole(option)}
                     className="sr-only"
                   />
-                  {roleLabel(option, form)}
+                  {roleLabel(option, "maennlich")}
                 </label>
               ))}
             </div>

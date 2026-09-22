@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { ArticleRelated } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar } from "@/components/avatar";
+import { FormerTag } from "@/components/former-tag";
 import { ArticleProse } from "@/components/prose";
 import { ShareControls } from "@/components/share-controls";
 import { SiteFooter } from "@/components/site-footer";
@@ -155,6 +156,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
               <span>
                 <span className="block text-[12.5px] font-semibold tracking-[-0.02em] md:text-base md:font-bold">
                   {article.authorName}
+                  {article.authorFormer ? <FormerTag /> : null}
                 </span>
                 <span className="block text-[12.5px] font-semibold text-tm md:text-xs">
                   {author} · {minutes} Min
@@ -173,6 +175,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
               <div>
                 <div className="text-base font-bold tracking-[-0.02em]">
                   {article.authorName}
+                  {article.authorFormer ? <FormerTag /> : null}
                 </div>
                 {article.authorBio === null ? null : (
                   <p className="mt-1.5 max-w-[56ch] text-[14.5px] leading-[1.6] font-medium text-tm">

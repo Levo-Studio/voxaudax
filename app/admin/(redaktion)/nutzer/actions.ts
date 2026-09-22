@@ -9,8 +9,9 @@ import { issueInvitation, invitationPath, isLinkLifetime } from "@/lib/editorial
 import {
   deleteInvitationsFrom,
   deleteMemberRow,
-  deletionBlockers,
   findMemberById,
+  hasPublishedWork,
+  retireMemberRow,
   setRoleAndForm,
 } from "@/lib/editorial/members";
 import { environment } from "@/lib/env";
@@ -103,19 +104,18 @@ export const changeRoleAction = async (form: FormData) => {
 
 export type RemoveState = { readonly problem: string | null };
 
-/** "1 Artikel", "3 Artikel" — the count reads as a reason, so it is named. */
-const countPhrase = (count: number, one: string, many: string) =>
-  count === 1 ? `1 ${one}` : `${count} ${many}`;
-
 /**
- * Screen 11a's list can remove somebody outright. What it cannot do is leave
- * their work without an author: articles, memes and the invitations they sent
- * all reference this row and refuse the delete, so the refusal is spelled out
- * here instead of arriving as a constraint name.
+ * Screen 11a's list can remove anybody, and it never refuses. What it does
+ * depends on whether their work is published:
  *
- * The account goes first and takes this row with it — the foreign key onto
- * `velve.user` cascades — so there is no window in which a credential outlives
- * the membership it belonged to.
+ * - nothing of theirs is out there: the row goes, and so does the account.
+ * - an article or a meme carries their name: the row stays as `ehemalig` so
+ *   the byline keeps an author, and every list of the editorial team — which
+ *   asks for `aktiv` — stops showing them from that moment.
+ *
+ * Either way the account is deleted first and the sessions with it, so nobody
+ * keeps a way in past their membership. The invitations they sent go too: they
+ * reference the row and are operational rather than a record worth keeping.
  */
 export const removeMemberAction = async (
   _state: RemoveState,
@@ -131,28 +131,26 @@ export const removeMemberAction = async (
   const member = await findMemberById(memberId);
   if (member === null) return { problem: "Diese Person gibt es nicht mehr." };
 
-  const blockers = await deletionBlockers(memberId);
-  const reasons = [
-    blockers.articles > 0 ? countPhrase(blockers.articles, "Artikel", "Artikel") : null,
-    blockers.memes > 0 ? countPhrase(blockers.memes, "Meme", "Memes") : null,
-  ].filter((reason) => reason !== null);
+  const keepsAByline = await hasPublishedWork(memberId);
 
-  if (reasons.length > 0) {
-    return {
-      problem: `${member.name} hat ${reasons.join(", ")} im Haus. Solange das so ist, bleibt die Person hier stehen — sonst stünde die Arbeit ohne Urheber da.`,
-    };
-  }
-
-  // Before either delete: both of them are refused while an invitation still
-  // points at this row.
   await deleteInvitationsFrom(memberId);
 
-  if (member.velveUserId === null) {
+  // Deleting the account cascades this row away, which is right only when
+  // nothing points at it — so somebody with a byline is unlinked first and the
+  // account deleted afterwards.
+  if (keepsAByline) {
+    await retireMemberRow(memberId);
+    if (member.velveUserId !== null) {
+      await velveAuth().user.delete({ userId: member.velveUserId });
+    }
+  } else if (member.velveUserId === null) {
     await deleteMemberRow(memberId);
   } else {
     await velveAuth().user.delete({ userId: member.velveUserId });
   }
 
   revalidatePath("/admin/nutzer");
+  revalidatePath("/redaktion");
+  revalidatePath("/");
   return { problem: null };
 };

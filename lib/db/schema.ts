@@ -40,7 +40,16 @@ export const userForm = pgEnum("user_form", [
   "neutral",
 ]);
 
-export const userStatus = pgEnum("user_status", ["eingeladen", "aktiv"]);
+/**
+ * `ehemalig` is where somebody goes who has left but whose work has not. The
+ * row stays so the articles keep an author with a name; everything that lists
+ * the editorial team asks for `aktiv` and therefore stops showing them.
+ */
+export const userStatus = pgEnum("user_status", [
+  "eingeladen",
+  "aktiv",
+  "ehemalig",
+]);
 
 export const articleStatus = pgEnum("article_status", [
   "draft",

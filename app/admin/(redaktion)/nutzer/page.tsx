@@ -35,8 +35,9 @@ export default async function UsersPage() {
         <div className="flex flex-wrap items-baseline gap-3 border-b border-bd px-4 py-[18px] md:px-[22px]">
           <h1 className="m-0 text-xl font-extrabold tracking-[-0.03em]">Nutzer</h1>
           <span className="text-[12.5px] font-semibold text-tm">
-            {counts.admin} Admin · {counts.redakteur} Redakteur · {counts.autor} Autor ·{" "}
-            {counts.invited} eingeladen
+            {counts.admin} Chefredakteur · {counts.redakteur} Redakteur ·{" "}
+            {counts.autor} Autor · {counts.invited} eingeladen
+            {counts.former === 0 ? null : ` · ${counts.former} ehemalig`}
           </span>
         </div>
 
@@ -50,33 +51,47 @@ export default async function UsersPage() {
         {rows.map((member) => {
           const invited = member.status === "eingeladen";
           const expired = invited && member.invitation === null;
+          const former = member.status === "ehemalig";
 
           const cells = (
             <>
               <span className="flex items-center gap-[11px]">
-                <Avatar initials={member.initials} size={34} tone={invited ? "outline" : "accent"} />
+                <Avatar initials={member.initials} size={34} tone={invited || former ? "outline" : "accent"} />
                 <span>
                   <span className="block text-[14.5px] font-bold tracking-[-0.02em]">{member.name}</span>
                   <span className="block text-[11.5px] font-semibold text-tm">{member.email}</span>
                 </span>
               </span>
 
-              <span className="text-[13px] font-bold">{roleLabel(member.role, member.form)}</span>
+              <span className={`text-[13px] font-bold ${former ? "text-tm" : ""}`}>
+                {former ? "—" : roleLabel(member.role, member.form)}
+              </span>
 
               <span className={`flex items-center gap-2 text-[12.5px] font-semibold ${expired ? "text-ac2" : "text-tm"}`}>
                 <span className={`h-[7px] w-[7px] flex-none rounded-full ${expired ? "bg-ac2" : invited ? "bg-ac" : "bg-bd"}`} />
-                {expired ? "Abgelaufen" : invited ? "Eingeladen" : seenLabel(member.lastSeenAt)}
+                {former
+                  ? "Ehemalig"
+                  : expired
+                    ? "Abgelaufen"
+                    : invited
+                      ? "Eingeladen"
+                      : seenLabel(member.lastSeenAt)}
               </span>
             </>
           );
 
-          // The admin's own row has no controls at all: the two it would carry
-          // are the two they must not use on themselves.
-          if (member.id === admin.id) {
+          // Two rows carry no controls. The admin's own, because the two it
+          // would offer are the two they must not use on themselves; and
+          // somebody who has left, who has no role to change and no account to
+          // reset — they are on the list only so it is visible whose byline is
+          // still out there.
+          if (member.id === admin.id || former) {
             return (
               <div key={member.id} className={`${ROW} items-center border-b border-bd px-4 py-3.5 last:border-b-0 md:px-[22px]`}>
                 {cells}
-                <span className="text-[12.5px] font-semibold text-tm md:text-right">Du selbst</span>
+                <span className="text-[12.5px] font-semibold text-tm md:text-right">
+                  {former ? "Artikel bleiben" : "Du selbst"}
+                </span>
               </div>
             );
           }

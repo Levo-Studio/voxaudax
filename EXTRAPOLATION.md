@@ -305,6 +305,29 @@ seinem — zweimal dieselbe Einladung, zweimal eigenständig gesetzt.
 stand der Text der Startseite im Code: eine geänderte Uhrzeit hätte an zwei
 Stellen gepflegt werden müssen und wäre an einer stehen geblieben.
 
+### Ausgeschiedene Personen: `ehemalig` statt Löschung
+
+Die Vorlage kennt auf 11a nur eingeladen und aktiv und sagt nichts darüber, was
+mit jemandem passiert, der geht. Die Fremdschlüssel sagten es für sie: Artikel
+und Memes verweisen mit `restrict`, eine Löschung war also unmöglich, sobald
+jemand einen Text geschrieben hatte.
+
+→ Migration 0004 fügt dem Enum `user_status` den Wert `ehemalig` hinzu — rein
+additiv. Entfernen gelingt jetzt immer, nur auf zwei Weisen: wer nichts
+veröffentlicht hat, dessen Zeile verschwindet ganz; wer eine Byline trägt,
+bleibt als `ehemalig` stehen, damit der Artikel einen Autor mit Namen behält.
+Das Konto wird in beiden Fällen gelöscht, die Sitzungen enden damit.
+
+→ Alles, was die Redaktion aufzählt, fragt nach `aktiv` und blendet die Person
+damit von selbst aus: Redaktionsseite, Pillen auf der Startseite, Chefredaktion
+auf der Kontaktseite. In der Nutzerliste steht sie unten, ohne Bedienelemente,
+mit dem Vermerk „Artikel bleiben". In der Byline hängt ein kleines Schild
+„Ehemalig" am Namen — in der kleinsten Schrift der Oberfläche und in `bd`, weil
+es eine Fußnote zum Namen ist und keine Warnung davor.
+
+→ Der Autorenfilter im Archiv führt sie weiter, denn ihre Artikel sind weiter
+zu lesen; der Filter zählt Texte, nicht Mitgliedschaften.
+
 ### Redaktionsliste gedeckelt, Rest als Pille
 
 Die Vorlage zeichnet auf der Startseite acht Namen und sagt nichts darüber, was

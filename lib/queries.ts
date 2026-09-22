@@ -59,6 +59,8 @@ export type ArticleTeaser = {
   categoryName: string;
   authorName: string;
   authorInitials: string;
+  /** Somebody who has left. The article keeps their name; the masthead does not. */
+  authorFormer: boolean;
   coverImage: CoverPhotograph | null;
 };
 
@@ -86,6 +88,7 @@ const teaserColumns = {
   categoryName: categories.name,
   authorName: users.name,
   authorInitials: users.initials,
+  authorFormer: sql<boolean>`${users.status} = 'ehemalig'`,
   coverImage: {
     id: coverImage.id,
     width: coverImage.width,

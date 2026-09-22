@@ -39,7 +39,10 @@ export const listMembers = async () => {
       lastSeenAt: lastSeen,
     })
     .from(users)
-    .orderBy(asc(users.name));
+    // People who have left sit at the bottom: they are on the list so that an
+    // admin can see whose byline is still out there, not so that they compete
+    // for attention with the people who are here.
+    .orderBy(sql`${users.status} = 'ehemalig'`, asc(users.name));
 
   return rows.map((row) => ({
     ...row,
@@ -70,14 +73,15 @@ export const findMemberById = async (memberId: string) => {
 export const countMembers = async () => {
   const [row] = await db
     .select({
-      admin: sql<number>`count(*) filter (where ${users.role} = 'admin')`.mapWith(Number),
-      redakteur: sql<number>`count(*) filter (where ${users.role} = 'redakteur')`.mapWith(Number),
-      autor: sql<number>`count(*) filter (where ${users.role} = 'autor')`.mapWith(Number),
+      admin: sql<number>`count(*) filter (where ${users.role} = 'admin' and ${users.status} <> 'ehemalig')`.mapWith(Number),
+      redakteur: sql<number>`count(*) filter (where ${users.role} = 'redakteur' and ${users.status} <> 'ehemalig')`.mapWith(Number),
+      autor: sql<number>`count(*) filter (where ${users.role} = 'autor' and ${users.status} <> 'ehemalig')`.mapWith(Number),
       invited: sql<number>`count(*) filter (where ${users.status} = 'eingeladen')`.mapWith(Number),
+      former: sql<number>`count(*) filter (where ${users.status} = 'ehemalig')`.mapWith(Number),
     })
     .from(users);
 
-  return row ?? { admin: 0, redakteur: 0, autor: 0, invited: 0 };
+  return row ?? { admin: 0, redakteur: 0, autor: 0, invited: 0, former: 0 };
 };
 
 export const updateOwnProfile = (member: Member, input: {
@@ -112,20 +116,12 @@ export const openInvitationFor = async (email: string) => {
 };
 
 /**
- * What would stop this person's row from being deleted. Articles and memes
- * reference `users` with `on delete restrict`, and that is right: a byline and
- * a credit are things an application should not be able to lose by accident.
- *
- * Invitations reference it the same way but are not a blocker. They are
- * operational rows, not a record worth keeping — and treating them as one made
- * every admin who had ever invited anybody permanently undeletable, which is
- * every admin after a term. They are removed with the person instead, and the
- * dialog says so before it is confirmed.
- *
- * Asked before the delete rather than after: a foreign key violation names a
- * constraint and nothing a person can act on.
+ * Whether anything of this person's is published. Nothing here stops a removal
+ * — it decides which of the two removals happens: a row nobody's work points
+ * at is deleted outright, and one that carries a byline stays as `ehemalig` so
+ * the article keeps an author with a name.
  */
-export const deletionBlockers = async (memberId: string) => {
+export const hasPublishedWork = async (memberId: string) => {
   const [row] = await db
     .select({
       articles: sql<number>`(select count(*)::int from ${articles} where ${articles.authorId} = ${memberId})`,
@@ -134,17 +130,35 @@ export const deletionBlockers = async (memberId: string) => {
     .from(users)
     .where(eq(users.id, memberId));
 
-  return row ?? { articles: 0, memes: 0 };
+  return (row?.articles ?? 0) + (row?.memes ?? 0) > 0;
 };
 
 /**
- * The editorial row and the invitations this person sent, together or not at
- * all. The account in the `velve` schema is the library's to remove and
- * removing it cascades this row away — so a caller with an account deletes the
- * invitations here first and the account afterwards.
+ * The invitations this person sent. They reference the row with `on delete
+ * restrict` and are operational, not a record worth keeping — left as a
+ * blocker they made everybody who had ever invited anybody undeletable.
  */
 export const deleteInvitationsFrom = (memberId: string) =>
   db.delete(invitations).where(eq(invitations.invitedBy, memberId));
 
 export const deleteMemberRow = (memberId: string) =>
   db.delete(users).where(eq(users.id, memberId));
+
+/**
+ * What is left of somebody who has gone: the name and the initials, because a
+ * byline needs both, and nothing else. The address is kept because the column
+ * requires one and it is what an invitation would match on if they came back;
+ * the biography and the ressorts go, since they describe a person who is no
+ * longer here.
+ */
+export const retireMemberRow = (memberId: string) =>
+  db
+    .update(users)
+    .set({
+      status: "ehemalig",
+      velveUserId: null,
+      bio: null,
+      ressorts: [],
+      mustChangePassword: false,
+    })
+    .where(eq(users.id, memberId));

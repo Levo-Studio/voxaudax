@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 
 import { ArchiveSearch } from "@/components/archive-search";
+import { FormerTag } from "@/components/former-tag";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { longDate, machineDate, shortDate } from "@/lib/format";
@@ -236,7 +237,11 @@ export default async function ArchivePage({
                       {longDate(article.publishedAt)}
                     </span>
                   </time>
-                  <span className="hidden md:inline"> · {article.authorName}</span>
+                  <span className="hidden md:inline">
+                    {" "}
+                    · {article.authorName}
+                    {article.authorFormer ? <FormerTag /> : null}
+                  </span>
                 </span>
                 <span className="mt-1.5 block text-[18px] leading-[1.24] font-bold tracking-[-0.02em] transition-colors group-hover:text-ac md:mt-[7px] md:text-[23px] md:leading-[1.2] md:tracking-[-0.028em]">
                   {article.title}

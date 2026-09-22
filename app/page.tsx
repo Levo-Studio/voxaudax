@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArticleBrief, ArticleCard } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar, toneForPosition } from "@/components/avatar";
+import { FormerTag } from "@/components/former-tag";
 import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -104,7 +105,8 @@ export default async function HomePage() {
                     className="py-[15px] text-tx transition-colors hover:text-ac"
                   >
                     {lead.authorName}
-                  </Link>{" "}
+                  </Link>
+                  {lead.authorFormer ? <FormerTag /> : null}{" "}
                   ·{" "}
                   <time dateTime={machineDate(lead.publishedAt)}>
                     {shortDate(lead.publishedAt)}

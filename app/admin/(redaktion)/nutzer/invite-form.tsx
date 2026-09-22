@@ -8,6 +8,8 @@ import { inviteAction, type InviteState } from "@/app/admin/(redaktion)/nutzer/a
 import { LINK_LIFETIMES } from "@/lib/editorial/vocabulary";
 import { FORM_LABELS, ROLE_HINTS, roleLabel, type Form, type Role } from "@/lib/roles";
 
+const ROLES: readonly Role[] = ["autor", "redakteur", "admin"];
+
 const EMPTY: InviteState = { problem: null, link: null };
 
 export function InviteForm() {
@@ -30,11 +32,10 @@ export function InviteForm() {
         <Segmented
           name="role"
           value={role}
-          options={[
-            { value: "autor", label: "Autor / Autorin" },
-            { value: "redakteur", label: "Redakteur / Redakteurin" },
-            { value: "admin", label: "Admin" },
-          ]}
+          // One word per chip, in the masculine, because the row underneath is
+          // where the wording is actually chosen — and the same word the user
+          // list prints, so "Admin" does not name a rank nobody else uses.
+          options={ROLES.map((value) => ({ value, label: roleLabel(value, "maennlich") }))}
           onChange={setRole}
         />
         <p className="mt-[9px] text-xs leading-[1.55] font-medium text-tm">{ROLE_HINTS[role]}</p>
