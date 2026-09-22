@@ -129,7 +129,12 @@ export default function ArchivePage({
     <div className="flex min-h-dvh flex-col">
       <SiteHeader current="archiv" />
 
-      <main className="max-w-[860px] flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-[52px]">
+      {/* The full width, like every other page. The column was capped at 860px
+          and left two thirds of a desktop screen empty beside a list that has
+          room for the titles it cuts. The headlines keep a measure of their
+          own below — a line of running text across 1900px is unreadable, a
+          list of headlines is not. */}
+      <main className="flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-[52px]">
         <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[42px] md:leading-none">
           Archiv
         </h1>
@@ -271,7 +276,9 @@ async function ArchiveResults({
                     {article.authorFormer ? <FormerTag /> : null}
                   </span>
                 </span>
-                <span className="mt-1.5 block text-[18px] leading-[1.24] font-bold tracking-[-0.02em] transition-colors group-hover:text-ac md:mt-[7px] md:text-[23px] md:leading-[1.2] md:tracking-[-0.028em]">
+                {/* A measure of its own now that the column is the whole page:
+                    a headline set across 1900px is one long line to track. */}
+                <span className="mt-1.5 block text-[18px] leading-[1.24] font-bold tracking-[-0.02em] transition-colors group-hover:text-ac md:mt-[7px] md:max-w-[62ch] md:text-[23px] md:leading-[1.2] md:tracking-[-0.028em]">
                   {article.title}
                 </span>
               </Link>
