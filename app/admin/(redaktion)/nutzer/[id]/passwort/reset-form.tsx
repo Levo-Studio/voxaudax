@@ -2,6 +2,8 @@
 
 import { useActionState, useEffect, useState } from "react";
 
+import { toast } from "@/components/admin/toast";
+
 import { FIELD_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
 import { setPasswordAction, type SetPasswordState } from "@/app/admin/(redaktion)/nutzer/[id]/passwort/actions";
 
@@ -27,6 +29,13 @@ const generate = () => {
 
 export function ResetPasswordForm({ memberId }: { memberId: string }) {
   const [state, submit, pending] = useActionState(setPasswordAction, EMPTY);
+
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+    else if (state.done) {
+      toast(`Passwort gesetzt. ${state.revokedSessions} weitere Sitzung(en) beendet.`);
+    }
+  }, [state]);
   const [password, setPassword] = useState("");
   const [copied, setCopied] = useState(false);
 
