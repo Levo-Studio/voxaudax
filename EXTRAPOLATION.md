@@ -406,6 +406,219 @@ Archiv führen. Die Abfrage dahinter — nur Kategorien, in denen etwas
 veröffentlicht ist — bedient jetzt allein den Archivfilter; sie hielt schon
 vorher Pillen fern, die in ein leeres Archiv geführt hätten.
 
+### „Mitschreiben" auf der Startseite kommt aus der Redaktionsseite
+
+Die Vorlage zeichnet den Kasten auf 3a mit eigenem Text und den auf 9a mit
+seinem — zweimal dieselbe Einladung, zweimal eigenständig gesetzt.
+
+→ Beide lesen jetzt denselben Absatz aus der Zeile `pages.redaktion`. Vorher
+stand der Text der Startseite im Code: eine geänderte Uhrzeit hätte an zwei
+Stellen gepflegt werden müssen und wäre an einer stehen geblieben.
+
+### „Art der Unterstützung" entfernt
+
+Die Vorlage sieht auf 6a vier Arten vor — Druckkosten, Material, Technik,
+Förderverein — und zeigt sie auf 6b unter jedem Namen.
+
+→ Auf Ansage ganz entfernt: nicht mehr abgefragt, nicht mehr angezeigt, nicht
+mehr geschrieben. Die Spalte `sponsors.kind` bleibt vorerst und ist nur nicht
+mehr `not null` (Migration 0007): das Löschen einer Spalte nimmt die vier
+vorhandenen Werte mit, und das ist keine Entscheidung, die eine
+Oberflächenänderung nebenbei treffen sollte.
+
+→ In der Laufzeitspalte ist die Warnfarbe weg. „abgelaufen" sagt bereits, dass
+der Zeitraum vorbei ist; ihn zusätzlich rot zu setzen ließ die halbe Spalte wie
+einen Fehler aussehen, wo keiner ist.
+
+### Die Anmeldesperre zählt das Konto, nicht die Adresse
+
+Bildschirm 7b sagt: drei Fehlversuche, dann drei Minuten Pause, und nennt dabei
+die IP-Adresse.
+
+So war es auch gebaut — und damit falsch, denn `rateLimit` ist die Einstellung
+der **Instanz** und ersetzt den Vorgabewert für **jede** Route. Die Kontoseite
+ruft `session.list` auf: ein viertes Neuladen innerhalb von drei Minuten wurde
+abgewiesen. Das Einlösen einer Einladung (`signUp.withPassword`) ebenso. Und in
+einem Schulnetz, wo alle dieselbe Adresse haben, hätten sich drei Versuche auf
+die ganze Schule verteilt.
+
+→ Der Adresszähler behält die Vorgabe der Bibliothek — ein Schutz gegen Fluten,
+keine Sperre. Die drei Versuche sitzen auf dem Kontozähler, den eine Route
+verbraucht, sobald sie weiß, welches Konto probiert wird. Das ist auch, worum
+es dem Satz auf 7b eigentlich geht: jemand, der ein Konto errät. Die Meldung
+auf dem Bildschirm sagt jetzt „dieses Konto" statt „deine IP-Adresse".
+
+### Geräteliste nur kurz nach der Anmeldung
+
+Nicht in der Vorlage. `session.list` verlangt eine frische Sitzung — fünfzehn
+Minuten, gemessen ab der Anmeldung, und nur eine neue Anmeldung stellt sie
+wieder her. Aufzulisten, wo jemand überall angemeldet ist, soll ein geliehener
+Browser-Tab nicht können.
+
+→ Die Seite verschluckte die Abweisung und zeigte eine Begründung, die nicht
+stimmte (sie sprach von der Ratensperre). Jetzt wird der Code `freshness_required`
+erkannt und benannt: „Die Geräteliste wird nur in den ersten fünfzehn Minuten
+nach einer Anmeldung gezeigt." Profil und Passwortformular bleiben nutzbar.
+
+→ Der `log`-Haken schreibt außerdem auf den Kanal, der zur Stufe passt. Eine
+abgewiesene Anfrage ist eine Warnung; sie als Fehler zu drucken legte eine rote
+Fehlerüberlagerung über etwas, das genau so gedacht ist.
+
+### Was im Backoffice geändert wird, steht sofort auf der Seite
+
+Die öffentlichen Seiten werden einmal gerendert und fünf Minuten lang aus dem
+Zwischenspeicher bedient — richtig für Lesende, falsch für die Person, die
+gerade etwas geändert hat und nachsehen geht. Die Aktionen frischten nur ihre
+eigene Backoffice-Seite auf.
+
+→ `lib/refresh.ts` benennt an einer Stelle, welche öffentlichen Seiten eine
+Änderung erreicht: ein Unterstützer die Startseite, ein Meme die Meme-Seite,
+ein Artikel vier Seiten und zwei Feeds, eine Personenänderung Start-,
+Redaktions- und Kontaktseite. Jede Freigabe, jede Ablehnung und jede Änderung
+ruft das auf.
+
+### Knopf „Als Entwurf speichern"
+
+Nicht in der Vorlage: dort speichert nur die Autosave.
+
+→ Der Knopf schreibt nichts, was die Autosave nicht ohnehin schriebe. Was er
+ändert, ist das Wissen: wer eine Seite getippt hat und den Tab schließen will,
+soll etwas drücken können und die Bestätigung sehen, statt einen Zeitstempel zu
+lesen und zu hoffen. Gemessen: „Nicht gesichert" → Druck → „Autosave · 11:42".
+
+→ Wer den Entwurf sieht, bleibt unverändert: die schreibende Person, dazu
+Redakteur und Chefredaktion über `readOthersDrafts`. Für einen Autor ist ein
+fremder Entwurf weiterhin weder sichtbar noch aufrufbar, wie 7c es verlangt.
+
+### Fokus im Titelfeld als Unterstrich
+
+Der Fokusring aus `globals.css` zog einen Kasten um eine Überschrift, was wie
+ein Fehlerzustand aussieht. Ersatzlos streichen hieße, das Feld hätte gar
+keinen sichtbaren Fokus mehr — ein Verstoß gegen WCAG 2.4.7.
+
+→ Stattdessen ein Innenschatten: 2 px in der Akzentfarbe unter dem Text. Er
+braucht keinen Platz, also verschiebt sich beim Erscheinen nichts, und er
+erfüllt mit 6,9:1 im hellen und 8,1:1 im dunklen Schema die Anforderung an
+einen Fokus-Indikator.
+
+### Wer freigeben darf, reicht nichts ein
+
+Die Vorlage zeigt auf 3b den Knopf „Zur Freigabe einreichen" für alle und auf
+11a die Warteschlange dahinter.
+
+→ Auf Ansage: nur ein **Autor** reicht ein. Redakteur und Chefredakteur
+veröffentlichen unmittelbar — sie sind diejenigen, an die die Warteschlange
+übergeben würde, und die eigene Arbeit einzureichen, um sie einen Bildschirm
+später selbst freizugeben, ist Zeremonie, keine Prüfung. Gleiches gilt für
+Memes und Unterstützer, und eine Änderung an einem veröffentlichten
+Unterstützer schickt ihn nicht mehr in die Warteschlange zurück, wenn die
+ändernde Person freigeben darf.
+
+→ **Eine Regel gilt weiter für alle:** der Alt-Text. Ein Bild, das niemand
+hören kann, ist nicht fertig, gleich wer den Artikel geschrieben hat — die
+Prüfung, die eine Freigabe blockiert, blockiert jetzt auch das unmittelbare
+Veröffentlichen, mit derselben Meldung.
+
+→ Der Knopf heißt entsprechend: „Veröffentlichen" für die einen, „Zur Freigabe"
+für die anderen.
+
+### Vier Augen, solange es zwei gibt
+
+Bildschirm 11a sagt: „niemand gibt die eigene Einreichung frei." So war es
+gebaut — und in einer Installation mit einem einzigen Konto war damit gar
+nichts veröffentlichbar. Der Unterstützer, den die einzige angemeldete Person
+anlegt, der Artikel, den sie schreibt, das Meme, das sie hochlädt: alles ihres,
+und niemand sonst darf es freigeben.
+
+Genau so ist es passiert. Ein neuer Unterstützer blieb auf `review` stehen und
+tauchte auf der Startseite nie auf — was wie ein Zwischenspeicherproblem
+aussah, war diese Sperre.
+
+→ Die Regel fragt jetzt die Lage statt sie anzunehmen: Gibt es eine **andere**
+aktive Person mit Konto, die diese Freigabe erteilen dürfte? Wenn ja, bleibt es
+bei der Abweisung. Wenn nein, ist die einreichende Person selbst die Prüfung.
+Eine Regel, deren einzige Wirkung ein Stillstand ist, schützt niemanden.
+Gemessen in beide Richtungen: allein — freigegeben; mit einem zweiten Konto —
+`own_submission`.
+
+### Jede Unterstützer-Zeile sagt, ob sie auf der Seite steht
+
+Ob ein Eintrag öffentlich erscheint, hängt an vier Bedingungen: freigegeben,
+aktiv, Zeitraum begonnen, Zeitraum nicht abgelaufen. Der Schalter beantwortet
+davon eine. Mit vier Schaltern auf „an" und drei Unterstützern auf der
+Startseite sah die Seite aus, als würde sie lügen — der Hinweis „wartet auf
+Freigabe" stand klein und grau hinter der Adresse.
+
+→ Unter jedem Namen steht jetzt eine Zeile mit Punkt: „auf der Startseite" in
+der Akzentfarbe, sonst der Grund in Grau — wartet auf Freigabe, abgelehnt,
+ausgeblendet, Zeitraum abgelaufen, Zeitraum beginnt später. Die Zahl oben
+(„3 von 4 aktiv") zählte schon immer die, die wirklich erscheinen; jetzt kann
+man sie auch Zeile für Zeile nachvollziehen.
+
+### Unterstützer lassen sich wirklich löschen
+
+Die Vorlage kennt auf 6a nur den Schalter, der einen Eintrag von der Seite
+nimmt und den Datensatz behält.
+
+→ Daneben steht jetzt „Löschen" mit Rückfrage im Seitendesign. Es ist für die
+Zeile gedacht, die es nie hätte geben sollen — ein Tippfehler, ein Test, eine
+geplatzte Zusage. Das Logo geht mit, in der Datenbank **und** im Objektspeicher:
+ein Bild, das die Anwendung nicht mehr erreichen kann, entfernt sonst nie
+jemand. `lib/storage.ts` hatte dafür bis jetzt gar keine Funktion.
+
+### Abgelehnte Einreichungen bleiben stehen, mit Begründung
+
+Die Vorlage zeigt auf 11a den Knopf „Ablehnen", sagt aber nicht, was danach mit
+der Einreichung geschieht.
+
+Gebaut war es so, dass Ablehnen beim Meme nur `visible` und beim Sponsor nur
+`active` auf falsch setzte. Der Status blieb `review` — die Einreichung stand
+also für immer in der Freigabeliste, und der Knopf sah aus, als täte er nichts.
+Der Grund lag im Enum: `approval_status` kannte nur `review` und `published`,
+eine abgelehnte Einreichung hatte **keinen Zustand, in den sie gehen konnte**.
+
+→ Migration 0005 ergänzt `abgelehnt`, Migration 0006 eine Spalte
+`rejection_reason` auf Artikeln, Memes und Sponsoren. Beides rein additiv.
+
+→ **Gelöscht wird nichts.** Die Einreichung bleibt stehen und heißt „Abgelehnt";
+daneben steht „Grund ansehen" und klappt den Text auf. Ein `<details>`, kein
+immer offener Kasten: die Liste wird gelesen, um etwas zu finden, und ein
+Absatz Kritik unter jeder abgelehnten Zeile hätte den Rest vom Bildschirm
+geschoben.
+
+→ **Die Begründung ist Pflicht.** Ablehnen öffnet erst ein Feld; ohne Text
+bleibt „Senden" gesperrt, und der Server prüft es noch einmal, weil ein
+gesperrter Knopf keine Regel ist. „Abgelehnt" allein sagt der einreichenden
+Person, dass etwas nicht stimmt, und nichts darüber, was.
+
+→ Beim Artikel heißt der Knopf weiterhin „Zurück" und der Artikel geht nach
+`draft`: seine Autorin soll daran weiterarbeiten. Der Grund steht dann oben im
+Editor, wo sie ihn beantwortet, und wird beim erneuten Einreichen gelöscht —
+er beschrieb den Entwurf, der zurückkam, und nicht den, der nun da ist.
+
+### Ausgeschiedene Personen: `ehemalig` statt Löschung
+
+Die Vorlage kennt auf 11a nur eingeladen und aktiv und sagt nichts darüber, was
+mit jemandem passiert, der geht. Die Fremdschlüssel sagten es für sie: Artikel
+und Memes verweisen mit `restrict`, eine Löschung war also unmöglich, sobald
+jemand einen Text geschrieben hatte.
+
+→ Migration 0004 fügt dem Enum `user_status` den Wert `ehemalig` hinzu — rein
+additiv. Entfernen gelingt jetzt immer, nur auf zwei Weisen: wer nichts
+veröffentlicht hat, dessen Zeile verschwindet ganz; wer eine Byline trägt,
+bleibt als `ehemalig` stehen, damit der Artikel einen Autor mit Namen behält.
+Das Konto wird in beiden Fällen gelöscht, die Sitzungen enden damit.
+
+→ Alles, was die Redaktion aufzählt, fragt nach `aktiv` und blendet die Person
+damit von selbst aus: Redaktionsseite, Pillen auf der Startseite, Chefredaktion
+auf der Kontaktseite. In der Nutzerliste steht sie unten, ohne Bedienelemente,
+mit dem Vermerk „Artikel bleiben". In der Byline hängt ein kleines Schild
+„Ehemalig" am Namen — in der kleinsten Schrift der Oberfläche und in `bd`, weil
+es eine Fußnote zum Namen ist und keine Warnung davor.
+
+→ Der Autorenfilter im Archiv führt sie weiter, denn ihre Artikel sind weiter
+zu lesen; der Filter zählt Texte, nicht Mitgliedschaften.
+
 ### Redaktionsliste gedeckelt, Rest als Pille
 
 Die Vorlage zeichnet auf der Startseite acht Namen und sagt nichts darüber, was
