@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArticleBrief, ArticleCard } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar, toneForPosition } from "@/components/avatar";
+import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Supporters } from "@/components/supporters";
@@ -13,10 +14,12 @@ import {
   shortDate,
   toSlug,
 } from "@/lib/format";
+import { splitEditorialPage } from "@/lib/editorial-page";
 import {
   activeSponsors,
   editorialMembers,
   homepageArticles,
+  pageBySlug,
   publishedArticleCount,
 } from "@/lib/queries";
 import { archiveHref, articleHref } from "@/lib/routes";
@@ -31,12 +34,15 @@ export const revalidate = 300;
 const MEMBER_PILLS = 8;
 
 export default async function HomePage() {
-  const [articles, total, supporters, members] = await Promise.all([
+  const [articles, total, supporters, members, editorialPage] = await Promise.all([
     homepageArticles(),
     publishedArticleCount(),
     activeSponsors(),
     editorialMembers(),
+    pageBySlug("redaktion"),
   ]);
+
+  const { invitation } = splitEditorialPage(editorialPage?.body.content ?? []);
 
   const [lead, ...rest] = articles;
   const cards = rest.slice(0, 3);
@@ -204,11 +210,14 @@ export default async function HomePage() {
             <h2 className="text-[11px] font-bold tracking-[0.14em] text-tm uppercase md:text-xs">
               Mitschreiben
             </h2>
-            <p className="mt-3 text-[15.5px] leading-[1.62] font-medium md:mt-3.5 md:max-w-[44ch] md:text-[16.5px]">
-              Die Redaktion trifft sich mittwochs in der siebten Stunde in Raum
-              214. Wer einen Text, eine Recherche oder eine Idee hat, schreibt
-              uns.
-            </p>
+            {/* The same invitation the editorial page prints, read from the same
+                row: it was a second copy here, so the meeting time had to be
+                changed in two places and only ever was in one. */}
+            {invitation === undefined ? null : (
+              <p className="mt-3 text-[15.5px] leading-[1.62] font-medium md:mt-3.5 md:max-w-[44ch] md:text-[16.5px]">
+                <Inline node={invitation.text} />
+              </p>
+            )}
             <Link
               href="/kontakt"
               className="mt-3.5 inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 transition-opacity hover:opacity-85 md:mt-4 md:min-h-0"

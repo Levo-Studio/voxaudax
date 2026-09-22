@@ -4,7 +4,7 @@ import { Avatar, toneForPosition } from "@/components/avatar";
 import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import type { TipTapNode } from "@/lib/content";
+import { splitEditorialPage } from "@/lib/editorial-page";
 import { environment } from "@/lib/env";
 import { toSlug } from "@/lib/format";
 import { editorialMembers, pageBySlug } from "@/lib/queries";
@@ -17,29 +17,6 @@ export const metadata: Metadata = {
   title: "Die Redaktion",
   description:
     "Wer die Vox Audax schreibt, worüber, und wie man mitmacht.",
-};
-
-/**
- * 9a is an introduction, a list of people, one boxed invitation and a closing
- * note in small type. The page row supplies the three pieces of text in that
- * order: what stands before the first heading introduces, the first heading and
- * the paragraph under it are the invitation, and whatever follows is the note.
- */
-const splitEditorialPage = (nodes: readonly TipTapNode[]) => {
-  const headingAt = nodes.findIndex((node) => node.type === "heading");
-
-  if (headingAt === -1) return { intro: nodes, invitation: undefined, note: [] };
-
-  const [invitationText, ...note] = nodes.slice(headingAt + 1);
-
-  return {
-    intro: nodes.slice(0, headingAt),
-    invitation:
-      invitationText === undefined
-        ? undefined
-        : { heading: nodes[headingAt], text: invitationText },
-    note,
-  };
 };
 
 export default async function EditorialPage() {

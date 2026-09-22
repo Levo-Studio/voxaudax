@@ -265,6 +265,15 @@ veröffentlicht ist. Dieselbe Regel gilt im Entwurf bereits für den Autorfilter
 Die Auswahl im Editor bleibt vollständig: dort muss jede Kategorie wählbar sein,
 sonst könnte die erste nie vergeben werden.
 
+### „Mitschreiben" auf der Startseite kommt aus der Redaktionsseite
+
+Die Vorlage zeichnet den Kasten auf 3a mit eigenem Text und den auf 9a mit
+seinem — zweimal dieselbe Einladung, zweimal eigenständig gesetzt.
+
+→ Beide lesen jetzt denselben Absatz aus der Zeile `pages.redaktion`. Vorher
+stand der Text der Startseite im Code: eine geänderte Uhrzeit hätte an zwei
+Stellen gepflegt werden müssen und wäre an einer stehen geblieben.
+
 ### Redaktionsliste gedeckelt, Rest als Pille
 
 Die Vorlage zeichnet auf der Startseite acht Namen und sagt nichts darüber, was
