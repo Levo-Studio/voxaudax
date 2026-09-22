@@ -57,7 +57,17 @@ export const articleStatus = pgEnum("article_status", [
   "published",
 ]);
 
-export const approvalStatus = pgEnum("approval_status", ["review", "published"]);
+/**
+ * `abgelehnt` is where a submission goes that a reviewer turned down. Without
+ * it a rejection had nowhere to put the row, so it stayed in the queue and the
+ * button looked broken. An article is returned to `draft` instead — its author
+ * is expected to work on it again, which is not true of a meme or a sponsor.
+ */
+export const approvalStatus = pgEnum("approval_status", [
+  "review",
+  "published",
+  "abgelehnt",
+]);
 
 export const sponsorKind = pgEnum("sponsor_kind", [
   "druckkosten",

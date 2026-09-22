@@ -416,26 +416,6 @@ seinem — zweimal dieselbe Einladung, zweimal eigenständig gesetzt.
 stand der Text der Startseite im Code: eine geänderte Uhrzeit hätte an zwei
 Stellen gepflegt werden müssen und wäre an einer stehen geblieben.
 
-### Abgelehnte Einreichungen: `abgelehnt` statt nur unsichtbar
-
-Die Vorlage zeigt auf 11a den Knopf „Ablehnen", sagt aber nicht, was danach mit
-der Einreichung geschieht.
-
-Gebaut war es so, dass Ablehnen beim Meme nur `visible` und beim Sponsor nur
-`active` auf falsch setzte. Der Status blieb `review` — die Einreichung stand
-also für immer in der Freigabeliste, und der Knopf sah aus, als täte er nichts.
-Der Grund lag im Enum: `approval_status` kannte nur `review` und `published`,
-eine abgelehnte Einreichung hatte **keinen Zustand, in den sie gehen konnte**.
-
-→ Migration 0005 ergänzt `abgelehnt` — rein additiv. Ablehnen setzt jetzt
-beides: den Status, damit die Entscheidung hält, und `visible` beziehungsweise
-`active`, damit nichts davon einen Leser erreicht, falls die Zeile später von
-Hand veröffentlicht wird. Das Backoffice benennt den Zustand.
-
-→ Ein Artikel geht weiterhin nach `draft` zurück und nicht nach `abgelehnt`:
-seine Autorin soll daran weiterarbeiten, was für ein Meme oder einen Sponsor
-nicht gilt.
-
 ### Ausgeschiedene Personen: `ehemalig` statt Löschung
 
 Die Vorlage kennt auf 11a nur eingeladen und aktiv und sagt nichts darüber, was

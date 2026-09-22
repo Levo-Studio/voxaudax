@@ -173,6 +173,10 @@ export const rejectSponsor = async (approver: Member, sponsorId: string) => {
   if (row === undefined || row.status !== "review") return "unknown" as const;
   if (row.createdBy === approver.id) return "own_submission" as const;
 
-  await db.update(sponsors).set({ active: false }).where(eq(sponsors.id, sponsorId));
+  await db
+    .update(sponsors)
+    .set({ status: "abgelehnt", active: false })
+    .where(eq(sponsors.id, sponsorId));
+
   return "rejected" as const;
 };

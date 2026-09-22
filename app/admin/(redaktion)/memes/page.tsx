@@ -71,7 +71,13 @@ export default async function MemesPage({
                     <span>{DAY.format(meme.createdAt)}</span>
                     <span className="flex items-center gap-1.5">
                       <span className={`h-[7px] w-[7px] rounded-full ${online ? "bg-ac" : "bg-bd"}`} />
-                      {meme.status === "review" ? "Wartet auf Freigabe" : online ? "Online" : "Ausgeblendet"}
+                      {meme.status === "review"
+                        ? "Wartet auf Freigabe"
+                        : meme.status === "abgelehnt"
+                          ? "Abgelehnt"
+                          : online
+                            ? "Online"
+                            : "Ausgeblendet"}
                     </span>
                     {mayDecide ? (
                       <form action={toggleMemeVisibilityAction} className="ml-auto">

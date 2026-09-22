@@ -161,6 +161,13 @@ export const rejectMeme = async (approver: Member, memeId: string) => {
   if (row === undefined || row.status !== "review") return "unknown" as const;
   if (row.createdBy === approver.id) return "own_submission" as const;
 
-  await db.update(memes).set({ visible: false }).where(eq(memes.id, memeId));
+  // Both, and for different reasons: the status takes it out of the queue so
+  // the decision sticks, and `visible` keeps it off the wall even if somebody
+  // later publishes it by hand.
+  await db
+    .update(memes)
+    .set({ status: "abgelehnt", visible: false })
+    .where(eq(memes.id, memeId));
+
   return "rejected" as const;
 };

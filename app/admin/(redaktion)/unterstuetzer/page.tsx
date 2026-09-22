@@ -66,7 +66,11 @@ export default async function SponsorsPage() {
                   <span className="block text-[14.5px] font-bold tracking-[-0.02em]">{sponsor.name}</span>
                   <span className="block text-[11.5px] font-semibold text-tm">
                     {sponsor.url ?? "ohne Link"}
-                    {sponsor.status === "review" ? " · wartet auf Freigabe" : ""}
+                    {sponsor.status === "review"
+                      ? " · wartet auf Freigabe"
+                      : sponsor.status === "abgelehnt"
+                        ? " · abgelehnt"
+                        : ""}
                   </span>
                 </span>
               </span>
