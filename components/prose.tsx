@@ -145,7 +145,7 @@ const ArticleBlock = ({
  * maximum. The label wins: a line of 140 characters is not a newspaper column.
  */
 export const ArticleProse = ({ document }: { document: TipTapDocument }) => (
-  <div className="max-w-[65ch]">
+  <div>
     {document.content.map((node, index) => (
       <ArticleBlock key={index} node={node} isLead={index === 0} />
     ))}

@@ -168,7 +168,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
           <div className="px-[18px] pt-[22px] pb-7 md:px-10 md:pt-9 md:pb-11">
             <ArticleProse document={article.body} />
 
-            <div className="mt-[34px] flex max-w-[65ch] items-start gap-4 border-t border-bd pt-[22px]">
+            <div className="mt-[34px] flex items-start gap-4 border-t border-bd pt-[22px]">
               <Avatar initials={article.authorInitials} size="box" />
               <div>
                 <div className="text-base font-bold tracking-[-0.02em]">

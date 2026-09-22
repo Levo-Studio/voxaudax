@@ -96,5 +96,5 @@ const block = (node: TipTapNode, key: number): ReactNode => {
 };
 
 export function ArticleBody({ document }: { document: TipTapDocument }) {
-  return <div className="max-w-[68ch]">{document.content.map(block)}</div>;
+  return <div>{document.content.map(block)}</div>;
 }
