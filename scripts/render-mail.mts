@@ -68,6 +68,21 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
     },
   },
   {
+    name: "editorial-message",
+    mail: {
+      template: "editorialMessage",
+      props: {
+        siteUrl: SITE_URL,
+        to: "redaktion@voxaudax.de",
+        name: "Nele Hartmann",
+        role: "10b",
+        email: "nele.hartmann@example.com",
+        subject: "Themenvorschlag",
+        body: "Hallo,\n\nin der Mensa steht seit zwei Wochen ein Schild, das niemand erklären kann. Ich würde dem gern nachgehen und hätte schon mit der Küche gesprochen.\n\nViele Grüße\nNele",
+      },
+    },
+  },
+  {
     name: "invitation-7-days",
     mail: {
       template: "invitation",
@@ -133,8 +148,11 @@ const escapeForMarkup = (value: string) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#x27;");
 
+/** Undefined where a mail has no action — the reply goes in the envelope. */
 const linkIn = (mail: Mail) => {
   switch (mail.template) {
+    case "editorialMessage":
+      return undefined;
     case "approval":
       return mail.props.item.url;
     case "invitation":
@@ -162,7 +180,8 @@ const problemsWith = (
   if (rendered.text.trim() === "") {
     problems.push("the plaintext part is empty");
   }
-  if (!rendered.text.includes(linkIn(mail))) {
+  const link = linkIn(mail);
+  if (link !== undefined && !rendered.text.includes(link)) {
     problems.push("the plaintext part does not spell out the link");
   }
   // The subject and the preheader are the two places a leak would be most
