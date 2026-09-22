@@ -57,6 +57,13 @@
       "when": 1790067980379,
       "tag": "0007_sponsor_kind_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790092627030,
+      "tag": "0008_article_owner_and_author_indexes",
+      "breakpoints": true
     }
   ]
 }

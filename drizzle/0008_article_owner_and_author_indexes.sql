@@ -1,0 +1,2 @@
+CREATE INDEX "articles_author_updated_idx" ON "articles" USING btree ("author_id","updated_at" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "articles_body_idx" ON "articles" USING gin ("body" jsonb_path_ops);
