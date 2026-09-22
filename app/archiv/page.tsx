@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import Link from "next/link";
 
+import { ArchiveSearch } from "@/components/archive-search";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { formatNumber, longDate, machineDate, shortDate } from "@/lib/format";
+import { longDate, machineDate, shortDate } from "@/lib/format";
 import {
   archiveResults,
   articleCategories,
@@ -63,7 +65,7 @@ const positiveYear = (value: string | undefined) => {
   return Number.isInteger(year) && year > 1900 && year < 2200 ? year : undefined;
 };
 
-type MenuOption = { label: string; href: string; current: boolean };
+type MenuOption = { label: string; href: Route; current: boolean };
 
 /**
  * A filter is a menu of links, not a control that fetches: opening it needs no
@@ -96,16 +98,16 @@ function FilterMenu({
       </summary>
       <div className="absolute top-full left-0 z-10 mt-2 flex max-w-[calc(100vw-36px)] min-w-[200px] flex-col rounded-xl border border-bd bg-s1 p-1.5 shadow-lg md:top-auto md:max-w-none">
         {options.map((option) => (
-          <a
+          <Link
             key={option.href}
             href={option.href}
             aria-current={option.current ? "true" : undefined}
-            className={`flex min-h-11 items-center rounded-lg px-3 text-[13px] font-semibold md:min-h-0 md:py-2 ${
+            className={`flex min-h-11 items-center rounded-lg px-3 text-[13px] font-semibold transition-colors hover:text-ac md:min-h-0 md:py-2 ${
               option.current ? "text-ac" : "text-tx"
             }`}
           >
             {option.label}
-          </a>
+          </Link>
         ))}
       </div>
     </details>
@@ -152,36 +154,12 @@ export default async function ArchivePage({
           Archiv
         </h1>
 
-        <form action="/archiv" method="get">
-          <label className="mt-4 flex items-center gap-2.5 rounded-xl border border-bd px-[15px] py-[13px] md:mt-[22px] md:gap-3 md:px-[18px] md:py-[15px]">
-            <span className="sr-only">Im Archiv suchen</span>
-            <input
-              type="search"
-              name={ARCHIVE_PARAMS.query}
-              defaultValue={query}
-              placeholder="Suchen"
-              className="min-w-0 flex-1 bg-transparent text-[15px] font-semibold text-tx outline-none placeholder:text-tm"
-            />
-            <span className="text-[11.5px] font-semibold whitespace-nowrap text-tm md:text-[12.5px]">
-              {formatNumber(results.length)} von {formatNumber(total)}
-            </span>
-          </label>
-
-          {/* The other filters travel with the search so submitting the field
-              narrows the list the reader is looking at rather than resetting it. */}
-          {category === undefined ? null : (
-            <input type="hidden" name={ARCHIVE_PARAMS.category} value={category} />
-          )}
-          {year === undefined ? null : (
-            <input type="hidden" name={ARCHIVE_PARAMS.year} value={year} />
-          )}
-          {author === undefined ? null : (
-            <input type="hidden" name={ARCHIVE_PARAMS.author} value={author} />
-          )}
-          <button type="submit" className="sr-only">
-            Suchen
-          </button>
-        </form>
+        <ArchiveSearch
+          filters={{ category, year, author }}
+          query={query}
+          shown={results.length}
+          total={total}
+        />
 
         <div className="relative mt-3 flex flex-wrap gap-[7px] md:mt-3.5">
           <FilterMenu
@@ -241,10 +219,10 @@ export default async function ArchivePage({
         ) : (
           <div className="mt-6 flex flex-col md:mt-[34px]">
             {results.map((article, position) => (
-              <a
+              <Link
                 key={article.slug}
                 href={articleHref(article.slug)}
-                className={`block border-t border-bd py-[17px] md:py-5 ${
+                className={`group block border-t border-bd py-[17px] md:py-5 ${
                   position === results.length - 1 ? "border-b" : ""
                 }`}
               >
@@ -260,21 +238,21 @@ export default async function ArchivePage({
                   </time>
                   <span className="hidden md:inline"> · {article.authorName}</span>
                 </span>
-                <span className="mt-1.5 block text-[18px] leading-[1.24] font-bold tracking-[-0.02em] md:mt-[7px] md:text-[23px] md:leading-[1.2] md:tracking-[-0.028em]">
+                <span className="mt-1.5 block text-[18px] leading-[1.24] font-bold tracking-[-0.02em] transition-colors group-hover:text-ac md:mt-[7px] md:text-[23px] md:leading-[1.2] md:tracking-[-0.028em]">
                   {article.title}
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
         )}
 
         {filtered ? (
-          <a
+          <Link
             href={archiveHref()}
-            className="mt-3.5 inline-flex min-h-11 items-center text-[13px] font-bold text-tm md:mt-6 md:min-h-0"
+            className="mt-3.5 inline-flex min-h-11 items-center text-[13px] font-bold text-tm transition-colors hover:text-tx md:mt-6 md:min-h-0"
           >
             Filter zurücksetzen
-          </a>
+          </Link>
         ) : null}
       </main>
 

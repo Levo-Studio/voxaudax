@@ -217,6 +217,42 @@ im Klartext und landet damit im Browser.
 bleibt server-seitig, wie ohnehin vorgesehen. Kosten: 8-MB-Dateien laufen durch
 den Node-Prozess.
 
+### Suchfeld im Archiv ohne Rahmen, und es sucht beim Tippen
+
+Bildschirm 5a zeichnet das Suchfeld als Kasten: `border:1px solid var(--bd)`,
+`border-radius:12px`, `padding:15px 18px`. Die Vorlage zeigt außerdem nur den
+Zustand *nach* einer Suche — wie die Eingabe abgeschickt wird, sagt sie nicht.
+
+Angewiesen wurde beides: kein Rahmen, und Treffer ohne Absenden.
+
+→ Der Kasten entfällt samt seiner waagerechten Innenabstände, damit die Zeile
+mit der Überschrift und der Trefferliste fluchtet. Sichtbar bleibt das Feld im
+Tastaturbetrieb über den Fokusring aus `globals.css` — 2 px in der Akzentfarbe,
+3 px Abstand.
+
+→ Die Suche läuft 180 ms nach dem letzten Anschlag als `router.replace` in die
+Adresse. Das Formular bleibt ein echtes GET-Formular mit Absende-Schaltfläche:
+ohne Skript verhält sich das Archiv wie zuvor, und die Adresse bleibt in beiden
+Fällen der ganze Zustand der Seite. `replace` statt `push`, weil ein Wort sonst
+so viele Einträge im Verlauf hinterlässt, wie es Buchstaben hat.
+
+### Farbschema-Schalter im Kopf statt im Fuß
+
+Die Vorlage setzt den Schalter in die Fußzeile, als Reihe aus drei
+beschrifteten Feldern.
+
+→ Er steht jetzt als einzelne Schaltfläche in der Kopfzeile und durchläuft
+System, Hell, Dunkel; die Voreinstellung bleibt System. Die Fußzeile trägt ihn
+nicht mehr.
+
+### Artikeltext ohne Zeilenlängenbegrenzung
+
+Die Vorlage setzt den Artikeltext auf eine Spalte von rund 68 Zeichen.
+
+→ Auf der veröffentlichten Seite läuft der Text über die volle Spaltenbreite.
+Im Editor bleibt die Begrenzung, weil eine schreibende Person ihre Absätze an
+einer stabilen Zeilenlänge misst.
+
 ---
 
 ## 7. Technische Abweichungen
