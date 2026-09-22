@@ -236,6 +236,36 @@ ohne Skript verhält sich das Archiv wie zuvor, und die Adresse bleibt in beiden
 Fällen der ganze Zustand der Seite. `replace` statt `push`, weil ein Wort sonst
 so viele Einträge im Verlauf hinterlässt, wie es Buchstaben hat.
 
+### Kein Suche-Knopf im Kopf
+
+Die Vorlage setzt rechts in die Kopfzeile eine Pille „Suche", die auf das
+Archiv zeigt.
+
+→ Sie ist entfernt. „Archiv" steht ohnehin in der Navigation, und das Suchfeld
+steht dort; ein zweites Bedienelement auf dieselbe Seite hat nur mit dem ersten
+konkurriert.
+
+### Kategorieleiste zeigt nur Kategorien mit Artikeln
+
+Die Vorlage zeichnet sechs feste Pillen. Die Kategorien stehen aber in einer
+Tabelle, die die Redaktion erweitern kann — und eine Pille für eine Kategorie
+ohne veröffentlichten Artikel führt in ein leeres Archiv.
+
+→ Leiste und Archivfilter lesen die Kategorien, in denen tatsächlich etwas
+veröffentlicht ist. Dieselbe Regel gilt im Entwurf bereits für den Autorfilter.
+Die Auswahl im Editor bleibt vollständig: dort muss jede Kategorie wählbar sein,
+sonst könnte die erste nie vergeben werden.
+
+### Redaktionsliste gedeckelt, Rest als Pille
+
+Die Vorlage zeichnet auf der Startseite acht Namen und sagt nichts darüber, was
+bei mehr passiert.
+
+→ Ab der neunten Person steht neben den acht eine Pille „+ N weitere", die auf
+`/redaktion` führt. Die Liste selbst — Startseite wie Redaktionsseite — kommt
+aus der Mitgliedstabelle und nirgends sonst; eingeladene Personen stehen erst
+darauf, wenn sie ihr Passwort gesetzt haben.
+
 ### Farbschema-Schalter im Kopf statt im Fuß
 
 Die Vorlage setzt den Schalter in die Fußzeile, als Reihe aus drei

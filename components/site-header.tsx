@@ -15,20 +15,20 @@ export type NavKey = (typeof NAV_ITEMS)[number]["key"];
 
 const MOBILE_NAV_ID = "hauptnavigation";
 
-/** The archive is the only screen that carries a search field. */
-const SEARCH_HREF = "/archiv";
-
 type SiteHeaderProps = {
   current?: NavKey;
   showCategoryBar?: boolean;
-  showSearch?: boolean;
   activeCategory?: string;
 };
 
+/**
+ * There is no search button: the field lives on the archive, and "Archiv" is
+ * already in the navigation, so a second control pointing at the same page only
+ * competed with it.
+ */
 export function SiteHeader({
   current,
   showCategoryBar = false,
-  showSearch = false,
   activeCategory,
 }: SiteHeaderProps) {
   const navLinks = NAV_ITEMS.map((item) => (
@@ -71,26 +71,12 @@ export function SiteHeader({
 
         <div className="ml-auto flex items-center gap-2 text-[12.5px] font-bold md:gap-3.5">
           <ThemeSwitcher />
-          <Link
-            href={SEARCH_HREF}
-            className="inline-flex min-h-11 items-center text-tm transition-colors hover:text-tx md:hidden"
-          >
-            Suche
-          </Link>
           <a
             href={`#${MOBILE_NAV_ID}`}
             className="inline-flex min-h-11 items-center text-tm transition-colors hover:text-tx md:hidden"
           >
             Menü
           </a>
-          {showSearch ? (
-            <Link
-              href={SEARCH_HREF}
-              className="hidden rounded-full border border-bd px-3.5 py-[7px] font-semibold text-tm transition-colors hover:border-ac hover:text-tx md:inline-flex"
-            >
-              Suche
-            </Link>
-          ) : null}
         </div>
       </div>
 

@@ -7,8 +7,8 @@ import { SiteHeader } from "@/components/site-header";
 import { longDate, machineDate, shortDate } from "@/lib/format";
 import {
   archiveResults,
-  articleCategories,
   publishedArticleCount,
+  publishedCategories,
   publishedAuthors,
   publishedYears,
 } from "@/lib/queries";
@@ -133,7 +133,7 @@ export default async function ArchivePage({
       authorSlug: author,
     }),
     publishedArticleCount(),
-    articleCategories(),
+    publishedCategories(),
     publishedYears(),
     publishedAuthors(),
   ]);

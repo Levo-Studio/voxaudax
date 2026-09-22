@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { ArticleBrief, ArticleCard } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar, toneForPosition } from "@/components/avatar";
@@ -26,6 +28,8 @@ import { archiveHref, articleHref } from "@/lib/routes";
  */
 export const revalidate = 300;
 
+const MEMBER_PILLS = 8;
+
 export default async function HomePage() {
   const [articles, total, supporters, members] = await Promise.all([
     homepageArticles(),
@@ -38,9 +42,15 @@ export default async function HomePage() {
   const cards = rest.slice(0, 3);
   const briefs = rest.slice(3, 9);
 
+  // Eight names fit two rows at 375px. Past that the block grows without
+  // telling the reader anything new, so the rest become one pill that says how
+  // many they are and opens the page they are all on.
+  const shownMembers = members.slice(0, MEMBER_PILLS);
+  const furtherMembers = members.length - shownMembers.length;
+
   return (
     <div className="flex min-h-dvh flex-col">
-      <SiteHeader current="home" showCategoryBar showSearch />
+      <SiteHeader current="home" showCategoryBar />
 
       <main className="flex-1">
         {lead === undefined ? (
@@ -50,22 +60,27 @@ export default async function HomePage() {
         ) : (
           <article className="grid md:min-h-[404px] md:grid-cols-[1.15fr_1fr]">
             <div className="flex flex-col justify-between px-[18px] pb-[26px] md:px-11 md:py-12">
-              <a
+              <Link
                 href={archiveHref({ category: lead.categorySlug })}
-                className="hidden self-start rounded-[5px] bg-ac px-[11px] py-1.5 text-[11.5px] font-bold tracking-[0.1em] text-s1 uppercase md:inline-flex"
+                className="hidden self-start rounded-[5px] bg-ac px-[11px] py-1.5 text-[11.5px] font-bold tracking-[0.1em] text-s1 uppercase transition-opacity hover:opacity-85 md:inline-flex"
               >
                 {lead.categoryName}
-              </a>
+              </Link>
 
               <div>
-                <a
+                <Link
                   href={archiveHref({ category: lead.categorySlug })}
                   className="mt-2 inline-flex min-h-11 items-center text-[11px] font-bold tracking-[0.12em] text-ac uppercase md:hidden"
                 >
                   {lead.categoryName}
-                </a>
+                </Link>
                 <h1 className="mt-2 text-[32px] leading-[1.04] font-extrabold tracking-[-0.035em] md:mt-[18px] md:text-[clamp(42px,5.2vw,68px)] md:leading-[0.95] md:tracking-[-0.045em]">
-                  <a href={articleHref(lead.slug)}>{lead.title}</a>
+                  <Link
+                    href={articleHref(lead.slug)}
+                    className="transition-colors hover:text-ac"
+                  >
+                    {lead.title}
+                  </Link>
                 </h1>
                 <p className="mt-3 text-[17px] leading-[1.62] font-medium text-tm md:mt-[18px] md:max-w-[50ch] md:text-[18px] md:leading-[1.6]">
                   {lead.teaser}
@@ -78,12 +93,12 @@ export default async function HomePage() {
                   {/* Padding on an inline link grows the box that can be
                       tapped without growing the line it sits in: the byline
                       stays one line and the name is 44px tall to a thumb. */}
-                  <a
+                  <Link
                     href={archiveHref({ author: toSlug(lead.authorName) })}
-                    className="py-[15px] text-tx"
+                    className="py-[15px] text-tx transition-colors hover:text-ac"
                   >
                     {lead.authorName}
-                  </a>{" "}
+                  </Link>{" "}
                   ·{" "}
                   <time dateTime={machineDate(lead.publishedAt)}>
                     {shortDate(lead.publishedAt)}
@@ -94,7 +109,7 @@ export default async function HomePage() {
             </div>
 
             {/* 4a sets the cover above the headline, 3a beside it. */}
-            <a
+            <Link
               href={articleHref(lead.slug)}
               aria-label={`Artikel öffnen: ${lead.title}`}
               className="order-first block min-w-0 px-[18px] pb-4 md:order-none md:h-full md:px-0 md:pb-0"
@@ -108,7 +123,7 @@ export default async function HomePage() {
                 line={lead.cover.line}
                 image={lead.coverImage}
               />
-            </a>
+            </Link>
           </article>
         )}
 
@@ -132,9 +147,9 @@ export default async function HomePage() {
                 <ArticleBrief key={article.slug} article={article} />
               ))}
             </div>
-            <a
+            <Link
               href={archiveHref()}
-              className="mt-1.5 inline-flex min-h-11 items-center text-[13px] font-bold text-ac md:mt-[22px] md:min-h-0"
+              className="mt-1.5 inline-flex min-h-11 items-center text-[13px] font-bold text-ac transition-opacity hover:opacity-75 md:mt-[22px] md:min-h-0"
             >
               {/*
                 The whole label is one child, because the anchor is a flex
@@ -148,7 +163,7 @@ export default async function HomePage() {
                 Alle {formatNumber(total)} Artikel
                 <span className="hidden md:inline"> im Archiv</span> →
               </span>
-            </a>
+            </Link>
           </section>
         )}
 
@@ -160,11 +175,11 @@ export default async function HomePage() {
               Die Redaktion
             </h2>
             <div className="mt-3 flex flex-wrap gap-2.5 md:mt-4">
-              {members.map((member, position) => (
-                <a
+              {shownMembers.map((member, position) => (
+                <Link
                   key={member.email}
                   href={archiveHref({ author: toSlug(member.name) })}
-                  className="flex min-h-11 items-center gap-[9px] rounded-full border border-bd py-[7px] pr-[13px] pl-[7px] text-[13px] font-semibold md:min-h-0"
+                  className="flex min-h-11 items-center gap-[9px] rounded-full border border-bd py-[7px] pr-[13px] pl-[7px] text-[13px] font-semibold transition-colors hover:border-ac md:min-h-0"
                 >
                   <Avatar
                     initials={member.initials}
@@ -172,8 +187,16 @@ export default async function HomePage() {
                     tone={toneForPosition(position)}
                   />
                   {member.name}
-                </a>
+                </Link>
               ))}
+              {furtherMembers > 0 ? (
+                <Link
+                  href="/redaktion"
+                  className="flex min-h-11 items-center rounded-full border border-bd px-[15px] text-[13px] font-semibold text-tm transition-colors hover:border-ac hover:text-tx md:min-h-0 md:py-[7px]"
+                >
+                  + {formatNumber(furtherMembers)} weitere
+                </Link>
+              ) : null}
             </div>
           </div>
 
@@ -186,12 +209,12 @@ export default async function HomePage() {
               214. Wer einen Text, eine Recherche oder eine Idee hat, schreibt
               uns.
             </p>
-            <a
+            <Link
               href="/kontakt"
-              className="mt-3.5 inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 md:mt-4 md:min-h-0"
+              className="mt-3.5 inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 transition-opacity hover:opacity-85 md:mt-4 md:min-h-0"
             >
               Kontakt aufnehmen
-            </a>
+            </Link>
           </div>
         </section>
       </main>

@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { articleCategories } from "@/lib/queries";
+import { publishedCategories } from "@/lib/queries";
 import { archiveHref } from "@/lib/routes";
 
 /**
- * The six categories live in the `categories` table, which is also what the
- * archive's filter menu reads and what an article is joined to. A copy of them
- * here was a second place to change when the editors add a seventh — so the bar
- * asks for them, and the request-level cache makes it the same read the archive
- * already does.
+ * The bar shows the categories articles have actually been published in, read
+ * from the table an article is joined to — so a category the editors add shows
+ * up as soon as the first article in it goes live, and one nobody has written
+ * in yet does not offer a chip that leads to an empty archive. The
+ * request-level cache makes this the same read the archive's filter does.
  */
 
 /**
@@ -15,7 +15,7 @@ import { archiveHref } from "@/lib/routes";
  * template's own mobile bar resorts to cutting the last label off mid-word.
  */
 export async function CategoryBar({ active }: { active?: string }) {
-  const categories = await articleCategories();
+  const categories = await publishedCategories();
 
   return (
     <nav

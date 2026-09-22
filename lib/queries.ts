@@ -270,6 +270,21 @@ export const articleCategories = cache(() =>
     .orderBy(asc(categories.position)),
 );
 
+/**
+ * Only categories something has been published in. The table holds whatever the
+ * editors have set up, including a category nobody has written in yet — and a
+ * chip for one of those is a link to an empty archive. The same rule already
+ * governs the author filter, for the same reason.
+ */
+export const publishedCategories = cache(() =>
+  db
+    .selectDistinct({ slug: categories.slug, name: categories.name, position: categories.position })
+    .from(categories)
+    .innerJoin(articles, eq(articles.categoryId, categories.id))
+    .where(live())
+    .orderBy(asc(categories.position)),
+);
+
 export const publishedYears = async () => {
   const rows = await db
     .select({
@@ -398,9 +413,14 @@ export type EditorialMember = {
 };
 
 /**
- * Invited people are not on the masthead yet. The order is rank first and then
- * name: the sequence screens 3a and 9a print is hand-made, and nothing in the
- * table records it.
+ * The masthead is the account table, read live — there is no second list of
+ * people anywhere, so it cannot drift from who actually works here. Invited
+ * people are not on it yet: a row becomes active in the same statement that
+ * redeems the invitation, so the name appears the moment its owner sets a
+ * password and disappears again when an admin deactivates them.
+ *
+ * The order is rank first and then name: the sequence screens 3a and 9a print
+ * is hand-made, and nothing in the table records it.
  */
 export const editorialMembers = (): Promise<EditorialMember[]> =>
   db
