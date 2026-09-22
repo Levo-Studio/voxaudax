@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { Avatar, COLUMN_HEADING_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS } from "@/components/admin/controls";
+import { MemberRow } from "@/components/admin/member-row";
 import { InviteForm } from "@/app/admin/(redaktion)/nutzer/invite-form";
 import { requireCapability } from "@/lib/authorize";
 import { countMembers, listMembers, openInvitationFor } from "@/lib/editorial/members";
@@ -52,8 +51,8 @@ export default async function UsersPage() {
           const invited = member.status === "eingeladen";
           const expired = invited && member.invitation === null;
 
-          return (
-            <div key={member.id} className={`${ROW} items-center border-b border-bd px-4 py-3.5 last:border-b-0 md:px-[22px]`}>
+          const cells = (
+            <>
               <span className="flex items-center gap-[11px]">
                 <Avatar initials={member.initials} size={34} tone={invited ? "outline" : "accent"} />
                 <span>
@@ -68,30 +67,36 @@ export default async function UsersPage() {
                 <span className={`h-[7px] w-[7px] flex-none rounded-full ${expired ? "bg-ac2" : invited ? "bg-ac" : "bg-bd"}`} />
                 {expired ? "Abgelaufen" : invited ? "Eingeladen" : seenLabel(member.lastSeenAt)}
               </span>
+            </>
+          );
 
-              <span className="flex justify-start gap-3 md:justify-end">
-                {member.id === admin.id ? (
-                  <span className="text-[12.5px] font-semibold text-tm">Du selbst</span>
-                ) : (
-                  <>
-                    <Link
-                      href={`/admin/nutzer/${member.id}`}
-                      className="text-[12.5px] font-bold text-tm no-underline transition-colors duration-200 ease-out hover:text-tx"
-                    >
-                      Bearbeiten
-                    </Link>
-                    {member.velveUserId === null ? null : (
-                      <Link
-                        href={`/admin/nutzer/${member.id}/passwort`}
-                        className="text-[12.5px] font-bold text-ac no-underline"
-                      >
-                        Passwort
-                      </Link>
-                    )}
-                  </>
-                )}
-              </span>
-            </div>
+          // The admin's own row has no controls at all: the two it would carry
+          // are the two they must not use on themselves.
+          if (member.id === admin.id) {
+            return (
+              <div key={member.id} className={`${ROW} items-center border-b border-bd px-4 py-3.5 last:border-b-0 md:px-[22px]`}>
+                {cells}
+                <span className="text-[12.5px] font-semibold text-tm md:text-right">Du selbst</span>
+              </div>
+            );
+          }
+
+          return (
+            <MemberRow
+              key={member.id}
+              member={{
+                id: member.id,
+                name: member.name,
+                email: member.email,
+                initials: member.initials,
+                role: member.role,
+                form: member.form,
+                velveUserId: member.velveUserId,
+              }}
+              rowClassName={`${ROW} items-center px-4 py-3.5 md:px-[22px]`}
+            >
+              {cells}
+            </MemberRow>
           );
         })}
       </div>

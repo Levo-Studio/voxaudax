@@ -3,7 +3,7 @@ import { asc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
 import { db } from "@/lib/db/client";
-import { invitations, users } from "@/lib/db/schema";
+import { articles, invitations, memes, users } from "@/lib/db/schema";
 import type { Form, Role } from "@/lib/roles";
 
 /**
@@ -110,3 +110,41 @@ export const openInvitationFor = async (email: string) => {
 
   return row ?? null;
 };
+
+/**
+ * What would stop this person's row from being deleted. Articles and memes
+ * reference `users` with `on delete restrict`, and that is right: a byline and
+ * a credit are things an application should not be able to lose by accident.
+ *
+ * Invitations reference it the same way but are not a blocker. They are
+ * operational rows, not a record worth keeping — and treating them as one made
+ * every admin who had ever invited anybody permanently undeletable, which is
+ * every admin after a term. They are removed with the person instead, and the
+ * dialog says so before it is confirmed.
+ *
+ * Asked before the delete rather than after: a foreign key violation names a
+ * constraint and nothing a person can act on.
+ */
+export const deletionBlockers = async (memberId: string) => {
+  const [row] = await db
+    .select({
+      articles: sql<number>`(select count(*)::int from ${articles} where ${articles.authorId} = ${memberId})`,
+      memes: sql<number>`(select count(*)::int from ${memes} where ${memes.createdBy} = ${memberId})`,
+    })
+    .from(users)
+    .where(eq(users.id, memberId));
+
+  return row ?? { articles: 0, memes: 0 };
+};
+
+/**
+ * The editorial row and the invitations this person sent, together or not at
+ * all. The account in the `velve` schema is the library's to remove and
+ * removing it cascades this row away — so a caller with an account deletes the
+ * invitations here first and the account afterwards.
+ */
+export const deleteInvitationsFrom = (memberId: string) =>
+  db.delete(invitations).where(eq(invitations.invitedBy, memberId));
+
+export const deleteMemberRow = (memberId: string) =>
+  db.delete(users).where(eq(users.id, memberId));

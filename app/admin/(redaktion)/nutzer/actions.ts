@@ -3,9 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { velveAuth } from "@/lib/auth";
 import { requireCapability } from "@/lib/authorize";
 import { issueInvitation, invitationPath, isLinkLifetime } from "@/lib/editorial/invitations";
-import { findMemberById, setRoleAndForm } from "@/lib/editorial/members";
+import {
+  deleteInvitationsFrom,
+  deleteMemberRow,
+  deletionBlockers,
+  findMemberById,
+  setRoleAndForm,
+} from "@/lib/editorial/members";
 import { environment } from "@/lib/env";
 import { userForm, userRole } from "@/lib/db/schema";
 
@@ -92,4 +99,60 @@ export const changeRoleAction = async (form: FormData) => {
 
   await setRoleAndForm(memberId, role as typeof userRole.enumValues[number], shape as typeof userForm.enumValues[number]);
   revalidatePath("/admin/nutzer");
+};
+
+export type RemoveState = { readonly problem: string | null };
+
+/** "1 Artikel", "3 Artikel" — the count reads as a reason, so it is named. */
+const countPhrase = (count: number, one: string, many: string) =>
+  count === 1 ? `1 ${one}` : `${count} ${many}`;
+
+/**
+ * Screen 11a's list can remove somebody outright. What it cannot do is leave
+ * their work without an author: articles, memes and the invitations they sent
+ * all reference this row and refuse the delete, so the refusal is spelled out
+ * here instead of arriving as a constraint name.
+ *
+ * The account goes first and takes this row with it — the foreign key onto
+ * `velve.user` cascades — so there is no window in which a credential outlives
+ * the membership it belonged to.
+ */
+export const removeMemberAction = async (
+  _state: RemoveState,
+  form: FormData,
+): Promise<RemoveState> => {
+  const admin = await requireCapability("manageUsers");
+  const memberId = String(form.get("memberId") ?? "");
+
+  if (memberId === admin.id) {
+    return { problem: "Dich selbst kannst du nicht entfernen." };
+  }
+
+  const member = await findMemberById(memberId);
+  if (member === null) return { problem: "Diese Person gibt es nicht mehr." };
+
+  const blockers = await deletionBlockers(memberId);
+  const reasons = [
+    blockers.articles > 0 ? countPhrase(blockers.articles, "Artikel", "Artikel") : null,
+    blockers.memes > 0 ? countPhrase(blockers.memes, "Meme", "Memes") : null,
+  ].filter((reason) => reason !== null);
+
+  if (reasons.length > 0) {
+    return {
+      problem: `${member.name} hat ${reasons.join(", ")} im Haus. Solange das so ist, bleibt die Person hier stehen — sonst stünde die Arbeit ohne Urheber da.`,
+    };
+  }
+
+  // Before either delete: both of them are refused while an invitation still
+  // points at this row.
+  await deleteInvitationsFrom(memberId);
+
+  if (member.velveUserId === null) {
+    await deleteMemberRow(memberId);
+  } else {
+    await velveAuth().user.delete({ userId: member.velveUserId });
+  }
+
+  revalidatePath("/admin/nutzer");
+  return { problem: null };
 };
