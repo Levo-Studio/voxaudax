@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { FIELD_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 import { Segmented } from "@/components/admin/segmented";
 import { saveSponsorAction, type SponsorFormState } from "@/app/admin/(redaktion)/unterstuetzer/actions";
 import {
@@ -17,6 +18,11 @@ const DATE = new Intl.DateTimeFormat("de-DE");
 
 export function SponsorForm({ today }: { today: string }) {
   const [state, submit, pending] = useActionState(saveSponsorAction, EMPTY);
+
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+    else if (state.saved) toast("Unterstützer gespeichert.");
+  }, [state]);
   const [months, setMonths] = useState<RuntimeMonths>(6);
   const [startsAt, setStartsAt] = useState(today);
 

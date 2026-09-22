@@ -4,6 +4,7 @@ import { useRef, useTransition } from "react";
 
 import { deleteSponsorAction } from "@/app/admin/(redaktion)/unterstuetzer/actions";
 import { PANEL_CLASS, PANEL_HEADING_CLASS, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 
 /**
  * The switch beside this one takes a sponsor off the page and keeps the record
@@ -44,6 +45,7 @@ export function DeleteSponsor({ sponsorId, name }: { sponsorId: string; name: st
                   carrier.set("sponsorId", sponsorId);
                   await deleteSponsorAction(carrier);
                   dialog.current?.close();
+                  toast(`${name} gelöscht.`);
                 })
               }
               className="inline-flex min-h-11 cursor-pointer items-center rounded-[10px] bg-ac2 px-[18px] text-[13.5px] font-bold text-s1 transition-opacity duration-200 ease-out hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0 md:py-[11px]"

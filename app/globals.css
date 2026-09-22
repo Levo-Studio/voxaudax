@@ -114,6 +114,37 @@ select:focus-visible {
 }
 
 /**
+ * The line under a notice, running out as its time does. `transform` rather
+ * than `width`, so it is composited and never lays the page out again; the
+ * duration comes from the component as a custom property, because a figure
+ * written twice is a figure that disagrees with itself.
+ */
+@keyframes vaToastLife {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.va-toast-life {
+  transform-origin: left;
+  animation: vaToastLife var(--toast-life) linear forwards;
+}
+
+/**
+ * A bar that measures time is animation and nothing else: flattened to a
+ * single frame it would sit there empty and say something false. A reader who
+ * asked for no motion gets no bar, and the notice still goes when it goes.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .va-toast-life {
+    display: none;
+  }
+}
+
+/**
  * The template's own entrance, `@keyframes vaIn`, at the template's own values.
  * The reduced-motion block below flattens it to a single frame, so a reader who
  * asked for no motion sees the finished state and never the offset.

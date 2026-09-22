@@ -1,14 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { Field, QUIET_BUTTON_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 import { changePasswordAction, type ChangePasswordState } from "@/app/admin/(redaktion)/konto/actions";
 
 const EMPTY: ChangePasswordState = { problem: null, done: false };
 
 export function ChangePasswordForm({ forced }: { forced: boolean }) {
   const [state, submit, pending] = useActionState(changePasswordAction, EMPTY);
+
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+    else if (state.done) toast("Passwort geändert. Andere Geräte sind abgemeldet.");
+  }, [state]);
 
   return (
     <form action={submit} className="flex flex-col gap-3 px-5 py-[18px]">

@@ -492,6 +492,48 @@ ohnehin nur eigene Artikel, dort sagte sie dasselbe zweimal. „Alle" setzt beid
 Filter zurück und leuchtet nur, wenn keiner gesetzt ist — zwei gleichzeitig
 aktive Pillen in einer Reihe lesen sich wie zwei Antworten auf eine Frage.
 
+### Meldungen oben rechts, mit ablaufendem Balken
+
+Nicht in der Vorlage: sie zeigt Erfolge als Zeile im Formular, wo sie nur sieht,
+wer ohnehin hinschaut.
+
+→ Ein Stapel rechts oben, wie man ihn kennt. Jede Meldung trägt einen Balken,
+der ihre Zeit abläuft — als `transform`, damit er nur zusammengesetzt und die
+Seite nie neu gelegt wird, und mit der Dauer als CSS-Eigenschaft aus dem
+Bauteil, weil eine zweimal geschriebene Zahl eine Zahl ist, die sich
+widerspricht. Wer keine Bewegung will, bekommt keinen Balken: flachgerechnet
+stünde er leer da und sagte etwas Falsches.
+
+→ Die Zustellung ist eine Liste von Zuhörern auf Modulebene, kein Kontext. Die
+Aufrufer sind verstreut — ein Knopf im Editor, ein Formular bei den
+Unterstützern, ein Dialog in der Nutzerliste — und keiner davon sollte sich
+eine Funktion durch fünf Bauteile reichen lassen müssen, nur um „gespeichert"
+zu sagen.
+
+→ Angeschlossen sind: Entwurf speichern, Veröffentlichen und Einreichen,
+Freigeben und Ablehnen, Slug ändern, Kategorie anlegen, Bild einfügen,
+Unterstützer speichern und löschen, Person entfernen, einladen, Passwort
+ändern, Sitzungen beenden.
+
+### Artikelfilter ohne „Anwenden"
+
+Die Vorlage setzt einen Knopf neben Suche und Sortierung.
+
+→ Beide wirken jetzt unmittelbar: die Suche 180 ms nach dem letzten Anschlag,
+die Sortierung beim Wählen. Der Knopf stand nur zwischen den beiden. Er bleibt
+als `sr-only`-Absender im Formular, damit die Liste ohne Skript weiter
+funktioniert und die Adresse in beiden Fällen der ganze Zustand bleibt.
+
+→ Suchfeld und Auswahl haben jetzt dieselbe feste Höhe. Sie trugen dieselbe
+Polsterung, aber zwei Schriftgrößen, und ein `select` bringt zusätzlich eine
+eigene Höhe mit.
+
+### Dialoge oben statt mittig
+
+Mittig auf einer langen Seite heißt irgendwo im Text. Die Frage „ungesicherte
+Änderungen" und der Slug-Dialog stehen jetzt am oberen Rand, wo der Blick
+ohnehin hinfällt.
+
 ### Knopf „Als Entwurf speichern"
 
 Nicht in der Vorlage: dort speichert nur die Autosave.

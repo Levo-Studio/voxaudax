@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { FIELD_CLASS, LABEL_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 import { Segmented } from "@/components/admin/segmented";
 import { inviteAction, type InviteState } from "@/app/admin/(redaktion)/nutzer/actions";
 import { LINK_LIFETIMES } from "@/lib/editorial/vocabulary";
@@ -14,6 +15,11 @@ const EMPTY: InviteState = { problem: null, link: null };
 
 export function InviteForm() {
   const [state, submit, pending] = useActionState(inviteAction, EMPTY);
+
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+    else if (state.link !== null) toast("Einladung angelegt. Der Link steht im Formular.");
+  }, [state]);
   const [role, setRole] = useState<Role>("autor");
   const [form, setForm] = useState<Form>("weiblich");
 

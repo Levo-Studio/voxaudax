@@ -9,6 +9,7 @@ import {
   type RemoveState,
 } from "@/app/admin/(redaktion)/nutzer/actions";
 import { LABEL_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 import { FORM_LABELS, ROLE_HINTS, roleLabel, type Form, type Role } from "@/lib/roles";
 
 const ROLES: readonly Role[] = ["autor", "redakteur", "admin"];
@@ -65,7 +66,9 @@ export function MemberRow({ member, children, rowClassName }: MemberRowProps) {
   // A refusal comes back from the server after the dialog has closed, so the
   // dialog is what closes on success and the row is what reports the refusal.
   useEffect(() => {
-    if (state.problem !== null) dialog.current?.close();
+    if (state.problem === null) return;
+    dialog.current?.close();
+    toast(state.problem, "problem");
   }, [state.problem]);
 
   return (
@@ -190,6 +193,7 @@ export function MemberRow({ member, children, rowClassName }: MemberRowProps) {
             <button
               type="submit"
               disabled={removing}
+              onClick={() => toast(`${member.name} wird entfernt …`)}
               className="inline-flex min-h-11 cursor-pointer items-center rounded-[10px] bg-ac2 px-[18px] text-[13.5px] font-bold text-s1 transition-opacity duration-200 ease-out hover:opacity-85 disabled:opacity-60 md:min-h-0 md:py-[11px]"
             >
               {removing ? "Wird entfernt …" : "Endgültig entfernen"}

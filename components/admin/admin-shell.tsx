@@ -1,3 +1,4 @@
+import { ToastHost } from "@/components/admin/toast";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -36,6 +37,7 @@ export async function AdminShell({
 
   return (
     <div className="min-h-dvh bg-s2 text-tx">
+      <ToastHost />
       <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-bd bg-s1 px-4 py-3.5 md:px-7">
         <Link href="/admin/artikel" className="flex items-baseline gap-[9px] no-underline">
           <span className="text-[17px] font-extrabold tracking-[-0.04em] text-ac">VOX AUDAX</span>

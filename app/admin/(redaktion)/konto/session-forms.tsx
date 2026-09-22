@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import {
   revokeOtherSessionsAction,
@@ -8,6 +8,7 @@ import {
   type RevokeState,
 } from "@/app/admin/(redaktion)/konto/actions";
 import { QUIET_BUTTON_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 
 /**
  * Ending a session can be refused — the library wants a session created inside
@@ -20,6 +21,10 @@ const PROBLEM_CLASS = "mt-1.5 block text-[11.5px] font-semibold text-ac2";
 
 export function EndSessionButton({ sessionId }: { sessionId: string }) {
   const [state, submit, pending] = useActionState(revokeSessionAction, NOTHING_REFUSED);
+
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+  }, [state]);
 
   return (
     <form action={submit}>
@@ -42,6 +47,10 @@ export function EndSessionButton({ sessionId }: { sessionId: string }) {
 
 export function EndOtherSessionsButton() {
   const [state, submit, pending] = useActionState(revokeOtherSessionsAction, NOTHING_REFUSED);
+
+  useEffect(() => {
+    if (state.problem !== null) toast(state.problem, "problem");
+  }, [state]);
 
   return (
     <form action={submit} className="px-5 py-3.5">

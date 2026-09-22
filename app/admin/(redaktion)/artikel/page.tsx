@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { COLUMN_HEADING_CLASS, FilterPill, PANEL_CLASS, PRIMARY_BUTTON_CLASS } from "@/components/admin/controls";
+import { ArticleFilter } from "@/app/admin/(redaktion)/artikel/article-filter";
 import { newArticleAction } from "@/app/admin/(redaktion)/artikel/actions";
 import { requireMember } from "@/lib/authorize";
 import {
@@ -123,34 +124,11 @@ export default async function ArticlesPage({
           ) : null}
         </div>
 
-        <form className="flex flex-wrap items-center gap-2 border-b border-bd px-4 py-3 md:px-[22px]">
-          {status === undefined ? null : <input type="hidden" name="status" value={status} />}
-          <input
-            type="search"
-            name="q"
-            defaultValue={query}
-            placeholder="Titel oder Teaser durchsuchen"
-            aria-label="Artikel durchsuchen"
-            className="min-w-0 flex-1 rounded-lg border border-bd bg-s2 px-[11px] py-[9px] font-control text-[13.5px] font-semibold text-tx outline-ac placeholder:text-tm"
-          />
-          <label className="flex items-center gap-2 text-[12.5px] font-semibold text-tm">
-            Sortieren
-            <select
-              name="sort"
-              defaultValue={sort}
-              className="rounded-lg border border-bd bg-s2 px-2.5 py-[9px] font-control text-[12.5px] font-semibold text-tx outline-ac"
-            >
-              {Object.entries(SORTS).map(([key, value]) => (
-                <option key={key} value={key}>
-                  {value.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit" className="cursor-pointer rounded-lg border border-bd bg-transparent px-3.5 py-[9px] font-control text-[12.5px] font-bold text-tx transition-colors duration-200 ease-out hover:border-ac">
-            Anwenden
-          </button>
-        </form>
+        <ArticleFilter
+          query={query}
+          sort={sort}
+          sorts={Object.entries(SORTS).map(([key, value]) => ({ key, label: value.label }))}
+        />
 
         <div className={`${ROW_GRID} hidden border-b border-bd px-[22px] py-[11px] md:grid`}>
           <span className={COLUMN_HEADING_CLASS}>Titel</span>

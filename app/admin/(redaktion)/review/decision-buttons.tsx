@@ -3,12 +3,20 @@
 import { useId, useState, useTransition } from "react";
 
 import { DISABLED_CLASS } from "@/components/admin/controls";
+import { toast } from "@/components/admin/toast";
 
 const REFUSALS: Record<string, string> = {
   own_submission: "Die eigene Einreichung gibt niemand frei.",
   alt_text_missing: "Ohne Alt-Text ist die Freigabe gesperrt.",
   reason_missing: "Ohne Begründung wird nichts abgelehnt.",
   unknown: "Diese Einreichung wartet nicht mehr.",
+};
+
+/** What each decision did, in the words the person would use for it. */
+const DECIDED: Record<string, string> = {
+  approved: "Freigegeben und veröffentlicht.",
+  returned: "Zurückgegeben. Die Begründung steht beim Artikel.",
+  rejected: "Abgelehnt. Die Begründung steht beim Eintrag.",
 };
 
 /**
@@ -46,8 +54,16 @@ export function DecisionButtons({
   const run = (action: () => Promise<{ outcome: string }>) =>
     startTransition(async () => {
       const { outcome } = await action();
-      setRefusal(REFUSALS[outcome] ?? null);
-      if (REFUSALS[outcome] === undefined) setReason(null);
+      const refused = REFUSALS[outcome];
+      setRefusal(refused ?? null);
+
+      if (refused !== undefined) {
+        toast(refused, "problem");
+        return;
+      }
+
+      setReason(null);
+      toast(DECIDED[outcome] ?? "Entschieden.");
     });
 
   return (

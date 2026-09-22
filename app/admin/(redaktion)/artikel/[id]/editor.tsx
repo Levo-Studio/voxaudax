@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { ArticleBody } from "@/components/article-body";
 import { ArticleCover } from "@/components/article-cover";
 import { BlockEditor } from "@/components/admin/block-editor";
+import { toast } from "@/components/admin/toast";
 import { RejectionNote } from "@/components/admin/rejection-note";
 import {
   Avatar,
@@ -241,9 +242,11 @@ export function Editor({
       const answer = await uploadBodyImageAction(article.id, carrier);
       if (!answer.ok) {
         setDropProblem(answer.problem);
+        toast(answer.problem, "problem");
         return;
       }
       place(`/bild/${answer.imageId}`);
+      toast("Bild eingefügt. Alt-Text nicht vergessen.");
     });
   };
 
@@ -283,6 +286,7 @@ export function Editor({
           : [...known, answer.category!],
       );
       touch(setCategoryId)(answer.category.id);
+      toast(`Kategorie „${answer.category.name}" angelegt und gewählt.`);
     });
   };
 
@@ -314,7 +318,10 @@ export function Editor({
 
     startTransition(async () => {
       const answer = await renameSlugAction(article.id, wanted);
-      if (answer.slug !== null) setSlug(answer.slug);
+      if (answer.slug !== null) {
+        setSlug(answer.slug);
+        toast(`Die Adresse lautet jetzt /artikel/${answer.slug}`);
+      }
       setSlugDraft(null);
     });
   };
@@ -341,9 +348,13 @@ export function Editor({
         publishAt,
       });
 
-      if (answer.savedAt === null) return;
+      if (answer.savedAt === null) {
+        toast("Der Entwurf ließ sich nicht speichern.", "problem");
+        return;
+      }
       setSavedAt(new Date(answer.savedAt));
       setUnsaved(false);
+      toast("Als Entwurf gespeichert.");
     });
 
   const submit = () =>
@@ -352,12 +363,19 @@ export function Editor({
 
       if (outcome === "alt_text_missing") {
         setSubmitProblem("Ein Bild ohne Alt-Text lässt sich nicht veröffentlichen.");
+        toast("Ein Bild ohne Alt-Text lässt sich nicht veröffentlichen.", "problem");
         return;
       }
 
       setSubmitProblem(null);
-      if (outcome === "published") setStatus("published");
-      if (outcome === "submitted") setStatus("review");
+      if (outcome === "published") {
+        setStatus("published");
+        toast("Der Artikel ist veröffentlicht.");
+      }
+      if (outcome === "submitted") {
+        setStatus("review");
+        toast("Der Artikel wartet jetzt auf die Freigabe.");
+      }
     });
 
 
@@ -446,12 +464,15 @@ export function Editor({
             role="dialog"
             aria-modal="true"
             aria-label="Seite verlassen"
-            className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-5"
+            // Oben und nicht mittig: mittig auf einer langen Seite heißt
+            // irgendwo im Text, und die Frage gehört an den Rand des Blicks,
+            // nicht zwischen zwei Absätze.
+            className="fixed inset-0 z-50 flex justify-center bg-black/40 px-5 pt-6 md:pt-10"
             onClick={(event) => {
               if (event.target === event.currentTarget) setLeavingTo(null);
             }}
           >
-            <div className={`${PANEL_CLASS} va-in w-full max-w-[420px]`}>
+            <div className={`${PANEL_CLASS} va-in h-fit w-full max-w-[420px]`}>
               <div className={PANEL_HEADING_CLASS}>Ungesicherte Änderungen</div>
               <div className="flex flex-col gap-3 p-5">
                 <p className="m-0 text-[13.5px] leading-[1.55] font-medium text-tm">
@@ -491,12 +512,12 @@ export function Editor({
             role="dialog"
             aria-modal="true"
             aria-label="Slug ändern"
-            className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-5"
+            className="fixed inset-0 z-50 flex justify-center bg-black/40 px-5 pt-6 md:pt-10"
             onClick={(event) => {
               if (event.target === event.currentTarget) setSlugDraft(null);
             }}
           >
-            <div className={`${PANEL_CLASS} va-in w-full max-w-[420px]`}>
+            <div className={`${PANEL_CLASS} va-in h-fit w-full max-w-[420px]`}>
               <div className={PANEL_HEADING_CLASS}>Adresse des Artikels</div>
               <div className="flex flex-col gap-3 p-5">
                 <label className={LABEL_CLASS} htmlFor="slug-draft">
