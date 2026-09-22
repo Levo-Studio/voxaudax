@@ -272,6 +272,8 @@ export function Editor({
       if (answer.submitted) setStatus("review");
     });
 
+  const [dragOverCover, setDragOverCover] = useState(false);
+
   const upload = (file: File) => {
     setUploadProblem(null);
     const form = new FormData();
@@ -615,16 +617,34 @@ export function Editor({
               </label>
             </div>
 
+            {/* The whole panel takes the drop, not the dashed rectangle inside
+                it: a file let go a few pixels outside that rectangle was a file
+                the browser opened instead, which looks exactly like a drop zone
+                that does not work. */}
             <div
-              className="px-[18px] pt-4 pb-[18px]"
-              onDragOver={(event) => event.preventDefault()}
+              className={`px-[18px] pt-4 pb-[18px] transition-colors duration-200 ease-out ${
+                dragOverCover ? "bg-s2" : ""
+              }`}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragOverCover(true);
+              }}
+              onDragLeave={(event) => {
+                if (event.currentTarget.contains(event.relatedTarget as Node)) return;
+                setDragOverCover(false);
+              }}
               onDrop={(event) => {
                 event.preventDefault();
+                setDragOverCover(false);
                 const file = event.dataTransfer.files[0];
                 if (file !== undefined) upload(file);
               }}
             >
-              <label className="block cursor-pointer rounded-[10px] border-[1.5px] border-dashed border-bd p-3.5 text-center text-[12.5px] font-semibold text-tm">
+              <label
+                className={`block cursor-pointer rounded-[10px] border-[1.5px] border-dashed p-3.5 text-center text-[12.5px] font-semibold transition-colors duration-200 ease-out ${
+                  dragOverCover ? "border-ac text-ac" : "border-bd text-tm"
+                }`}
+              >
                 Eigenes Bild hierher ziehen
                 <span className="mt-1 block text-[11.5px] font-medium">
                   JPG, PNG, WebP · max 8 MB · ersetzt das Cover
