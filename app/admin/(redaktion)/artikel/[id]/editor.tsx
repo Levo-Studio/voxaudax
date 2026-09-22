@@ -1,6 +1,8 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { ArticleBody } from "@/components/article-body";
@@ -127,10 +129,26 @@ export function Editor({
   const wordCount = countWords(document_);
   const dirty = useRef(false);
 
+  /**
+   * Whether anything typed has not reached the server yet. `dirty` above says
+   * "has ever been edited" and stays true for the session, which is right for
+   * the autosave and wrong for a question about leaving — nobody wants to be
+   * asked about work that is already saved.
+   */
+  const [unsaved, setUnsaved] = useState(false);
+  const edits = useRef(0);
+  const [leavingTo, setLeavingTo] = useState<string | null>(null);
+  const router = useRouter();
+
   useEffect(() => {
     if (!dirty.current) return;
 
     const handle = window.setTimeout(() => {
+      // What the document stood at when this save was sent. Anything typed
+      // while it is in flight moves the count, and then the answer does not
+      // describe what is on screen any more.
+      const sentAt = edits.current;
+
       startTransition(async () => {
         const answer = await autosaveAction(article.id, {
           title,
@@ -143,7 +161,9 @@ export function Editor({
           categoryId,
           publishAt,
         });
-        if (answer.savedAt !== null) setSavedAt(new Date(answer.savedAt));
+        if (answer.savedAt === null) return;
+        setSavedAt(new Date(answer.savedAt));
+        if (edits.current === sentAt) setUnsaved(false);
       });
     }, AUTOSAVE_DELAY_MS);
 
@@ -152,8 +172,49 @@ export function Editor({
 
   const touch = <T,>(set: (value: T) => void) => (value: T) => {
     dirty.current = true;
+    edits.current += 1;
+    setUnsaved(true);
     set(value);
   };
+
+  /**
+   * Closing the tab, reloading, or following a link out of the application:
+   * only the browser can hold those, and only with its own wording.
+   */
+  useEffect(() => {
+    if (!unsaved) return;
+
+    const hold = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", hold);
+    return () => window.removeEventListener("beforeunload", hold);
+  }, [unsaved]);
+
+  /**
+   * A link inside the application never reaches `beforeunload`, because the
+   * page is not unloaded — so the click is caught first and answered in the
+   * page's own dialog, which can say what is at stake.
+   */
+  useEffect(() => {
+    if (!unsaved) return;
+
+    const intercept = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const anchor = (event.target as Element | null)?.closest?.("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.target === "_blank") return;
+
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin) return;
+      if (destination.pathname === window.location.pathname) return;
+
+      event.preventDefault();
+      setLeavingTo(destination.pathname + destination.search);
+    };
+
+    document.addEventListener("click", intercept, true);
+    return () => document.removeEventListener("click", intercept, true);
+  }, [unsaved]);
 
   const toMarkdown = () => setMarkdown(documentToMarkdown(blocksToDocument(blocks, htmlToInline)));
 
@@ -264,7 +325,11 @@ export function Editor({
 
 
   const colour = coverColorById(cover.colorId);
-  const savedLabel = savedAt === null ? "Autosave aktiv" : `Autosave · ${CLOCK.format(savedAt)}`;
+  const savedLabel = unsaved
+    ? "Nicht gesichert"
+    : savedAt === null
+      ? "Autosave aktiv"
+      : `Autosave · ${CLOCK.format(savedAt)}`;
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_340px]">
@@ -273,7 +338,7 @@ export function Editor({
           <Link href="/admin/artikel" className="text-tm no-underline transition-colors duration-200 ease-out hover:text-tx">
             ← Artikel
           </Link>
-          <span className="text-tm">{savedLabel}</span>
+          <span className={unsaved ? "font-bold text-ac2" : "text-tm"}>{savedLabel}</span>
           <span className="rounded-full border border-bd bg-s2 px-2.5 py-[5px] text-tm">
             {STATUS_LABELS[status]}
           </span>
@@ -318,6 +383,51 @@ export function Editor({
             </button>
           </div>
         </div>
+
+        {leavingTo === null ? null : (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Seite verlassen"
+            className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-5"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setLeavingTo(null);
+            }}
+          >
+            <div className={`${PANEL_CLASS} va-in w-full max-w-[420px]`}>
+              <div className={PANEL_HEADING_CLASS}>Ungesicherte Änderungen</div>
+              <div className="flex flex-col gap-3 p-5">
+                <p className="m-0 text-[13.5px] leading-[1.55] font-medium text-tm">
+                  An diesem Artikel ist etwas geschrieben, das noch nicht beim
+                  Server angekommen ist. Wer jetzt geht, verliert es.
+                </p>
+                <div className="mt-1 flex flex-wrap gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setLeavingTo(null)}
+                    className={PRIMARY_BUTTON_CLASS}
+                  >
+                    Hierbleiben
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const destination = leavingTo;
+                      setUnsaved(false);
+                      setLeavingTo(null);
+                      // After the state that holds the interceptor is gone, so
+                      // the navigation is not caught a second time.
+                      window.requestAnimationFrame(() => router.push(destination as Route));
+                    }}
+                    className={QUIET_BUTTON_CLASS}
+                  >
+                    Verwerfen und gehen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {slugDraft === null ? null : (
           <div

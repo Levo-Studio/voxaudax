@@ -350,6 +350,23 @@ keines von beidem uneinig sein können; ein schon vergebener Name liefert die
 vorhandene Zeile zurück statt einer zweiten daneben. Auf der Startseite taucht
 sie auf, sobald der erste Artikel darin veröffentlicht ist.
 
+### Frage beim Verlassen des Editors
+
+Nicht in der Vorlage. Der Editor sichert von selbst, aber zwischen dem letzten
+Anschlag und dem Speichern liegt eine Lücke, und wer in dieser Lücke geht,
+verliert das Getippte.
+
+→ Zwei Wege, weil es zwei Arten des Weggehens gibt. Tab schließen, neu laden
+oder die Anwendung verlassen kann nur der Browser halten, mit seinem eigenen
+Wortlaut (`beforeunload`). Ein Link innerhalb des Backoffices lädt die Seite
+gar nicht neu und erreicht das nie — der Klick wird deshalb vorher abgefangen
+und im Dialog der Seite beantwortet.
+
+→ Gefragt wird nur, wenn wirklich etwas offen ist. Dafür zählt der Editor die
+Änderungen und merkt sich den Stand, mit dem eine Sicherung losgeschickt wurde:
+kommt sie zurück und hat sich der Zähler nicht bewegt, ist alles gesichert.
+Sonst hätte die Frage auch dann gestanden, wenn längst alles beim Server war.
+
 ### „- " am Zeilenanfang macht eine Aufzählung
 
 Die Vorlage zeigt einen Knopf „Liste" in der Werkzeugleiste.
