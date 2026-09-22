@@ -12,6 +12,28 @@ export const metadata = { title: "Unterstützer · Vox Audax Redaktion" };
 
 const DATE = new Intl.DateTimeFormat("de-DE");
 
+/**
+ * What the reader of this page actually wants to know: is this one on the
+ * website right now, and if not, why not.
+ *
+ * The switch beside it answers only one of the four conditions. With all four
+ * switches on and three sponsors on the home page, the row has to say which
+ * one it is — otherwise the page looks as if it were lying.
+ */
+const onTheSite = (sponsor: {
+  readonly active: boolean;
+  readonly status: string;
+  readonly startsAt: Date;
+  readonly endsAt: Date;
+}) => {
+  if (sponsor.status === "review") return { live: false, why: "wartet auf Freigabe" };
+  if (sponsor.status === "abgelehnt") return { live: false, why: "abgelehnt" };
+  if (!sponsor.active) return { live: false, why: "ausgeblendet" };
+  if (sponsor.endsAt <= new Date()) return { live: false, why: "Zeitraum abgelaufen" };
+  if (sponsor.startsAt > new Date()) return { live: false, why: "Zeitraum beginnt später" };
+  return { live: true, why: "auf der Startseite" };
+};
+
 const remaining = (endsAt: Date) => {
   const days = Math.round((endsAt.getTime() - Date.now()) / 86400000);
   if (days <= 0) return "abgelaufen";
@@ -69,12 +91,25 @@ export default async function SponsorsPage() {
                   <span className="block text-[14.5px] font-bold tracking-[-0.02em]">{sponsor.name}</span>
                   <span className="block text-[11.5px] font-semibold text-tm">
                     {sponsor.url ?? "ohne Link"}
-                    {sponsor.status === "review"
-                      ? " · wartet auf Freigabe"
-                      : sponsor.status === "abgelehnt"
-                        ? " · abgelehnt"
-                        : ""}
                   </span>
+                  {(() => {
+                    const state = onTheSite(sponsor);
+                    return (
+                      <span
+                        className={`mt-1 flex items-center gap-1.5 text-[11.5px] font-bold ${
+                          state.live ? "text-ac" : "text-tm"
+                        }`}
+                      >
+                        <span
+                          aria-hidden
+                          className={`h-[7px] w-[7px] flex-none rounded-full ${
+                            state.live ? "bg-ac" : "bg-bd"
+                          }`}
+                        />
+                        {state.why}
+                      </span>
+                    );
+                  })()}
                   <RejectionNote reason={sponsor.rejectionReason} />
                 </span>
               </span>

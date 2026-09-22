@@ -497,6 +497,20 @@ Eine Regel, deren einzige Wirkung ein Stillstand ist, schützt niemanden.
 Gemessen in beide Richtungen: allein — freigegeben; mit einem zweiten Konto —
 `own_submission`.
 
+### Jede Unterstützer-Zeile sagt, ob sie auf der Seite steht
+
+Ob ein Eintrag öffentlich erscheint, hängt an vier Bedingungen: freigegeben,
+aktiv, Zeitraum begonnen, Zeitraum nicht abgelaufen. Der Schalter beantwortet
+davon eine. Mit vier Schaltern auf „an" und drei Unterstützern auf der
+Startseite sah die Seite aus, als würde sie lügen — der Hinweis „wartet auf
+Freigabe" stand klein und grau hinter der Adresse.
+
+→ Unter jedem Namen steht jetzt eine Zeile mit Punkt: „auf der Startseite" in
+der Akzentfarbe, sonst der Grund in Grau — wartet auf Freigabe, abgelehnt,
+ausgeblendet, Zeitraum abgelaufen, Zeitraum beginnt später. Die Zahl oben
+(„3 von 4 aktiv") zählte schon immer die, die wirklich erscheinen; jetzt kann
+man sie auch Zeile für Zeile nachvollziehen.
+
 ### Unterstützer lassen sich wirklich löschen
 
 Die Vorlage kennt auf 6a nur den Schalter, der einen Eintrag von der Seite
