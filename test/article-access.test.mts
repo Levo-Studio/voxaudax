@@ -88,8 +88,12 @@ describe("an author cannot reach another author's draft by URL", () => {
         slug: `test-fremder-entwurf-${crypto.randomUUID()}`,
         title: "Fremder Entwurf",
         teaser: "Gehört Emil und niemandem sonst.",
-        body: { type: "doc", content: [{ type: "paragraph", content: [] }] },
-        cover: { word: "TEST", line: "", colorId: "violett", imageId },
+        // The picture stands in the body: a cover is generated and holds none.
+        body: {
+          type: "doc",
+          content: [{ type: "image", attrs: { src: `/bild/${imageId}`, alt: "" } }],
+        },
+        cover: { word: "TEST", line: "", colorId: "violett" },
         categoryId: category!.id,
         authorId: owner.id,
         status: "draft",
@@ -192,8 +196,12 @@ describe("the two rules the review screen states", () => {
         slug: `test-eingereicht-${crypto.randomUUID()}`,
         title: "Eingereicht von Mira",
         teaser: "Wartet auf eine Freigabe.",
-        body: { type: "doc", content: [{ type: "paragraph", content: [] }] },
-        cover: { word: "TEST", line: "", colorId: "violett", imageId },
+        // The picture stands in the body: a cover is generated and holds none.
+        body: {
+          type: "doc",
+          content: [{ type: "image", attrs: { src: `/bild/${imageId}`, alt: "" } }],
+        },
+        cover: { word: "TEST", line: "", colorId: "violett" },
         categoryId: category!.id,
         authorId: owner.id,
         status: "review",
@@ -213,17 +221,29 @@ describe("the two rules the review screen states", () => {
     assert.equal(await approveArticle(owner, draftId), "own_submission");
   });
 
-  it("blocks somebody else's approval while the cover has no alt text", async () => {
+  it("blocks somebody else's approval while a picture has no alt text", async () => {
     assert.equal(await approveArticle(editor, draftId), "alt_text_missing");
   });
 
   it("reports the missing alt text the way the screen draws it", async () => {
     const article = await articleForEditor(editor, draftId);
-    assert.equal(await missingAltText({ cover: article!.cover, body: article!.body }), true);
+    assert.equal(missingAltText({ body: article!.body }), true);
   });
 
   it("approves once the alt text is there", async () => {
-    await db.update(images).set({ alt: "Ein Testbild" }).where(eq(images.id, imageId));
+    // A picture in the body carries its description in the document node, not
+    // in the images row: that column belongs to memes and sponsor logos.
+    await db
+      .update(articles)
+      .set({
+        body: {
+          type: "doc",
+          content: [
+            { type: "image", attrs: { src: `/bild/${imageId}`, alt: "Ein Testbild" } },
+          ],
+        },
+      })
+      .where(eq(articles.id, draftId));
 
     assert.equal(await approveArticle(editor, draftId), "approved");
 

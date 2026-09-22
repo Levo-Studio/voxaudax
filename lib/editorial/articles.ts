@@ -4,7 +4,7 @@ import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { Member } from "@/lib/authorize";
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
-import { articles, categories, images, slugHistory, users } from "@/lib/db/schema";
+import { articles, categories, slugHistory, users } from "@/lib/db/schema";
 import { may } from "@/lib/roles";
 import { freeSlug, slugify } from "@/lib/slug";
 import { countWords } from "@/lib/word-count";
@@ -151,17 +151,6 @@ export const mayReachArticle = async (member: Member, articleId: string) => {
   return row !== undefined;
 };
 
-export const coverImageOf = async (cover: ArticleCover) => {
-  if (cover.imageId === undefined) return null;
-
-  const [image] = await db
-    .select({ id: images.id, alt: images.alt, width: images.width, height: images.height })
-    .from(images)
-    .where(eq(images.id, cover.imageId));
-
-  return image ?? null;
-};
-
 const bodyImagesMissingAlt = (body: TipTapDocument) => {
   const missing = (node: { type: string; attrs?: Readonly<Record<string, unknown>>; content?: readonly unknown[] }): boolean => {
     if (node.type === "image") {
@@ -180,18 +169,12 @@ const bodyImagesMissingAlt = (body: TipTapDocument) => {
  * Screen 11a shows the "Freigeben" button disabled beside "Alt-Text fehlt".
  * This is what disables it, and the approval action asks the same question
  * again before it writes — the button is the report, not the rule.
+ *
+ * Only the pictures in the body are asked about: covers are generated from the
+ * title and the palette and carry no photograph any more.
  */
-export const missingAltText = async (input: {
-  readonly cover: ArticleCover;
-  readonly body: TipTapDocument;
-}) => {
-  if (bodyImagesMissingAlt(input.body)) return true;
-
-  const image = await coverImageOf(input.cover);
-  if (image === null) return false;
-
-  return image.alt === null || image.alt.trim().length === 0;
-};
+export const missingAltText = (input: { readonly body: TipTapDocument }) =>
+  bodyImagesMissingAlt(input.body);
 
 const takenSlugs = async () => {
   const [current, historic] = await Promise.all([

@@ -276,6 +276,29 @@ Die Produktion läuft über https und behält beides: der Präfix bindet das Coo
 an genau diesen Host und Pfad und ist dort mehr wert als die Bequemlichkeit
 hier. Gegengeprüft in WebKit, Anmeldung und zehn Navigationen.
 
+### Kein eigenes Titelbild mehr
+
+Die Vorlage sieht auf 3b ein eigenes Foto als Cover vor, das den erzeugten
+Entwurf ersetzt.
+
+→ Auf Ansage entfernt. Cover sind immer erzeugt: Farbe, Wort, Zeile, Karo. Es
+war zum Zeitpunkt der Entfernung kein Artikel betroffen — kein einziger nutzte
+ein eigenes Titelbild —, also ändert sich nichts Sichtbares. Mit weg sind der
+Upload, das Alt-Textfeld des Covers, `cover.imageId` und die Cover-Hälfte der
+Freigaberegel.
+
+→ **Dabei kam ein Fehler ans Licht, der vorher unbemerkt war:** `imageAccess`
+entschied die öffentliche Sichtbarkeit allein über `cover->>'imageId'`. Bilder
+im Fließtext waren dort nicht vorgesehen und wären auf der öffentlichen Seite
+nicht erreichbar gewesen. Die Regel fragt jetzt den Bildknoten im Dokument ab —
+gezielt nach `type = 'image'` und dem genauen `src`, nicht als Textsuche, weil
+eine im Absatz zufällig auftauchende Kennung sonst einen falschen Eigentümer
+bestimmt hätte.
+
+→ Der Alt-Text eines Bildes im Text steht im Dokumentknoten, nicht in der
+Spalte `images.alt`. Diese Spalte gehört jetzt allein den Memes und den
+Sponsorenlogos.
+
 ### Bilder im Text werden abgelegt, nicht adressiert
 
 Die Vorlage zeigt für ein Bild im Fließtext ein Feld für die Adresse. Woher die
@@ -283,8 +306,8 @@ Adresse kommt, sagt sie nicht — und von Hand eintippen kann sie niemand, weil
 nichts im Bucket öffentlich ist.
 
 → Beide Editoren nehmen eine Datei per Drag-and-drop oder Einfügen an, laden sie
-über dieselbe Prüfung wie das Cover (JPG, PNG, WebP, höchstens 8 MB, und die
-Maße müssen wirklich lesbar sein) und setzen die Adresse selbst. Der Knopf
+über dieselbe Prüfung wie früher das Cover (JPG, PNG, WebP, höchstens 8 MB, und
+die Maße müssen wirklich lesbar sein) und setzen die Adresse selbst. Der Knopf
 „Bild" in der Werkzeugleiste entfällt.
 
 → Im Markdown-Feld bleibt es Text — `![](/bild/…)`, an der Cursorstelle —, und

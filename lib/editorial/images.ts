@@ -12,16 +12,16 @@ import { mayReachArticle } from "@/lib/editorial/articles";
  * bucket, the access rule.
  *
  * The rule cannot be "is anybody signed in". An image is part of something: a
- * meme, an article's cover, a sponsor's logo. What may see the image is what
- * may see the thing it belongs to, so the owner is resolved first and the
- * answer follows from it.
+ * meme, a picture inside an article, a sponsor's logo. What may see the image
+ * is what may see the thing it belongs to, so the owner is resolved first and
+ * the answer follows from it.
  */
 export type ImageAccess = {
   readonly key: string;
   readonly mime: string;
   /** Published meme, published article, published sponsor: the public site shows these. */
   readonly publiclyVisible: boolean;
-  /** Set when the image is an article's cover, and null for anything else. */
+  /** Set when the image stands in an article, and null for anything else. */
   readonly articleId: string | null;
 };
 
@@ -38,7 +38,19 @@ export const imageAccess = async (imageId: string): Promise<ImageAccess | null> 
     })
     .from(images)
     .leftJoin(memes, eq(memes.imageId, images.id))
-    .leftJoin(articles, sql`${articles.cover}->>'imageId' = ${images.id}::text`)
+    // Covers are generated and hold no picture any more, so the body is the
+    // only place an article names one. The image node is asked for by name
+    // rather than searched for as text: an id that happened to appear inside a
+    // paragraph would otherwise make that article the picture's owner.
+    .leftJoin(
+      articles,
+      sql`exists (
+        select 1
+        from jsonb_array_elements(${articles.body} -> 'content') as node
+        where node ->> 'type' = 'image'
+          and node -> 'attrs' ->> 'src' = '/bild/' || ${images.id}::text
+      )`,
+    )
     .leftJoin(sponsors, eq(sponsors.logoImageId, images.id))
     .where(eq(images.id, imageId));
 
@@ -57,8 +69,8 @@ export const imageAccess = async (imageId: string): Promise<ImageAccess | null> 
 
 /**
  * A member is only asked for where the image is not public, which is why the
- * caller may hand over `null` for one: a published cover is served to a reader
- * who has no session at all.
+ * caller may hand over `null` for one: a picture in a published article is
+ * served to a reader who has no session at all.
  */
 export const mayReadImage = async (access: ImageAccess, member: Member | null) => {
   if (access.publiclyVisible) return true;

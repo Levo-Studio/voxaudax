@@ -18,14 +18,11 @@ import {
 import { Segmented } from "@/components/admin/segmented";
 import {
   autosaveAction,
-  clearCoverImageAction,
   createCategoryAction,
   checkSlugAction,
   renameSlugAction,
-  setCoverAltAction,
   submitAction,
   uploadBodyImageAction,
-  uploadCoverAction,
 } from "@/app/admin/(redaktion)/artikel/[id]/actions";
 import type { ArticleCover as CoverValue, TipTapDocument } from "@/lib/content";
 import { COVER_COLORS, coverColorById, type CoverColorId } from "@/lib/cover";
@@ -73,14 +70,10 @@ const CLOCK = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-dig
 export function Editor({
   article,
   categories,
-  coverImageAlt,
-  hasCoverImage,
   canPublish,
 }: {
   article: EditorArticle;
   categories: readonly Category[];
-  coverImageAlt: string;
-  hasCoverImage: boolean;
   canPublish: boolean;
 }) {
   const [title, setTitle] = useState(article.title);
@@ -108,9 +101,6 @@ export function Editor({
   const [tab, setTab] = useState<"cover" | "meta" | "publish">("cover");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [status, setStatus] = useState(article.status);
-  const [alt, setAlt] = useState(coverImageAlt);
-  const [coverImage, setCoverImage] = useState(hasCoverImage);
-  const [uploadProblem, setUploadProblem] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
 
   /**
@@ -272,22 +262,6 @@ export function Editor({
       if (answer.submitted) setStatus("review");
     });
 
-  const [dragOverCover, setDragOverCover] = useState(false);
-
-  const upload = (file: File) => {
-    setUploadProblem(null);
-    const form = new FormData();
-    form.set("image", file);
-    startTransition(async () => {
-      const answer = await uploadCoverAction(article.id, form);
-      if (answer.ok) {
-        setCoverImage(true);
-        setAlt("");
-      } else {
-        setUploadProblem(answer.problem);
-      }
-    });
-  };
 
   const colour = coverColorById(cover.colorId);
   const savedLabel = savedAt === null ? "Autosave aktiv" : `Autosave · ${CLOCK.format(savedAt)}`;
@@ -522,7 +496,7 @@ export function Editor({
                     against the window and this box is 300px wide. */}
                 <span className={LABEL_CLASS}>Vorschau · Artikelkopf</span>
                 <span className="text-[11.5px] font-semibold text-tm">
-                  {coverImage ? "eigenes Bild" : `generiert · ${colour.name}`}
+                  {`generiert · ${colour.name}`}
                 </span>
               </div>
               <div className="mt-3 overflow-hidden rounded-[10px]">
@@ -583,11 +557,9 @@ export function Editor({
                   Karo im Hintergrund
                 </label>
                 <span className="mt-1 block text-[11.5px] font-medium text-tm">
-                  {coverImage
-                    ? "Ein eigenes Bild hat kein Karo."
-                    : cover.grid === false
-                      ? "Aus — glatte Fläche."
-                      : "An — wie in der Vorlage."}
+                  {cover.grid === false
+                    ? "Aus — glatte Fläche."
+                    : "An — wie in der Vorlage."}
                 </span>
               </span>
               <label className="inline-flex min-h-11 cursor-pointer items-center">
@@ -595,7 +567,6 @@ export function Editor({
                   id="cover-grid"
                   type="checkbox"
                   checked={cover.grid !== false}
-                  disabled={coverImage}
                   onChange={(event) =>
                     touch(setCover)({ ...cover, grid: event.target.checked })
                   }
@@ -610,91 +581,13 @@ export function Editor({
                     cover.grid === false
                       ? "justify-start border border-bd bg-s2"
                       : "justify-end border border-transparent bg-ac"
-                  } ${coverImage ? "opacity-45" : ""}`}
+                  }`}
                 >
                   <span className="size-[18px] rounded-full bg-s1 shadow-sm" />
                 </span>
               </label>
             </div>
 
-            {/* The whole panel takes the drop, not the dashed rectangle inside
-                it: a file let go a few pixels outside that rectangle was a file
-                the browser opened instead, which looks exactly like a drop zone
-                that does not work. */}
-            <div
-              className={`px-[18px] pt-4 pb-[18px] transition-colors duration-200 ease-out ${
-                dragOverCover ? "bg-s2" : ""
-              }`}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setDragOverCover(true);
-              }}
-              onDragLeave={(event) => {
-                if (event.currentTarget.contains(event.relatedTarget as Node)) return;
-                setDragOverCover(false);
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                setDragOverCover(false);
-                const file = event.dataTransfer.files[0];
-                if (file !== undefined) upload(file);
-              }}
-            >
-              <label
-                className={`block cursor-pointer rounded-[10px] border-[1.5px] border-dashed p-3.5 text-center text-[12.5px] font-semibold transition-colors duration-200 ease-out ${
-                  dragOverCover ? "border-ac text-ac" : "border-bd text-tm"
-                }`}
-              >
-                Eigenes Bild hierher ziehen
-                <span className="mt-1 block text-[11.5px] font-medium">
-                  JPG, PNG, WebP · max 8 MB · ersetzt das Cover
-                </span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file !== undefined) upload(file);
-                  }}
-                />
-              </label>
-
-              {uploadProblem === null ? null : (
-                <p role="alert" className="mt-2 text-[11.5px] font-semibold text-ac2">{uploadProblem}</p>
-              )}
-
-              {coverImage ? (
-                <>
-                  <label className={`${LABEL_CLASS} mt-3 mb-1.5 text-ac2`} htmlFor="cover-alt">
-                    Alt-Text · Pflichtfeld bei eigenem Bild
-                  </label>
-                  <input
-                    id="cover-alt"
-                    value={alt}
-                    onChange={(event) => setAlt(event.target.value)}
-                    onBlur={() => startTransition(async () => {
-                      await setCoverAltAction(article.id, alt);
-                    })}
-                    className={alt.trim().length === 0 ? `${FIELD_CLASS} border-ac2` : FIELD_CLASS}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => startTransition(async () => {
-                      await clearCoverImageAction(article.id);
-                      setCoverImage(false);
-                    })}
-                    className={`${QUIET_BUTTON_CLASS} mt-2 w-full py-2 text-[12.5px]`}
-                  >
-                    Bild entfernen, Cover wieder generieren
-                  </button>
-                </>
-              ) : (
-                <p className="mt-3 text-[11.5px] font-bold text-tm">
-                  Alt-Text · Pflichtfeld bei eigenem Bild
-                </p>
-              )}
-            </div>
           </div>
         ) : null}
 

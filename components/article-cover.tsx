@@ -3,8 +3,6 @@ import {
   resolveCoverColor,
   type CoverColorId,
 } from "@/lib/cover";
-import type { CoverPhotograph } from "@/lib/queries";
-import { imageHref } from "@/lib/routes";
 
 export type ArticleCoverVariant =
   | "hero"
@@ -135,12 +133,6 @@ type ArticleCoverProps = {
   word: string;
   line?: string;
   variant: ArticleCoverVariant;
-  /**
-   * The editor's own photograph. It replaces the whole generated cover rather
-   * than sitting behind it: the two lines of type are chosen for a flat panel
-   * and are not legible over a picture.
-   */
-  image?: CoverPhotograph | null;
 };
 
 export function ArticleCover({
@@ -151,28 +143,10 @@ export function ArticleCover({
   word,
   line,
   variant,
-  image,
 }: ArticleCoverProps) {
   const color = resolveCoverColor(title, colorId);
   const styles = VARIANTS[variant];
   const showLine = line !== undefined && line.length > 0 && !styles.eyebrowInFlow;
-
-  if (image != null) {
-    return (
-      <div className={`relative overflow-hidden bg-s2 ${styles.panel}`}>
-        {/* Not next/image: the bytes come from this application's own route,
-            and an optimiser in front of it would only add a second copy. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageHref(image.id)}
-          alt={image.alt}
-          width={image.width}
-          height={image.height}
-          className="absolute inset-0 size-full object-cover"
-        />
-      </div>
-    );
-  }
 
   return (
     <div

@@ -130,7 +130,6 @@ export default async function HomePage() {
                 eyebrow="Titelthema"
                 word={lead.cover.word}
                 line={lead.cover.line}
-                image={lead.coverImage}
               />
             </Link>
           </article>

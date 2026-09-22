@@ -148,9 +148,9 @@ const REQUIRED_GATE: Readonly<Record<string, Gate>> = {
   "(redaktion)/artikel/[id]/actions.ts#autosaveAction": "writeOwnArticles",
   "(redaktion)/artikel/[id]/actions.ts#renameSlugAction": "writeOwnArticles",
   "(redaktion)/artikel/[id]/actions.ts#submitAction": "writeOwnArticles",
-  "(redaktion)/artikel/[id]/actions.ts#uploadCoverAction": "writeOwnArticles",
-  "(redaktion)/artikel/[id]/actions.ts#setCoverAltAction": "writeOwnArticles",
-  "(redaktion)/artikel/[id]/actions.ts#clearCoverImageAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#uploadBodyImageAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#checkSlugAction": "writeOwnArticles",
+  "(redaktion)/artikel/[id]/actions.ts#createCategoryAction": "writeOwnArticles",
 
   // Uploading a meme is writing; deciding about one is approving.
   "(redaktion)/memes/actions.ts#uploadMemeAction": "writeOwnArticles",
@@ -171,6 +171,7 @@ const REQUIRED_GATE: Readonly<Record<string, Gate>> = {
 
   // Admin only.
   "(redaktion)/nutzer/actions.ts#inviteAction": "manageUsers",
+  "(redaktion)/nutzer/actions.ts#removeMemberAction": "manageUsers",
   "(redaktion)/nutzer/actions.ts#changeRoleAction": "manageUsers",
   "(redaktion)/nutzer/[id]/passwort/actions.ts#setPasswordAction": "resetOthersPassword",
 };

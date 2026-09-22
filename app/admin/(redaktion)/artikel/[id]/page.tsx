@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { Editor } from "@/app/admin/(redaktion)/artikel/[id]/editor";
 import { requireCapability } from "@/lib/authorize";
-import { articleForEditor, coverImageOf, listCategories } from "@/lib/editorial/articles";
+import { articleForEditor, listCategories } from "@/lib/editorial/articles";
 import { may } from "@/lib/roles";
 
 export const metadata = { title: "Artikel bearbeiten · Vox Audax Redaktion" };
@@ -24,9 +24,8 @@ export default async function ArticleEditorPage({
   const article = await articleForEditor(member, id);
   if (article === null) notFound();
 
-  const [categories, coverImage] = await Promise.all([
+  const [categories] = await Promise.all([
     listCategories(),
-    coverImageOf(article.cover),
   ]);
 
   const localDateTime = (at: Date | null) =>
@@ -50,8 +49,6 @@ export default async function ArticleEditorPage({
         authorInitials: article.authorInitials,
       }}
       categories={categories}
-      coverImageAlt={coverImage?.alt ?? ""}
-      hasCoverImage={coverImage !== null}
       canPublish={may(member.role, "approveArticlesAndMemes")}
     />
   );

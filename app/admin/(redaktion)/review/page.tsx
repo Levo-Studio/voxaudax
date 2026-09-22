@@ -62,7 +62,7 @@ export default async function ReviewPage({
   const articleRows = await Promise.all(
     articles.map(async (row) => ({
       ...row,
-      blocked: await missingAltText({ cover: row.cover, body: row.body }),
+      blocked: missingAltText({ body: row.body }),
     })),
   );
 
@@ -118,11 +118,7 @@ export default async function ReviewPage({
                     </Link>
                     <span className="mt-1 block text-xs font-semibold text-tm">
                       {row.categoryName} · {formatWordCount(row.wordCount)} Wörter ·{" "}
-                      {row.cover.imageId === undefined
-                        ? "Cover generiert"
-                        : row.blocked
-                          ? "Alt-Text fehlt"
-                          : "eigenes Titelbild"}
+                      {row.blocked ? "Alt-Text fehlt" : "Cover generiert"}
                     </span>
                   </span>
                   <span className="flex items-center gap-[9px] text-[13px] font-semibold text-tm">

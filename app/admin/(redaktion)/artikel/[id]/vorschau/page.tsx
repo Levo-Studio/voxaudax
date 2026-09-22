@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArticleBody } from "@/components/article-body";
 import { ArticleCover } from "@/components/article-cover";
 import { requireCapability } from "@/lib/authorize";
-import { articleForEditor, coverImageOf } from "@/lib/editorial/articles";
+import { articleForEditor } from "@/lib/editorial/articles";
 import { formatWordCount, readingTimeMinutes } from "@/lib/reading-time";
 
 export const metadata = { title: "Vorschau · Vox Audax Redaktion" };
@@ -27,7 +27,6 @@ export default async function ArticlePreviewPage({
   const article = await articleForEditor(member, id);
   if (article === null) notFound();
 
-  const coverImage = await coverImageOf(article.cover);
 
   return (
     <article className="mx-auto max-w-[900px]">
@@ -39,26 +38,15 @@ export default async function ArticlePreviewPage({
       </div>
 
       <div className="overflow-hidden rounded-[14px] border border-bd bg-s1">
-        {coverImage === null ? (
-          <ArticleCover
-            title={article.title}
-            colorId={article.cover.colorId}
-            grid={article.cover.grid}
-            eyebrow="Titelthema"
-            word={article.cover.word}
-            line={article.cover.line}
-            variant="article"
-          />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/api/bilder/${coverImage.id}`}
-            alt={coverImage.alt ?? ""}
-            width={coverImage.width}
-            height={coverImage.height}
-            className="w-full"
-          />
-        )}
+        <ArticleCover
+          title={article.title}
+          colorId={article.cover.colorId}
+          grid={article.cover.grid}
+          eyebrow="Titelthema"
+          word={article.cover.word}
+          line={article.cover.line}
+          variant="article"
+        />
 
         <div className="px-5 py-8 md:px-10">
           <h1 className="m-0 text-[32px] leading-[1.05] font-extrabold tracking-[-0.04em] md:text-[46px]">

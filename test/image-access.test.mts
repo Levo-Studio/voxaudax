@@ -90,8 +90,13 @@ describe("an image is as reachable as the thing it belongs to", () => {
           slug: `test-bildzugriff-${crypto.randomUUID()}`,
           title: "Bildzugriff",
           teaser: "",
-          body: { type: "doc", content: [{ type: "paragraph", content: [] }] },
-          cover: { word: "BILD", line: "", colorId: "violett", imageId },
+          // The picture stands in the body now: a cover is generated and holds
+          // no image, so that is the only place an article can name one.
+          body: {
+            type: "doc",
+            content: [{ type: "image", attrs: { src: `/bild/${imageId}`, alt: "" } }],
+          },
+          cover: { word: "BILD", line: "", colorId: "violett" },
           categoryId: category!.id,
           authorId: owner.id,
           status,

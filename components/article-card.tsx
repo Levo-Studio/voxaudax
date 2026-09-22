@@ -40,7 +40,6 @@ export function ArticleCard({
           grid={article.cover.grid}
           eyebrow={article.categoryName}
           word={article.cover.word}
-          image={article.coverImage}
         />
       </a>
 
@@ -106,7 +105,6 @@ export function ArticleRelated({ article }: { article: ArticleTeaser }) {
         grid={article.cover.grid}
         eyebrow={article.categoryName}
         word={article.cover.word}
-        image={article.coverImage}
       />
       <span className="block">
         <span className="block text-[16.5px] leading-[1.24] font-bold tracking-[-0.02em] md:mt-3 md:text-[19px] md:leading-[1.2] md:tracking-[-0.025em]">
