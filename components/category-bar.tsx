@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { articleCategories } from "@/lib/queries";
 import { archiveHref } from "@/lib/routes";
 
@@ -22,7 +23,7 @@ export async function CategoryBar({ active }: { active?: string }) {
       className="flex gap-[7px] overflow-x-auto px-[18px] pb-3.5 text-xs font-bold md:flex-wrap md:gap-2 md:overflow-x-visible md:px-10 md:text-[12.5px] md:font-semibold"
     >
       {categories.map((category) => (
-        <a
+        <Link
           key={category.slug}
           href={archiveHref({ category: category.slug })}
           aria-current={category.slug === active ? "page" : undefined}
@@ -33,7 +34,7 @@ export async function CategoryBar({ active }: { active?: string }) {
           }`}
         >
           {category.name}
-        </a>
+        </Link>
       ))}
     </nav>
   );

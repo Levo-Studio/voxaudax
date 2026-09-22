@@ -1,3 +1,5 @@
+import type { Route } from "next";
+
 /**
  * Every public address in one place. Category and author are filters on the
  * archive and have no page of their own, so the only way to link to "everything
@@ -43,7 +45,10 @@ export const archiveHref = (link: ArchiveLink = {}) => {
   }
 
   const query = parameters.toString();
-  return query.length === 0 ? "/archiv" : `/archiv?${query}`;
+
+  // Typed routes cannot see that a hand-built query string still addresses
+  // /archiv, and the filters are exactly that: one page read four ways.
+  return (query.length === 0 ? "/archiv" : `/archiv?${query}`) as Route;
 };
 
 export const imageHref = (imageId: string) => `/bild/${imageId}`;

@@ -1,4 +1,4 @@
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import Link from "next/link";
 
 const LEGAL_LINKS = [
   { label: "Impressum", href: "/impressum" },
@@ -21,13 +21,13 @@ export function SiteFooter() {
           className="mt-3 flex gap-4 md:mt-0 md:ml-auto md:gap-[18px]"
         >
           {LEGAL_LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
-              className="inline-flex min-h-11 items-center md:min-h-0"
+              className="inline-flex min-h-11 items-center transition-colors hover:text-tx md:min-h-0"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>
@@ -35,7 +35,10 @@ export function SiteFooter() {
       <div className="mx-[18px] mt-4 flex flex-col border-t border-bd pt-3.5 pb-[26px] text-[13px] md:mx-0 md:mt-0 md:flex-row md:items-baseline md:gap-3.5 md:px-10 md:pt-3.5">
         <span className="font-extrabold tracking-[-0.02em] text-tx">
           Built by{" "}
-          <a href="https://levo-studio.com" className="py-[15px] text-ac">
+          <a
+            href="https://levo-studio.com"
+            className="py-[15px] text-ac transition-opacity hover:opacity-70"
+          >
             Levo Studio
           </a>
         </span>
@@ -44,7 +47,6 @@ export function SiteFooter() {
           Konzept, Design und Umsetzung — danke an Julius.
         </span>
         <div className="mt-4 md:mt-0 md:ml-auto">
-          <ThemeSwitcher />
         </div>
       </div>
     </footer>
