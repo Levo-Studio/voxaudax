@@ -112,6 +112,28 @@ environment variables are configured in Dokploy itself. Pushing to `main` builds
 the image, pushes it to GHCR, verifies the package exists and only then triggers
 the deployment webhook.
 
+The image carries the application and nothing else — no `scripts/`, no
+`drizzle/`, no migrator. A container therefore never moves the schema on its
+own, which is deliberate: a production schema changes when somebody decides it
+does, not when a deployment happens to restart.
+
+So two steps are run by hand, from a checkout whose `DATABASE_URL` points at
+production, and both are safe to repeat:
+
+```sh
+pnpm db:migrate        # before the first deployment, and again for every release that adds a migration
+pnpm admin:bootstrap --email you@example.com --name "Your Name" --form neutral
+```
+
+The second one is the only account that is not created through the back office,
+and it refuses to run once any account exists. It sets no password: it prints a
+one-time invitation link, and the password is set behind it.
+
+Until the first of these has run, the site starts and answers — every page falls
+back to the empty state it draws before the first article — but nothing can be
+read from the database and nobody can sign in. `/api/health/detailed` names that
+as the reason.
+
 ## Design
 
 The interface follows a fixed design specification, kept outside the repository

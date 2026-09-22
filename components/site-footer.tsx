@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+/** Public, and the same address the README and the package page carry. */
+const SOURCE = "https://github.com/Levo-Studio/voxaudax";
+
 const LEGAL_LINKS = [
   { label: "Impressum", href: "/impressum" },
   { label: "Datenschutz", href: "/datenschutz" },
@@ -46,6 +49,18 @@ export function SiteFooter() {
         <span className="hidden font-medium md:inline">
           Konzept, Design und Umsetzung — danke an Julius.
         </span>
+
+        {/* The whole newspaper is open, so it says where. Not in the legal nav
+            above: that row is Impressum, Datenschutz and the feed, and a
+            source link is none of the three. `rel="me"` because this is the
+            project's own repository and not a citation. */}
+        <a
+          href={SOURCE}
+          rel="me noopener"
+          className="mt-2 inline-flex min-h-11 items-center font-medium transition-colors hover:text-tx md:mt-0 md:ml-auto md:min-h-0"
+        >
+          Quelltext auf GitHub
+        </a>
       </div>
     </footer>
   );

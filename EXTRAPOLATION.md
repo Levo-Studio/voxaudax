@@ -468,6 +468,15 @@ wird, sagt der Entwurf nicht.
 Nicht aus der Vorlage abgeleitet, sondern ausdrücklich angewiesen — und der
 Aufgabenstellung entgegenstehend, deshalb hier festgehalten.
 
+### Verweis auf den Quelltext im Fuß
+
+Nicht in der Vorlage. Auf Ansage: die Zeitung liegt offen auf GitHub, also sagt
+sie auch, wo.
+
+→ Er steht in der unteren Fußzeile, rechtsbündig wie die Rechtsverweise darüber,
+und **nicht** in deren Navigation: die Gruppe heißt „Rechtliches" und trägt
+Impressum, Datenschutz und den Feed — ein Quelltextverweis ist keines der drei.
+
 ### Ein Bild, das aus dem Text fällt, wird auch gelöscht
 
 Auf Ansage: *„wenn es rausgenommen wird wird es gelöscht, auch beim Bearbeiten."*
