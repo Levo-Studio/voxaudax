@@ -276,6 +276,32 @@ Die Produktion läuft über https und behält beides: der Präfix bindet das Coo
 an genau diesen Host und Pfad und ist dort mehr wert als die Bequemlichkeit
 hier. Gegengeprüft in WebKit, Anmeldung und zehn Navigationen.
 
+### Bilder im Text werden abgelegt, nicht adressiert
+
+Die Vorlage zeigt für ein Bild im Fließtext ein Feld für die Adresse. Woher die
+Adresse kommt, sagt sie nicht — und von Hand eintippen kann sie niemand, weil
+nichts im Bucket öffentlich ist.
+
+→ Beide Editoren nehmen eine Datei per Drag-and-drop oder Einfügen an, laden sie
+über dieselbe Prüfung wie das Cover (JPG, PNG, WebP, höchstens 8 MB, und die
+Maße müssen wirklich lesbar sein) und setzen die Adresse selbst. Der Knopf
+„Bild" in der Werkzeugleiste entfällt.
+
+→ Im Markdown-Feld bleibt es Text — `![](/bild/…)`, an der Cursorstelle —, und
+gerendert wird es nur in der Vorschau daneben. Im Rich Text steht das Bild
+selbst, mit dem Alt-Text-Feld darunter, das rot bleibt, solange es leer ist.
+
+### Abbildungen werden gezählt, nicht beschriftet
+
+Nicht in der Vorlage. Auf Ansage: ein Bild trägt „Abbildung 2.1" — der zweite
+Abschnitt, sein erstes Bild.
+
+→ Die Nummer wird nirgends gespeichert, sondern aus der Position abgelesen:
+jede H2-Überschrift beginnt einen Abschnitt, jedes Bild darin zählt weiter. Ein
+verschobenes Bild oder eine neue Überschrift nummeriert alles darunter von
+selbst um. Editor und veröffentlichter Artikel lesen dieselbe Funktion in
+`lib/figures`, damit die beiden Beschriftungen nicht auseinanderlaufen können.
+
 ### Karo auf dem Titelbild ist eine Entscheidung
 
 Die Vorlage zeichnet das Raster auf jedem erzeugten Cover, ohne es zur Wahl zu

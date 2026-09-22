@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import { FIGURE_WORD, figureNumbers } from "@/lib/figures";
 import {
   emptyBlock,
   htmlToInline,
@@ -110,9 +111,12 @@ export type BlockEditorHandle = {
 export function BlockEditor({
   blocks,
   onChange,
+  onDropImage,
 }: {
   blocks: readonly Block[];
   onChange: (blocks: readonly Block[]) => void;
+  /** Hands a dropped or pasted file up and calls back with its address. */
+  onDropImage?: (file: File, place: (address: string) => void) => void;
 }) {
   const focused = useRef<number>(0);
 
@@ -164,6 +168,28 @@ export function BlockEditor({
     );
   }, []);
 
+  const receive = useRef(onDropImage);
+  receive.current = onDropImage;
+
+  const takeFile = useCallback((file: File) => {
+    const hand = receive.current;
+    if (hand === undefined) return;
+
+    // Where the caret was, so the picture lands where it was dropped rather
+    // than at the end of everything.
+    const at = Math.min(focused.current, latest.current.length - 1);
+
+    hand(file, (address) => {
+      const blocks = latest.current;
+      const picture: Block = { ...emptyBlock("image"), src: address, alt: "" };
+      report.current([
+        ...blocks.slice(0, at + 1),
+        picture,
+        ...blocks.slice(at + 1),
+      ]);
+    });
+  }, []);
+
   const replace = (index: number, patch: Partial<Block>) =>
     onChange(blocks.map((block, position) => (position === index ? { ...block, ...patch } : block)));
 
@@ -195,6 +221,13 @@ export function BlockEditor({
    * would accept.
    */
   const onPaste = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
+    const file = event.clipboardData.files[0];
+    if (file !== undefined) {
+      event.preventDefault();
+      takeFile(file);
+      return;
+    }
+
     event.preventDefault();
 
     const html = event.clipboardData.getData("text/html");
@@ -210,7 +243,7 @@ export function BlockEditor({
     }
 
     document.execCommand("insertHTML", false, inlineToHtml(htmlToInline(html)));
-  }, []);
+  }, [takeFile]);
 
   /**
    * Stable, like the other two: the editable lines keep whichever handler they
@@ -256,6 +289,8 @@ export function BlockEditor({
     [],
   );
 
+  const numbers = figureNumbers(blocks);
+
   return (
     <>
       <div className="flex flex-wrap items-center gap-1">
@@ -279,15 +314,25 @@ export function BlockEditor({
         <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={() => applyKind("blockquote")}>
           Zitat
         </button>
-        <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={() => applyKind("image")}>
-          Bild
-        </button>
         <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={() => applyKind("horizontalRule")}>
           Trenner
         </button>
       </div>
 
-      <div ref={lines} className="mt-6 flex max-w-[68ch] flex-col gap-3">
+      {/* The whole writing surface takes a file, not one line of it: a picture
+          is dropped onto the article, and where it lands is decided by which
+          line the caret was in. */}
+      <div
+        ref={lines}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          const file = event.dataTransfer.files[0];
+          if (file === undefined) return;
+          event.preventDefault();
+          takeFile(file);
+        }}
+        className="mt-6 flex max-w-[68ch] flex-col gap-3"
+      >
         {blocks.map((block, index) =>
           block.kind === "horizontalRule" ? (
             <div key={block.id} className="flex items-center gap-3">
@@ -301,22 +346,35 @@ export function BlockEditor({
               </button>
             </div>
           ) : block.kind === "image" ? (
-            <div key={block.id} className="flex flex-col gap-2 rounded-[10px] border border-bd p-3">
-              <input
-                value={block.src ?? ""}
-                onChange={(event) => replace(index, { src: event.target.value })}
-                placeholder="/api/bilder/… — nur Bilder aus dieser Redaktion"
-                aria-label="Bildadresse"
-                className="w-full rounded-lg border border-bd bg-s2 px-[11px] py-[9px] font-mono text-xs text-tx outline-ac"
+            <figure key={block.id} className="m-0 flex flex-col gap-2 rounded-[10px] border border-bd p-3">
+              {/* The address is not typed any more — it is whatever the upload
+                  returned — so the picture itself stands where the field was. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={block.src ?? ""}
+                alt={block.alt ?? ""}
+                className="max-h-[260px] w-full rounded-lg object-contain"
               />
+              <figcaption className="text-[11px] font-bold tracking-[0.1em] text-tm uppercase">
+                {FIGURE_WORD} {numbers[index] ?? "—"}
+              </figcaption>
               <input
                 value={block.alt ?? ""}
                 onChange={(event) => replace(index, { alt: event.target.value })}
                 placeholder="Alt-Text · Pflichtfeld"
                 aria-label="Alt-Text"
-                className="w-full rounded-lg border border-bd bg-s2 px-[11px] py-[9px] font-control text-[13.5px] font-semibold text-tx outline-ac"
+                className={`w-full rounded-lg border bg-s2 px-[11px] py-[9px] font-control text-[13.5px] font-semibold text-tx outline-ac ${
+                  (block.alt ?? "").trim().length === 0 ? "border-ac2" : "border-bd"
+                }`}
               />
-            </div>
+              <button
+                type="button"
+                onClick={() => onChange(blocks.filter((_b, position) => position !== index))}
+                className="cursor-pointer self-start rounded-lg border border-bd bg-transparent px-2 py-1 font-control text-[11.5px] font-bold text-tm transition-colors duration-200 ease-out hover:text-tx"
+              >
+                Entfernen
+              </button>
+            </figure>
           ) : (
             <EditableLine
               key={block.id}

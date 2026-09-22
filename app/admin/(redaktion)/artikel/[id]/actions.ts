@@ -115,6 +115,57 @@ export type CoverUploadResult =
   | { readonly ok: true; readonly imageId: string }
   | { readonly ok: false; readonly problem: string };
 
+/**
+ * An image pasted into the body. The same checks as the cover — the type, the
+ * size, and that the bytes really are an image whose dimensions can be read —
+ * but it touches nothing on the article: the block holds the address, and the
+ * document is saved by the autosave that follows.
+ *
+ * Alt text starts empty, which is the state the approval list refuses to
+ * publish on. That is deliberate: a picture nobody can hear is not finished.
+ */
+export const uploadBodyImageAction = async (
+  articleId: string,
+  form: FormData,
+): Promise<CoverUploadResult> => {
+  const member = await requireCapability("writeOwnArticles");
+  const existing = await articleForEditor(member, articleId);
+  if (existing === null) return { ok: false, problem: "Der Artikel ist nicht erreichbar." };
+
+  const file = form.get("image");
+  if (!(file instanceof File)) return { ok: false, problem: "Es kam keine Datei an." };
+
+  if (!(COVER_IMAGE_TYPES as readonly string[]).includes(file.type)) {
+    return { ok: false, problem: "Erlaubt sind JPG, PNG und WebP." };
+  }
+
+  if (file.size > MAXIMUM_UPLOAD_BYTES) {
+    return { ok: false, problem: "Das Bild ist größer als 8 MB." };
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const size = readDimensions(bytes, file.type);
+  if (size === null) return { ok: false, problem: "Die Bilddatei ließ sich nicht lesen." };
+
+  const key = await storeObject({ prefix: "artikel", bytes, mime: file.type });
+
+  const [image] = await db
+    .insert(images)
+    .values({
+      key,
+      mime: file.type,
+      width: size.width,
+      height: size.height,
+      alt: null,
+      uploadedBy: member.id,
+    })
+    .returning({ id: images.id });
+
+  return image === undefined
+    ? { ok: false, problem: "Das Bild ließ sich nicht ablegen." }
+    : { ok: true, imageId: image.id };
+};
+
 export const uploadCoverAction = async (
   articleId: string,
   form: FormData,

@@ -24,6 +24,7 @@ import {
   renameSlugAction,
   setCoverAltAction,
   submitAction,
+  uploadBodyImageAction,
   uploadCoverAction,
 } from "@/app/admin/(redaktion)/artikel/[id]/actions";
 import type { ArticleCover as CoverValue, TipTapDocument } from "@/lib/content";
@@ -169,6 +170,46 @@ export function Editor({
   const toRichText = () => {
     if (markdown !== null) setBlocks(documentToBlocks(markdownToDocument(markdown)));
     setMarkdown(null);
+  };
+
+  const [dropProblem, setDropProblem] = useState<string | null>(null);
+
+  /**
+   * One upload for both editors. What differs is only where the address lands:
+   * markdown gets `![](…)` at the caret, the rich text gets a block — the file
+   * takes the same route either way, and so does the refusal.
+   */
+  const uploadDropped = (file: File, place: (address: string) => void) => {
+    setDropProblem(null);
+    const carrier = new FormData();
+    carrier.set("image", file);
+
+    startTransition(async () => {
+      const answer = await uploadBodyImageAction(article.id, carrier);
+      if (!answer.ok) {
+        setDropProblem(answer.problem);
+        return;
+      }
+      place(`/bild/${answer.imageId}`);
+    });
+  };
+
+  const markdownBox = useRef<HTMLTextAreaElement>(null);
+
+  /** At the caret, on its own line, the way a picture sits between paragraphs. */
+  const insertIntoMarkdown = (address: string) => {
+    const box = markdownBox.current;
+    const text = markdown ?? "";
+    const at = box?.selectionStart ?? text.length;
+    const snippet = `\n![](${address})\n`;
+    const next = `${text.slice(0, at)}${snippet}${text.slice(at)}`;
+
+    touch(setMarkdown)(next);
+    window.requestAnimationFrame(() => {
+      box?.focus();
+      const after = at + snippet.length;
+      box?.setSelectionRange(after, after);
+    });
   };
 
   const addCategory = () => {
@@ -409,7 +450,16 @@ export function Editor({
 
         {markdown === null ? (
           <div className="px-4 pt-6 pb-9 md:px-[30px]">
-            <BlockEditor blocks={blocks} onChange={touch(setBlocks)} />
+            <BlockEditor
+              blocks={blocks}
+              onChange={touch(setBlocks)}
+              onDropImage={uploadDropped}
+            />
+            {dropProblem === null ? null : (
+              <p role="alert" className="mt-3 text-[12.5px] font-semibold text-ac2">
+                {dropProblem}
+              </p>
+            )}
             <div className="mt-[22px] text-[12.5px] font-semibold text-tm">
               {formatWordCount(wordCount)} Wörter · {readingTimeMinutes(wordCount)} Min Lesezeit
             </div>
@@ -417,8 +467,22 @@ export function Editor({
         ) : (
           <div className="grid gap-px bg-bd md:grid-cols-2">
             <textarea
+              ref={markdownBox}
               value={markdown}
               onChange={(event) => touch(setMarkdown)(event.target.value)}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                const file = event.dataTransfer.files[0];
+                if (file === undefined) return;
+                event.preventDefault();
+                uploadDropped(file, insertIntoMarkdown);
+              }}
+              onPaste={(event) => {
+                const file = event.clipboardData.files[0];
+                if (file === undefined) return;
+                event.preventDefault();
+                uploadDropped(file, insertIntoMarkdown);
+              }}
               aria-label="Markdown"
               rows={20}
               className="va-focus-inside m-0 resize-y bg-s1 px-[26px] py-6 font-mono text-[13px] leading-[1.75] text-tx"

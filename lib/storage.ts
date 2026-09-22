@@ -58,7 +58,7 @@ const EXTENSIONS: Record<string, string> = {
  * another object's key or carry a path of its own.
  */
 export const storeObject = async (input: {
-  readonly prefix: "memes" | "cover" | "logos" | "avatare";
+  readonly prefix: "memes" | "cover" | "artikel" | "logos" | "avatare";
   readonly bytes: Uint8Array;
   readonly mime: string;
 }) => {

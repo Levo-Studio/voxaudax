@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
 import type { TipTapDocument, TipTapNode } from "@/lib/content";
+import { FIGURE_WORD, figureNumbers } from "@/lib/figures";
 
 /**
  * The article as screen 3a and 3b's preview draw it. Everything the editor can
@@ -27,7 +28,7 @@ const inline = (nodes: readonly TipTapNode[] | undefined): ReactNode =>
     return <Fragment key={index}>{rendered}</Fragment>;
   });
 
-const block = (node: TipTapNode, key: number): ReactNode => {
+const block = (node: TipTapNode, key: number, figure?: string | null): ReactNode => {
   if (node.type === "heading") {
     return node.attrs?.level === 3 ? (
       <h3 key={key} className="mt-6 text-xl font-extrabold tracking-[-0.03em]">
@@ -81,10 +82,18 @@ const block = (node: TipTapNode, key: number): ReactNode => {
     const source = String(node.attrs?.src ?? "");
     const alt = String(node.attrs?.alt ?? "");
     return (
-      // The bytes come from the application's own image route, whose size is
-      // not known here; next/image would need one and would inline a guess.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img key={key} src={source} alt={alt} className="mt-[22px] max-w-full rounded-[10px]" />
+      <figure key={key} className="m-0 mt-[22px]">
+        {/* The bytes come from the application's own image route, whose size is
+            not known here; next/image would need one and would inline a guess. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={source} alt={alt} className="max-w-full rounded-[10px]" />
+        {figure === null || figure === undefined ? null : (
+          <figcaption className="mt-2 text-[12.5px] font-semibold text-tm">
+            {FIGURE_WORD} {figure}
+            {alt.length === 0 ? "" : ` · ${alt}`}
+          </figcaption>
+        )}
+      </figure>
     );
   }
 
@@ -95,6 +104,26 @@ const block = (node: TipTapNode, key: number): ReactNode => {
   );
 };
 
+/**
+ * The same counting the editor does, over the document's own node types: a
+ * level-2 heading opens a section, and a picture is the next number in it. Both
+ * sides read `lib/figures`, so the caption under a picture here and the one in
+ * the editor cannot drift apart.
+ */
+const asKinds = (nodes: readonly TipTapNode[]) =>
+  nodes.map((node) => ({
+    kind:
+      node.type === "heading" && Number(node.attrs?.level ?? 0) === 2
+        ? "heading2"
+        : node.type,
+  }));
+
 export function ArticleBody({ document }: { document: TipTapDocument }) {
-  return <div>{document.content.map(block)}</div>;
+  const numbers = figureNumbers(asKinds(document.content));
+
+  return (
+    <div>
+      {document.content.map((node, index) => block(node, index, numbers[index]))}
+    </div>
+  );
 }
