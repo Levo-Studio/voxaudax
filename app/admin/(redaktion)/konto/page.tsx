@@ -16,31 +16,41 @@ const WHEN = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: 
 
 /**
  * Screen 8c. The device list comes from `auth.session.list`, which answers for
- * the caller's own account and nothing else.
+ * the caller's own account and nothing else — and only while the session is
+ * fresh, which is fifteen minutes measured from the sign-in itself and
+ * restored by nothing but a new one. Listing where somebody is signed in is
+ * not a thing a borrowed tab should be able to do.
  *
- * That route spends an address rate-limit bucket, and this installation's
- * bucket is the one screen 7b states: three, refilling over three minutes. A
- * reader who reloads this page a fourth time inside those three minutes is
- * refused there — so the refusal becomes a line in the panel rather than a
- * failed page, and the profile and the password form stay usable.
+ * So the refusal is caught and named rather than swallowed: the panel says
+ * which of the two happened, and the profile and the password form stay
+ * usable either way.
  */
-const activeSessions = async () => {
+type DeviceList =
+  | { readonly kind: "list"; readonly sessions: Awaited<ReturnType<ReturnType<typeof velveAuth>["session"]["list"]>> }
+  | { readonly kind: "stale" }
+  | { readonly kind: "unavailable" };
+
+const activeSessions = async (): Promise<DeviceList> => {
   const sessionToken = await readSessionToken();
-  if (sessionToken === undefined) return null;
+  if (sessionToken === undefined) return { kind: "unavailable" };
 
   try {
-    return await velveAuth().session.list({
-      sessionToken,
-      ...(await callFields("render")),
-    });
-  } catch {
-    return null;
+    return {
+      kind: "list",
+      sessions: await velveAuth().session.list({
+        sessionToken,
+        ...(await callFields("render")),
+      }),
+    };
+  } catch (cause) {
+    const code = (cause as { code?: unknown }).code;
+    return code === "freshness_required" ? { kind: "stale" } : { kind: "unavailable" };
   }
 };
 
 export default async function AccountPage() {
   const member = await requireMember({ allowForcedPasswordChange: true });
-  const sessions = await activeSessions();
+  const devices = await activeSessions();
 
   return (
     <div className="grid items-start gap-5 md:grid-cols-2">
@@ -90,13 +100,17 @@ export default async function AccountPage() {
         <div className={PANEL_CLASS}>
           <div className={PANEL_HEADING_CLASS}>Angemeldete Geräte</div>
 
-          {sessions === null ? (
+          {devices.kind === "stale" ? (
+            <p className="px-5 py-3.5 text-[13px] leading-[1.55] font-medium text-tm">
+              Die Geräteliste wird nur in den ersten fünfzehn Minuten nach einer Anmeldung
+              gezeigt. Melde dich neu an, um zu sehen, wo du überall angemeldet bist.
+            </p>
+          ) : devices.kind === "unavailable" ? (
             <p className="px-5 py-3.5 text-[13px] font-medium text-tm">
-              Die Geräteliste ließ sich gerade nicht abrufen. Sie zählt auf dieselbe Sperre wie
-              die Anmeldung — drei Abrufe, dann drei Minuten Pause.
+              Die Geräteliste ließ sich gerade nicht abrufen.
             </p>
           ) : (
-            sessions.map((session) => (
+            devices.sessions.map((session) => (
               <div key={session.id} className="flex items-center gap-3 border-b border-bd px-5 py-3.5 text-[13.5px] font-semibold">
                 <span>{session.userAgent ?? "Unbekanntes Gerät"}</span>
                 <span className="ml-auto flex items-center gap-3 text-xs font-semibold">

@@ -431,6 +431,40 @@ Oberflächenänderung nebenbei treffen sollte.
 der Zeitraum vorbei ist; ihn zusätzlich rot zu setzen ließ die halbe Spalte wie
 einen Fehler aussehen, wo keiner ist.
 
+### Die Anmeldesperre zählt das Konto, nicht die Adresse
+
+Bildschirm 7b sagt: drei Fehlversuche, dann drei Minuten Pause, und nennt dabei
+die IP-Adresse.
+
+So war es auch gebaut — und damit falsch, denn `rateLimit` ist die Einstellung
+der **Instanz** und ersetzt den Vorgabewert für **jede** Route. Die Kontoseite
+ruft `session.list` auf: ein viertes Neuladen innerhalb von drei Minuten wurde
+abgewiesen. Das Einlösen einer Einladung (`signUp.withPassword`) ebenso. Und in
+einem Schulnetz, wo alle dieselbe Adresse haben, hätten sich drei Versuche auf
+die ganze Schule verteilt.
+
+→ Der Adresszähler behält die Vorgabe der Bibliothek — ein Schutz gegen Fluten,
+keine Sperre. Die drei Versuche sitzen auf dem Kontozähler, den eine Route
+verbraucht, sobald sie weiß, welches Konto probiert wird. Das ist auch, worum
+es dem Satz auf 7b eigentlich geht: jemand, der ein Konto errät. Die Meldung
+auf dem Bildschirm sagt jetzt „dieses Konto" statt „deine IP-Adresse".
+
+### Geräteliste nur kurz nach der Anmeldung
+
+Nicht in der Vorlage. `session.list` verlangt eine frische Sitzung — fünfzehn
+Minuten, gemessen ab der Anmeldung, und nur eine neue Anmeldung stellt sie
+wieder her. Aufzulisten, wo jemand überall angemeldet ist, soll ein geliehener
+Browser-Tab nicht können.
+
+→ Die Seite verschluckte die Abweisung und zeigte eine Begründung, die nicht
+stimmte (sie sprach von der Ratensperre). Jetzt wird der Code `freshness_required`
+erkannt und benannt: „Die Geräteliste wird nur in den ersten fünfzehn Minuten
+nach einer Anmeldung gezeigt." Profil und Passwortformular bleiben nutzbar.
+
+→ Der `log`-Haken schreibt außerdem auf den Kanal, der zur Stufe passt. Eine
+abgewiesene Anfrage ist eine Warnung; sie als Fehler zu drucken legte eine rote
+Fehlerüberlagerung über etwas, das genau so gedacht ist.
+
 ### Was im Backoffice geändert wird, steht sofort auf der Seite
 
 Die öffentlichen Seiten werden einmal gerendert und fünf Minuten lang aus dem

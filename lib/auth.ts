@@ -53,16 +53,6 @@ const sendMail = async (message: EmailMessage): Promise<void> => {
 };
 
 /**
- * Screen 7b states the lockout in words, so the numbers are read off it: three
- * attempts, then the address waits three minutes. `capacity` is the burst and
- * `refillPerSecond` is 1/180, which is one token back every three minutes.
- *
- * The bucket is keyed by route name and address prefix, so this is "alle
- * Anmeldeversuche" from that address against `signIn.password` — not per
- * account, which is a second and separate counter left at the library's
- * default of five attempts refilling at 0.01/s.
- */
-/**
  * The canonical origin, plus the local one while developing. Without it nobody
  * can sign in on their own machine: the origin check refuses the request before
  * it ever reaches a password, which reads like a broken login rather than a
@@ -76,7 +66,24 @@ const allowedOrigins = () => {
     : [canonical, "http://localhost:7896", "http://127.0.0.1:7896"];
 };
 
-const SIGN_IN_LOCKOUT = { capacity: 3, refillPerSecond: 1 / 180 } as const;
+/**
+ * Screen 7b states the lockout in words: three attempts, then a wait of three
+ * minutes. Which bucket carries that is the whole question, and the first
+ * answer was wrong.
+ *
+ * `rateLimit` here is the instance's configuration and **replaces the default
+ * for every route**, not for the one the screen is about. With the address
+ * bucket set to three, reloading the account page a fourth time inside three
+ * minutes was refused — it reads `session.list` — and so was redeeming an
+ * invitation. On a school network, where everybody shares one address, the
+ * three would have been shared by the whole school.
+ *
+ * So the address bucket keeps the library's own figure, which is a flood guard
+ * and not a lockout, and the three attempts sit on the account bucket, which a
+ * route spends once it knows whose account is being tried. That is also what
+ * the sentence on 7b is really about: somebody guessing at one account.
+ */
+const PER_ACCOUNT_LOCKOUT = { capacity: 3, refillPerSecond: 1 / 180 } as const;
 
 let instance: VelveAuth<typeof AUTH_IDENTITY_MODE> | undefined;
 
@@ -92,9 +99,16 @@ export const velveAuth = () =>
     keys: keys(),
     origins: allowedOrigins(),
     email: { send: sendMail },
-    rateLimit: { perIpAddress: SIGN_IN_LOCKOUT },
+    rateLimit: { perAccount: PER_ACCOUNT_LOCKOUT },
     // Screens 8b, 8c and 12b all say "Mindestens 10 Zeichen"; the library's own
     // floor is eight, and raising a floor is the only direction it allows.
     password: { minimumLength: 10 },
-    log: (level, message, fields) => console.error(level, message, fields),
+    // The level the library chose, on the console channel that matches it: a
+    // rate-limited request is a warning, and printing it as an error put a red
+    // overlay in front of a developer over something working as designed.
+    log: (level, message, fields) => {
+      const write =
+        level === "error" ? console.error : level === "warn" ? console.warn : console.info;
+      write(level, message, fields);
+    },
   }));

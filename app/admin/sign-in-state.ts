@@ -7,8 +7,12 @@
  *
  * It lives beside the action rather than in it because a "use server" file may
  * export nothing but async functions.
+ *
+ * The wording follows the rule and not the other way round: the three attempts
+ * are counted against the account being tried, not against the address the
+ * attempt came from — the note in `lib/auth.ts` says why.
  */
 export const SIGN_IN_ERROR =
-  "E-Mail oder Passwort stimmt nicht. Nach drei Fehlversuchen wird deine IP-Adresse für drei Minuten für alle Anmeldeversuche gesperrt.";
+  "E-Mail oder Passwort stimmt nicht. Nach drei Fehlversuchen ist dieses Konto für drei Minuten gesperrt.";
 
 export type SignInState = { readonly failed: boolean; readonly email: string };
