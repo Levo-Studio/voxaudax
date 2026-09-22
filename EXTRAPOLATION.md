@@ -478,6 +478,36 @@ ein Artikel vier Seiten und zwei Feeds, eine Personenänderung Start-,
 Redaktions- und Kontaktseite. Jede Freigabe, jede Ablehnung und jede Änderung
 ruft das auf.
 
+### Vier Augen, solange es zwei gibt
+
+Bildschirm 11a sagt: „niemand gibt die eigene Einreichung frei." So war es
+gebaut — und in einer Installation mit einem einzigen Konto war damit gar
+nichts veröffentlichbar. Der Unterstützer, den die einzige angemeldete Person
+anlegt, der Artikel, den sie schreibt, das Meme, das sie hochlädt: alles ihres,
+und niemand sonst darf es freigeben.
+
+Genau so ist es passiert. Ein neuer Unterstützer blieb auf `review` stehen und
+tauchte auf der Startseite nie auf — was wie ein Zwischenspeicherproblem
+aussah, war diese Sperre.
+
+→ Die Regel fragt jetzt die Lage statt sie anzunehmen: Gibt es eine **andere**
+aktive Person mit Konto, die diese Freigabe erteilen dürfte? Wenn ja, bleibt es
+bei der Abweisung. Wenn nein, ist die einreichende Person selbst die Prüfung.
+Eine Regel, deren einzige Wirkung ein Stillstand ist, schützt niemanden.
+Gemessen in beide Richtungen: allein — freigegeben; mit einem zweiten Konto —
+`own_submission`.
+
+### Unterstützer lassen sich wirklich löschen
+
+Die Vorlage kennt auf 6a nur den Schalter, der einen Eintrag von der Seite
+nimmt und den Datensatz behält.
+
+→ Daneben steht jetzt „Löschen" mit Rückfrage im Seitendesign. Es ist für die
+Zeile gedacht, die es nie hätte geben sollen — ein Tippfehler, ein Test, eine
+geplatzte Zusage. Das Logo geht mit, in der Datenbank **und** im Objektspeicher:
+ein Bild, das die Anwendung nicht mehr erreichen kann, entfernt sonst nie
+jemand. `lib/storage.ts` hatte dafür bis jetzt gar keine Funktion.
+
 ### Abgelehnte Einreichungen bleiben stehen, mit Begründung
 
 Die Vorlage zeigt auf 11a den Knopf „Ablehnen", sagt aber nicht, was danach mit

@@ -182,9 +182,8 @@ export default async function ReviewPage({
 
         {tab === "sponsoren" ? (
           <div className="va-in">
-            <div className="hidden grid-cols-[minmax(0,1fr)_150px_118px_208px] gap-4 border-b border-bd px-[22px] py-[11px] md:grid">
+            <div className="hidden grid-cols-[minmax(0,1fr)_118px_208px] gap-4 border-b border-bd px-[22px] py-[11px] md:grid">
               <span className={COLUMN_HEADING_CLASS}>Sponsor</span>
-              <span className={COLUMN_HEADING_CLASS}>Art</span>
               <span className={COLUMN_HEADING_CLASS}>Laufzeit</span>
               <span className={`${COLUMN_HEADING_CLASS} text-right`}>Entscheidung</span>
             </div>
@@ -204,7 +203,7 @@ export default async function ReviewPage({
                 return (
                   <div
                     key={sponsor.id}
-                    className="grid grid-cols-1 items-center gap-3 border-b border-bd px-4 py-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_150px_118px_208px] md:gap-4 md:px-[22px]"
+                    className="grid grid-cols-1 items-center gap-3 border-b border-bd px-4 py-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_118px_208px] md:gap-4 md:px-[22px]"
                   >
                     <span className="flex items-center gap-3">
                       <span className="grid h-10 w-10 flex-none place-items-center rounded-[9px] border border-bd bg-s2 text-xs font-extrabold text-tm">

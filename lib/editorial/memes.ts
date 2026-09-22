@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
+import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
 import { db } from "@/lib/db/client";
 import { images, memes, users } from "@/lib/db/schema";
 
@@ -146,7 +147,12 @@ export const approveMeme = async (approver: Member, memeId: string) => {
     .where(eq(memes.id, memeId));
 
   if (row === undefined || row.status !== "review") return "unknown" as const;
-  if (row.createdBy === approver.id) return "own_submission" as const;
+  if (
+    row.createdBy === approver.id &&
+    (await somebodyElseCouldApprove(approver, "approveArticlesAndMemes"))
+  ) {
+    return "own_submission" as const;
+  }
   if (row.alt === null || row.alt.trim().length === 0) return "alt_text_missing" as const;
 
   await db.update(memes).set({ status: "published" }).where(eq(memes.id, memeId));
@@ -160,7 +166,12 @@ export const rejectMeme = async (approver: Member, memeId: string, reason: strin
     .where(eq(memes.id, memeId));
 
   if (row === undefined || row.status !== "review") return "unknown" as const;
-  if (row.createdBy === approver.id) return "own_submission" as const;
+  if (
+    row.createdBy === approver.id &&
+    (await somebodyElseCouldApprove(approver, "approveArticlesAndMemes"))
+  ) {
+    return "own_submission" as const;
+  }
 
   // Both, and for different reasons: the status takes it out of the queue so
   // the decision sticks, and `visible` keeps it off the wall even if somebody

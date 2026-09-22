@@ -20,7 +20,7 @@ export const CAPABILITIES = [
 
 export type Capability = (typeof CAPABILITIES)[number];
 
-const ROLE_MATRIX: Record<Capability, readonly Role[]> = {
+export const ROLE_MATRIX: Record<Capability, readonly Role[]> = {
   writeOwnArticles: ["autor", "redakteur", "admin"],
   readOthersDrafts: ["redakteur", "admin"],
   approveArticlesAndMemes: ["redakteur", "admin"],

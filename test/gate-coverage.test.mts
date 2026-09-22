@@ -168,6 +168,7 @@ const REQUIRED_GATE: Readonly<Record<string, Gate>> = {
   // Sponsors and their runtimes.
   "(redaktion)/unterstuetzer/actions.ts#saveSponsorAction": "manageSponsors",
   "(redaktion)/unterstuetzer/actions.ts#toggleSponsorAction": "manageSponsors",
+  "(redaktion)/unterstuetzer/actions.ts#deleteSponsorAction": "manageSponsors",
 
   // Admin only.
   "(redaktion)/nutzer/actions.ts#inviteAction": "manageUsers",

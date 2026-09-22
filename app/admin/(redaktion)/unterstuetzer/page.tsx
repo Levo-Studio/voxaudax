@@ -1,3 +1,4 @@
+import { DeleteSponsor } from "@/app/admin/(redaktion)/unterstuetzer/delete-sponsor";
 import { RejectionNote } from "@/components/admin/rejection-note";
 import { COLUMN_HEADING_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS } from "@/components/admin/controls";
 import { ToggleSwitch } from "@/components/admin/toggle-switch";
@@ -18,7 +19,9 @@ const remaining = (endsAt: Date) => {
   return `noch ${Math.round(days / 30)} Monate`;
 };
 
-const ROW = "grid grid-cols-[1fr_auto] gap-y-1 md:grid-cols-[1fr_150px_128px_92px] md:gap-4";
+// Three columns since "Art" went: name, runtime, and the two controls. The
+// last one is wide enough for "Löschen" beside the switch without wrapping.
+const ROW = "grid grid-cols-[1fr_auto] gap-y-1 md:grid-cols-[1fr_150px_150px] md:gap-4";
 
 export default async function SponsorsPage() {
   const member = await requireMember();
@@ -38,7 +41,6 @@ export default async function SponsorsPage() {
 
         <div className={`${ROW} hidden border-b border-bd px-[22px] py-[11px] md:grid`}>
           <span className={COLUMN_HEADING_CLASS}>Logo und Name</span>
-          <span className={COLUMN_HEADING_CLASS}>Art</span>
           <span className={COLUMN_HEADING_CLASS}>Sichtbar bis</span>
           <span className={`${COLUMN_HEADING_CLASS} text-right`}>Aktiv</span>
         </div>
@@ -85,12 +87,15 @@ export default async function SponsorsPage() {
                   {remaining(sponsor.endsAt)}
                 </span>
               </span>
-              <span className="justify-self-end">
+              <span className="flex items-center justify-end gap-3.5 justify-self-end">
                 {canManage ? (
-                  <form action={toggleSponsorAction}>
-                    <input type="hidden" name="sponsorId" value={sponsor.id} />
-                    <ToggleSwitch name="active" checked={sponsor.active} label={`${sponsor.name} aktiv`} />
-                  </form>
+                  <>
+                    <DeleteSponsor sponsorId={sponsor.id} name={sponsor.name} />
+                    <form action={toggleSponsorAction}>
+                      <input type="hidden" name="sponsorId" value={sponsor.id} />
+                      <ToggleSwitch name="active" checked={sponsor.active} label={`${sponsor.name} aktiv`} />
+                    </form>
+                  </>
                 ) : (
                   <span className="text-[12.5px] font-semibold text-tm">
                     {sponsor.active ? "aktiv" : "aus"}

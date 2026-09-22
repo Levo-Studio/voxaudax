@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
+import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
 import { articles, categories, slugHistory, users } from "@/lib/db/schema";
@@ -354,7 +355,12 @@ export const approveArticle = async (approver: Member, articleId: string) => {
     .where(eq(articles.id, articleId));
 
   if (row === undefined || row.status !== "review") return "unknown" as const;
-  if (row.authorId === approver.id) return "own_submission" as const;
+  if (
+    row.authorId === approver.id &&
+    (await somebodyElseCouldApprove(approver, "approveArticlesAndMemes"))
+  ) {
+    return "own_submission" as const;
+  }
   if (await missingAltText(row)) return "alt_text_missing" as const;
 
   // A scheduled article is published now and appears at its own hour: the
@@ -381,7 +387,12 @@ export const returnToDraft = async (
     .where(eq(articles.id, articleId));
 
   if (row === undefined || row.status !== "review") return "unknown" as const;
-  if (row.authorId === approver.id) return "own_submission" as const;
+  if (
+    row.authorId === approver.id &&
+    (await somebodyElseCouldApprove(approver, "approveArticlesAndMemes"))
+  ) {
+    return "own_submission" as const;
+  }
 
   await db
     .update(articles)

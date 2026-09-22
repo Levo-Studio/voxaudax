@@ -1,7 +1,12 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 
 import { environment } from "@/lib/env";
 
@@ -116,4 +121,15 @@ export const readObject = async (key: string) => {
     bytes: Uint8Array.from(await body.transformToByteArray()),
     mime: object.ContentType ?? "application/octet-stream",
   };
+};
+
+/**
+ * Removes the bytes behind a key. A key the bucket does not hold is not an
+ * error — S3 answers a delete of a missing object with success, and that is the
+ * right answer here too: the caller wanted it gone, and it is.
+ */
+export const removeObject = async (key: string) => {
+  await client().send(
+    new DeleteObjectCommand({ Bucket: environment().S3_BUCKET, Key: key }),
+  );
 };

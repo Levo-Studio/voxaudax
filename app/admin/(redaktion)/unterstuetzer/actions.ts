@@ -7,6 +7,7 @@ import { refreshPublic } from "@/lib/refresh";
 import { requireCapability } from "@/lib/authorize";
 import {
   createSponsor,
+  deleteSponsor,
   isRuntime,
   setSponsorActive,
   setSponsorLogo,
@@ -14,7 +15,12 @@ import {
   type SponsorInput,
 } from "@/lib/editorial/sponsors";
 import { readDimensions } from "@/lib/image-dimensions";
-import { LOGO_IMAGE_TYPES, MAXIMUM_UPLOAD_BYTES, storeObject } from "@/lib/storage";
+import {
+  LOGO_IMAGE_TYPES,
+  MAXIMUM_UPLOAD_BYTES,
+  removeObject,
+  storeObject,
+} from "@/lib/storage";
 
 export type SponsorFormState = { readonly problem: string | null; readonly saved: boolean };
 
@@ -92,6 +98,25 @@ export const saveSponsorAction = async (
 export const toggleSponsorAction = async (form: FormData) => {
   await requireCapability("manageSponsors");
   await setSponsorActive(String(form.get("sponsorId") ?? ""), form.get("active") === "on");
+  revalidatePath("/admin/unterstuetzer");
+  refreshPublic.sponsors();
+};
+
+/**
+ * Removing an entry for good. Not the same thing as the switch beside it: that
+ * one takes a sponsor off the page and keeps the record of the agreement. This
+ * is for the row that should never have existed.
+ */
+export const deleteSponsorAction = async (form: FormData) => {
+  await requireCapability("manageSponsors");
+
+  const { deleted, imageKey } = await deleteSponsor(String(form.get("sponsorId") ?? ""));
+  if (!deleted) return;
+
+  // After the row, so a failure in the bucket never leaves a sponsor pointing
+  // at bytes that are gone.
+  if (imageKey !== null) await removeObject(imageKey);
+
   revalidatePath("/admin/unterstuetzer");
   refreshPublic.sponsors();
 };

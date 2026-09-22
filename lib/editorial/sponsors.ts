@@ -2,6 +2,7 @@ import "server-only";
 import { asc, eq, sql } from "drizzle-orm";
 
 import type { Member } from "@/lib/authorize";
+import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
 import { db } from "@/lib/db/client";
 import { images, sponsors } from "@/lib/db/schema";
 import {
@@ -151,7 +152,12 @@ export const approveSponsor = async (approver: Member, sponsorId: string) => {
     .where(eq(sponsors.id, sponsorId));
 
   if (row === undefined || row.status !== "review") return "unknown" as const;
-  if (row.createdBy === approver.id) return "own_submission" as const;
+  if (
+    row.createdBy === approver.id &&
+    (await somebodyElseCouldApprove(approver, "approveSponsors"))
+  ) {
+    return "own_submission" as const;
+  }
   if (row.logoImageId !== null && (row.logoAlt === null || row.logoAlt.trim().length === 0)) {
     return "alt_text_missing" as const;
   }
@@ -171,7 +177,12 @@ export const rejectSponsor = async (
     .where(eq(sponsors.id, sponsorId));
 
   if (row === undefined || row.status !== "review") return "unknown" as const;
-  if (row.createdBy === approver.id) return "own_submission" as const;
+  if (
+    row.createdBy === approver.id &&
+    (await somebodyElseCouldApprove(approver, "approveSponsors"))
+  ) {
+    return "own_submission" as const;
+  }
 
   await db
     .update(sponsors)
@@ -179,4 +190,39 @@ export const rejectSponsor = async (
     .where(eq(sponsors.id, sponsorId));
 
   return "rejected" as const;
+};
+
+/**
+ * Gone, not hidden. `active` takes an entry off the page and keeps the record;
+ * this is for the row that should never have existed — a typo, a test, an
+ * agreement that fell through.
+ *
+ * The logo goes with it. Nothing else would ever point at that image again, and
+ * an object nobody can reach from the application is an object nobody will ever
+ * remember to remove from the bucket.
+ */
+export const deleteSponsor = async (sponsorId: string) => {
+  const [row] = await db
+    .select({ logoImageId: sponsors.logoImageId })
+    .from(sponsors)
+    .where(eq(sponsors.id, sponsorId));
+
+  if (row === undefined) return { deleted: false as const, imageKey: null };
+
+  const [image] =
+    row.logoImageId === null
+      ? []
+      : await db
+          .select({ key: images.key })
+          .from(images)
+          .where(eq(images.id, row.logoImageId));
+
+  await db.transaction(async (tx) => {
+    await tx.delete(sponsors).where(eq(sponsors.id, sponsorId));
+    if (row.logoImageId !== null) {
+      await tx.delete(images).where(eq(images.id, row.logoImageId));
+    }
+  });
+
+  return { deleted: true as const, imageKey: image?.key ?? null };
 };
