@@ -194,7 +194,7 @@ export function BlockEditor({
    * goes through: what survives is text, bold, italic and a link the server
    * would accept.
    */
-  const onPaste = (event: ClipboardEvent<HTMLDivElement>) => {
+  const onPaste = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
     event.preventDefault();
 
     const html = event.clipboardData.getData("text/html");
@@ -210,35 +210,51 @@ export function BlockEditor({
     }
 
     document.execCommand("insertHTML", false, inlineToHtml(htmlToInline(html)));
-  };
+  }, []);
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>, index: number) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      const current = blocks[index]!;
-      const kind: BlockKind =
-        current.kind === "bulletItem" || current.kind === "orderedItem"
-          ? current.kind
-          : "paragraph";
-      const fresh = emptyBlock(kind);
-      wanted.current = { id: fresh.id, atEnd: false };
-      onChange([...blocks.slice(0, index + 1), fresh, ...blocks.slice(index + 1)]);
-      return;
-    }
+  /**
+   * Stable, like the other two: the editable lines keep whichever handler they
+   * were mounted with, so one that closed over `blocks` went on reading the
+   * list as it was when that line first appeared. Enter and Backspace then
+   * rebuilt the document from a stale array — which is why deleting a line
+   * stopped moving the caret once anything had been edited.
+   */
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>, index: number) => {
+      const blocks = latest.current;
 
-    if (event.key === "Backspace" && blocks.length > 1) {
-      const element = event.currentTarget;
-      if (element.textContent?.length === 0) {
+      if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        // The caret goes to the end of the line above, where it would be if the
-        // two had been one line all along — so holding Backspace keeps deleting
-        // instead of stopping at every empty line.
-        const before = blocks[index - 1] ?? blocks[index + 1];
-        if (before !== undefined) wanted.current = { id: before.id, atEnd: true };
-        onChange(blocks.filter((_block, position) => position !== index));
+        const current = blocks[index];
+        if (current === undefined) return;
+
+        const kind: BlockKind =
+          current.kind === "bulletItem" || current.kind === "orderedItem"
+            ? current.kind
+            : "paragraph";
+        const fresh = emptyBlock(kind);
+        wanted.current = { id: fresh.id, atEnd: false };
+        report.current([
+          ...blocks.slice(0, index + 1),
+          fresh,
+          ...blocks.slice(index + 1),
+        ]);
+        return;
       }
-    }
-  };
+
+      if (event.key !== "Backspace" || blocks.length <= 1) return;
+      if (event.currentTarget.textContent?.length !== 0) return;
+
+      event.preventDefault();
+      // The caret goes to the end of the line above, where it would be if the
+      // two had been one line all along — so holding Backspace keeps deleting
+      // instead of stopping at every empty line.
+      const before = blocks[index - 1] ?? blocks[index + 1];
+      if (before !== undefined) wanted.current = { id: before.id, atEnd: true };
+      report.current(blocks.filter((_block, position) => position !== index));
+    },
+    [],
+  );
 
   return (
     <>
