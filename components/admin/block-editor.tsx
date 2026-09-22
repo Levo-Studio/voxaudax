@@ -42,6 +42,17 @@ const BLOCK_CLASS: Record<BlockKind, string> = {
   image: "",
 };
 
+/**
+ * A line that begins "- " is a bullet, the way it is in every notes app and in
+ * markdown. The dash is taken back out again, so the marker is drawn by the
+ * block rather than typed by hand and left in the text — where it would have
+ * been exported as a literal dash inside a list item.
+ *
+ * The test is on the text and not the markup: a dash inside a bold run still
+ * opens a list, and a dash further along the line does not.
+ */
+const BULLET_START = /^[-*]\s/;
+
 const TOOL_CLASS =
   "cursor-pointer rounded-[7px] border-none bg-transparent px-[11px] py-[7px] font-control text-[13px] font-semibold text-tx transition-colors duration-200 ease-out hover:bg-s2";
 
@@ -163,8 +174,31 @@ export function BlockEditor({
   });
 
   const onInput = useCallback((id: string, html: string) => {
+    const blocks = latest.current;
+    const current = blocks.find((block) => block.id === id);
+
+    if (current?.kind === "paragraph") {
+      const text = html
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, " ");
+
+      if (BULLET_START.test(text)) {
+        // The caret goes back to the end, because React rewrites the element
+        // when the kind changes and the browser would leave it at the start.
+        wanted.current = { id, atEnd: true };
+        report.current(
+          blocks.map((block) =>
+            block.id === id
+              ? { ...block, kind: "bulletItem", html: html.replace(/^([-*])(&nbsp;|\s)/, "") }
+              : block,
+          ),
+        );
+        return;
+      }
+    }
+
     report.current(
-      latest.current.map((block) => (block.id === id ? { ...block, html } : block)),
+      blocks.map((block) => (block.id === id ? { ...block, html } : block)),
     );
   }, []);
 
@@ -308,9 +342,6 @@ export function BlockEditor({
           I
         </button>
         <span aria-hidden className="mx-[5px] h-5 w-px bg-bd" />
-        <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={() => applyKind("bulletItem")}>
-          Liste
-        </button>
         <button type="button" className={TOOL_CLASS} onMouseDown={(event) => event.preventDefault()} onClick={() => applyKind("blockquote")}>
           Zitat
         </button>

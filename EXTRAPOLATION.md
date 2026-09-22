@@ -350,6 +350,16 @@ keines von beidem uneinig sein können; ein schon vergebener Name liefert die
 vorhandene Zeile zurück statt einer zweiten daneben. Auf der Startseite taucht
 sie auf, sobald der erste Artikel darin veröffentlicht ist.
 
+### „- " am Zeilenanfang macht eine Aufzählung
+
+Die Vorlage zeigt einen Knopf „Liste" in der Werkzeugleiste.
+
+→ Der Knopf ist weg. Eine Zeile, die mit „- " oder „* " beginnt, wird zum
+Aufzählungspunkt, und das Zeichen wird aus dem Text genommen — sonst stünde es
+später als echter Bindestrich im Listenpunkt. Geprüft wird der Text, nicht die
+Auszeichnung: ein Bindestrich in fetter Schrift öffnet die Liste ebenso, einer
+weiter hinten in der Zeile nicht.
+
 ### Links werden erkannt statt eingetragen
 
 Die Vorlage zeigt einen Link-Knopf in der Werkzeugleiste. Dahinter stand ein
