@@ -468,6 +468,52 @@ wird, sagt der Entwurf nicht.
 Nicht aus der Vorlage abgeleitet, sondern ausdrücklich angewiesen — und der
 Aufgabenstellung entgegenstehend, deshalb hier festgehalten.
 
+### Ein Bild, das aus dem Text fällt, wird auch gelöscht
+
+Auf Ansage: *„wenn es rausgenommen wird wird es gelöscht, auch beim Bearbeiten."*
+Bis dahin verlor ein Bild beim Herausnehmen nur seinen Besitzer — Zeile und
+Objekt im Speicher blieben für immer liegen.
+
+→ Nicht sofort, und dafür gibt es einen Grund. Der Editor sichert gut eine
+Sekunde nach dem letzten Anschlag. Zwischen dem Löschen eines Bildblocks und dem
+Rückgängigmachen liegen zwei Sicherungen; würde die erste das Bild wegwerfen,
+zeigte das Wiederhergestellte auf nichts mehr. Deshalb zwei Schritte: Speichern
+**markiert**, was nicht mehr im Text steht (`images.detached_at`), erneutes
+Speichern mit dem Bild darin nimmt die Markierung zurück, und was einen Tag lang
+markiert bleibt, wird weggeraumt — Zeile und Objekt.
+
+→ Für den Leser ist es trotzdem sofort weg. `imageAccess` findet zu einem Bild,
+auf das kein Artikel zeigt, keinen Artikel mehr; von der ersten Sicherung an wird
+es an niemanden mehr ausgeliefert außer an die Person, die es hochgeladen hat.
+
+→ Vor dem Löschen wird noch einmal gefragt. Zwischen Markierung und Kehren liegt
+ein Tag, in dem das Bild in einen anderen Artikel kopiert worden sein kann — die
+Markierung ist ein Verdacht, die Abfrage ist die Antwort.
+
+→ Memes und Sponsorenlogos können nie mitgerissen werden: markiert wird nur über
+den Artikelweg, und kein Artikelkörper nennt sie.
+
+### Jedes Bildformat als Sponsorenlogo, und das Logo wird auch gezeigt
+
+**6b** schreibt „SVG oder PNG mit Transparenz", und gebaut war das als Regel:
+alles andere wurde abgewiesen. Auf Ansage — *„bei Sponsoren Logo geht alles, egal
+ob transparent oder nicht, aber halt in diesem Rahmen, wo das Logo rein kommt."*
+
+→ Angenommen wird jetzt jedes Bildformat, das ein Browser zeichnet. Transparenz
+ist gleichgültig, weil die Kachel ein fester Kasten auf eigenem Grund ist; und
+ein JPG abzuweisen hieße nur, dass es vorher jemand schlecht umwandelt. Der Satz
+aus 6b steht weiter da, aber als Empfehlung und nicht als Schranke.
+
+→ SVG bleibt der eine Typ, der Vorsicht statt Vertrauen braucht, und das ist
+schon geregelt: `imageHeaders` gibt ihn als Download unter einer CSP-Sandbox
+heraus, weil ein SVG als eigene Adresse ein Dokument ist, das Skript ausführt.
+
+→ **Das Logo wurde überhaupt nie öffentlich gezeigt.** Die Startseite zeichnete
+immer das Kürzel, auch wenn ein Logo hochgeladen war. Es steht jetzt in derselben
+Kachel — 34px mobil, 38px auf dem Desktop, `object-contain`, damit eine breite
+Wortmarke und ein quadratisches Zeichen beide ganz bleiben. Das Kürzel ist, was
+vorher da ist und was bleibt, wenn kein Logo hochgeladen wurde.
+
 ### Bilder laufen über die Anwendung, nicht über einen Auslieferungs-Host
 
 Die Aufgabenstellung beschreibt `cdn.levo-studio.com` als Auslieferungsdomain mit

@@ -364,8 +364,14 @@ export const activeSponsors = () =>
       name: sponsors.name,
       initials: sponsors.initials,
       url: sponsors.url,
+      // The tile draws the logo where the initials otherwise stand, so both
+      // come back and the component picks. The alt text rides along because a
+      // logo without one is a picture the approval list refuses anyway.
+      logoImageId: sponsors.logoImageId,
+      logoAlt: images.alt,
     })
     .from(sponsors)
+    .leftJoin(images, eq(images.id, sponsors.logoImageId))
     .where(
       and(
         eq(sponsors.active, true),

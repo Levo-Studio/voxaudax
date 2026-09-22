@@ -36,8 +36,15 @@ export function SponsorForm({ today }: { today: string }) {
       <div className="border-b border-bd px-[18px] py-4">
         <label className={`block cursor-pointer rounded-[10px] border-[1.5px] border-dashed border-bd p-[18px] text-center text-[12.5px] font-semibold text-tm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ac`}>
           Logo hierher ziehen
-          <span className="mt-1 block text-[11.5px] font-medium">SVG oder PNG mit Transparenz</span>
-          <input type="file" name="logo" accept="image/svg+xml,image/png" className="sr-only" />
+          {/* 6b writes "SVG oder PNG mit Transparenz". Kept as the recommendation
+              it is rather than the rule it was: the tile is a fixed box on its
+              own background, so a logo without an alpha channel fills it just
+              as well, and refusing a JPG only means somebody converts it badly
+              first. */}
+          <span className="mt-1 block text-[11.5px] font-medium">
+            Am besten SVG oder PNG mit Transparenz — jedes Bildformat geht
+          </span>
+          <input type="file" name="logo" accept="image/*" className="sr-only" />
         </label>
 
         <label className={`${LABEL_CLASS} mt-3 mb-1.5`} htmlFor="sponsor-name">Name</label>

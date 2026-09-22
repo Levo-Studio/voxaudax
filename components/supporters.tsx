@@ -2,6 +2,8 @@ export type Supporter = {
   name: string;
   initials: string;
   url: string | null;
+  logoImageId: string | null;
+  logoAlt: string | null;
 };
 
 /**
@@ -29,11 +31,37 @@ export function Supporters({ supporters }: { supporters: readonly Supporter[] })
 
       <div className="mt-3 flex flex-col gap-[9px] md:mt-4 md:flex-row md:flex-wrap md:gap-3">
         {supporters.map((supporter) => {
+          /**
+           * The same box either way — 6b draws one tile, and a logo goes inside
+           * it rather than in place of it. `object-contain` keeps a wide
+           * wordmark and a square emblem both whole; the sunken background
+           * stands behind a picture with no transparency of its own.
+           *
+           * The initials are what a supporter has before a logo is uploaded and
+           * what stays when the upload is turned down, so they are the fallback
+           * and not a second design.
+           */
+          const tileClass =
+            "size-[34px] flex-none rounded-[9px] border border-bd bg-s2 md:size-[38px]";
+
           const tile = (
             <>
-              <span className="grid size-[34px] flex-none place-items-center rounded-[9px] border border-bd bg-s2 text-[11px] font-extrabold tracking-[-0.02em] text-tm md:size-[38px] md:text-xs">
-                {supporter.initials}
-              </span>
+              {supporter.logoImageId === null ? (
+                <span
+                  className={`${tileClass} grid place-items-center text-[11px] font-extrabold tracking-[-0.02em] text-tm md:text-xs`}
+                >
+                  {supporter.initials}
+                </span>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`/bild/${supporter.logoImageId}`}
+                  alt={supporter.logoAlt ?? supporter.name}
+                  loading="lazy"
+                  decoding="async"
+                  className={`${tileClass} object-contain p-1`}
+                />
+              )}
               <span>
                 <span className="block text-sm font-bold tracking-[-0.02em] md:text-[14.5px]">
                   {supporter.name}

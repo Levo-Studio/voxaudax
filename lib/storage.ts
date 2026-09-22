@@ -21,7 +21,24 @@ export const COVER_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as co
 
 export const MEME_IMAGE_TYPES = [...COVER_IMAGE_TYPES, "image/gif"] as const;
 
-export const LOGO_IMAGE_TYPES = ["image/svg+xml", "image/png"] as const;
+/**
+ * A logo arrives as whatever the company happens to have, and refusing a JPG
+ * only means somebody converts it badly first. Transparency does not matter
+ * either: the tile is a fixed box on its own background, and a picture without
+ * an alpha channel simply fills it.
+ *
+ * SVG stays in the list, and is the one type that needs care rather than
+ * trust — `imageHeaders` hands it over as a download under a sandbox, because
+ * an SVG opened as an address of its own is a document that runs script.
+ */
+export const LOGO_IMAGE_TYPES = [
+  "image/svg+xml",
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+] as const;
 
 const processScope = globalThis as typeof globalThis & {
   voxAudaxS3?: S3Client;

@@ -96,7 +96,7 @@ export const saveSponsorAction = async (
       return { problem: "Ein Logo ohne Alt-Text wird nicht gespeichert.", saved: false };
     }
     if (!(LOGO_IMAGE_TYPES as readonly string[]).includes(logo.type)) {
-      return { problem: "Erlaubt sind SVG und PNG.", saved: false };
+      return { problem: "Das ist kein Bildformat, das der Browser zeigt.", saved: false };
     }
     if (logo.size > MAXIMUM_UPLOAD_BYTES) {
       return { problem: "Das Logo ist größer als 8 MB.", saved: false };
