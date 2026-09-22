@@ -1,11 +1,11 @@
 import { siteUrl } from "@/lib/env";
+import { FEED_LENGTH } from "@/lib/limits";
 import { recentArticles } from "@/lib/queries";
 import { articleHref } from "@/lib/routes";
 
 export const revalidate = 300;
 
 /** The twenty most recent, which is what a reader's feed reader needs. */
-const FEED_LENGTH = 20;
 
 const escape = (value: string) =>
   value

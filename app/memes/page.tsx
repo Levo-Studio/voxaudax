@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { MEME_PAGE_SIZE } from "@/lib/limits";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { MemeWallSkeleton } from "@/components/skeleton";
@@ -26,7 +27,6 @@ export const metadata: Metadata = {
 };
 
 /** 10a fills four columns; a page of 48 fills them twelve rows deep. */
-const PAGE_SIZE = 48;
 
 /**
  * The gallery writes its own cursor into the "Ältere Memes" link, but the
@@ -68,7 +68,7 @@ async function MemeWall({
 }) {
   const parameters = await searchParams;
   const [{ memes, hasOlder }, { total, newest }] = await Promise.all([
-    memeGallery(PAGE_SIZE, after(parameters.vor)),
+    memeGallery(MEME_PAGE_SIZE, after(parameters.vor)),
     publishedMemeSummary(),
   ]);
 

@@ -468,6 +468,84 @@ wird, sagt der Entwurf nicht.
 Nicht aus der Vorlage abgeleitet, sondern ausdrücklich angewiesen — und der
 Aufgabenstellung entgegenstehend, deshalb hier festgehalten.
 
+### Die drei Mails, die nur Vorlagen waren, gehen jetzt raus
+
+**8b**, **11b** und **12a** waren gezeichnet, geschrieben, gerendert und geprüft —
+und niemand rief sie auf. Die Einladung wurde als Link im Backoffice ausgegeben,
+die Freigabe und die Passwortmeldung gar nicht.
+
+→ `lib/editorial/announce.ts` ist die fehlende Verdrahtung. Nichts darin wirft:
+eine Einladung, die nicht zugestellt werden konnte, ist immer noch eine
+Einladung, und ein freigegebener Artikel bleibt freigegeben, ob die Redaktion
+davon erfahren hat oder nicht. Jeder Fehlschlag ist eine Zeile im Protokoll und
+ein `false` an den Aufrufer.
+
+→ Die Einladung wird **verschickt und angezeigt**. Der Link steht weiter einmalig
+im Formular: die Mail ist der eine Schritt, der das Haus verlässt, und eine
+Einladung, die nicht ankam, darf keine sein, die sich nicht weitergeben lässt —
+die Person sitzt meist im selben Raum. Die Meldung sagt, was von beidem geschah.
+
+→ Die Freigabemail geht an alle aktiven Admins **und** an die einreichende Person,
+entdoppelt, weil das meist dieselben sind. Verschickt wird **nach** der
+Entscheidung, nie als Teil davon.
+
+→ Die Passwortmeldung geht nur an andere: das eigene Passwort zu ändern ist
+keine Nachricht, die man sich selbst schicken muss.
+
+→ Gebaut und verschickt sind getrennt (`approvedArticleMail` gegen
+`announceApprovedArticle`), damit ein Test die fertige Mail ansehen kann, ohne
+dass eine rausgeht.
+
+### Jede Aktion im Backoffice meldet sich
+
+Das Profil schrieb stumm: eine Formularaktion ohne Rückgabe, dieselben Felder
+danach, kein Hinweis, ob etwas gespeichert wurde. Dasselbe beim Hochladen eines
+Memes und beim Setzen eines fremden Passworts — beide sagten es nur in ihrem
+eigenen Panel, das wegscrollt.
+
+→ Alle drei melden sich jetzt oben rechts wie alles andere, im Erfolg wie im
+Fehlschlag. Geprüft: kein Client-Baustein unter `app/admin/(redaktion)` handelt
+mehr ohne Meldung.
+
+→ **Der Speichern-Knopf im Profil ist aus, solange sich nichts geändert hat.** Ein
+Speichern, das dieselbe Zeile noch einmal schreibt, ist ein Rundgang zur
+Datenbank, eine Neuberechnung dreier öffentlicher Seiten und eine Meldung über
+nichts. Nach dem Speichern wandert der Vergleichspunkt mit.
+
+→ Die vier Seiten, die allein stehen — Anmelden, Einladung, Passwort vergessen,
+Passwort setzen — bleiben bei ihren Meldungen im Formular. Der Meldungsbereich
+hängt in der Admin-Hülle, die es dort nicht gibt, und ein Hinweis neben dem Feld
+ist dort ohnehin die richtige Stelle.
+
+### Das Archiv nimmt die ganze Breite, die Karten reagieren auf den Zeiger
+
+Die Archivspalte war auf 860px gedeckelt und ließ auf einem Schirm zwei Drittel
+leer. Sie nimmt jetzt die volle Breite wie jede andere Seite; die Schlagzeilen
+behalten mit 62 Zeichen ein eigenes Maß, weil eine Zeile quer über 1900px nicht
+mehr zu verfolgen ist.
+
+→ Die Karten auf der Startseite heben sich beim Zeigen um vier Pixel und die
+Überschrift nimmt den Akzent — beides über `group`, damit Cover und Wort
+dieselbe Geste beantworten. **Nur auf Geräten, die wirklich zeigen können:** auf
+einem Touchscreen bleibt der Hover-Zustand am zuletzt Berührten hängen, und eine
+Karte, die angehoben stehen bleibt, liest sich als ausgewählt. Dafür gibt es die
+Variante `can-hover`.
+
+### Wo ein Artikel erscheint, steht im Backoffice
+
+Nicht in der Vorlage. Niemand, der hier schreibt, kann die Abfragen lesen, und
+die Antwort ist nicht zu erraten: ein Beitrag kann veröffentlicht, richtig und
+trotzdem nirgends zu sehen sein, weil elf neuere davor stehen.
+
+→ Eine ausklappbare Kachel unter der Artikelliste sagt, was wo erscheint und in
+welcher Reihenfolge, und was „veröffentlicht" genau heißt — nämlich Status **und**
+Zeitpunkt.
+
+→ Die Zahlen darin stehen in `lib/limits.ts`, demselben Modul, aus dem die
+Abfragen sie lesen. Ein zweites Mal getippt würden sie auseinanderlaufen, und
+eine Erklärung, die auseinanderläuft, ist schlechter als keine: jemand verlässt
+sich darauf und liegt falsch.
+
 ### Jede öffentliche Seite liest bei jedem Aufruf
 
 Nicht in der Vorlage, sondern aus einem Fehler gelernt. Sechs Seiten trugen

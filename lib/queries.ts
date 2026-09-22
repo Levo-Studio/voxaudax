@@ -17,6 +17,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import { toSlug } from "@/lib/format";
+import { ARCHIVE_CEILING, HOMEPAGE_ARTICLES, RELATED_COUNT } from "@/lib/limits";
 import { LIKE_ESCAPE, likeContains } from "@/lib/search";
 import { freeSlug } from "@/lib/slug";
 
@@ -129,7 +130,7 @@ export const homepageArticles = async (): Promise<ArticleTeaser[]> =>
     await teaserQuery()
       .where(live())
       .orderBy(desc(articles.publishedAt))
-      .limit(10),
+      .limit(HOMEPAGE_ARTICLES),
   );
 
 export const everyPublishedArticle = async (): Promise<ArticleTeaser[]> =>
@@ -183,7 +184,7 @@ export const articleBySlug = cache(async (
  * for separately, and either tops the other up when it comes back short — three
  * rows is what the row of cards is built for.
  */
-const RELATED_COUNT = 3;
+
 const RELATED_FROM_OWN_CATEGORY = 2;
 
 export const relatedArticles = async (
@@ -320,8 +321,6 @@ export type ArchiveFilters = {
   year?: number;
   authorSlug?: string;
 };
-
-const ARCHIVE_CEILING = 500;
 
 export const archiveResults = async (
   filters: ArchiveFilters,

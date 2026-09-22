@@ -19,6 +19,7 @@ import {
   toSlug,
 } from "@/lib/format";
 import { splitEditorialPage } from "@/lib/editorial-page";
+import { HOMEPAGE_MEMBERS } from "@/lib/limits";
 import { alternates } from "@/lib/metadata";
 import {
   activeSponsors,
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
   alternates: alternates("/"),
 };
 
-const MEMBER_PILLS = 8;
+
 
 export default function HomePage() {
   return (
@@ -86,7 +87,7 @@ async function HomeContent() {
   // Eight names fit two rows at 375px. Past that the block grows without
   // telling the reader anything new, so the rest become one pill that says how
   // many they are and opens the page they are all on.
-  const shownMembers = members.slice(0, MEMBER_PILLS);
+  const shownMembers = members.slice(0, HOMEPAGE_MEMBERS);
   const furtherMembers = members.length - shownMembers.length;
 
   return (
