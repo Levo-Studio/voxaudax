@@ -95,6 +95,52 @@ const checkObjectStorage = async (
 };
 
 /**
+ * Whether the key, the sender domain and the transport actually work together.
+ * Opt-in, because it puts a real message in a real inbox: the other checks only
+ * look. Nothing about the key is printed either way.
+ */
+const checkMailDelivery = async (
+  apiKey: string,
+  from: string,
+  to: string,
+): Promise<Outcome> => {
+  try {
+    const answer = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject: "Vox Audax — Zustellprobe",
+        text: "Diese Nachricht bestaetigt, dass Schluessel, Absenderdomain und Versand zusammenarbeiten. Sonst nichts.",
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!answer.ok) {
+      const body: unknown = await answer.json().catch(() => null);
+      const named =
+        typeof body === "object" && body !== null && "message" in body
+          ? String((body as { message: unknown }).message)
+          : `HTTP ${answer.status}`;
+      return { name: "mail delivery", ok: false, detail: named };
+    }
+
+    const body: unknown = await answer.json();
+    const id =
+      typeof body === "object" && body !== null && "id" in body
+        ? String((body as { id: unknown }).id)
+        : "accepted";
+    return { name: "mail delivery", ok: true, detail: `accepted, id ${id}` };
+  } catch (cause) {
+    return { name: "mail delivery", ok: false, detail: describe(cause) };
+  }
+};
+
+/**
  * Reaching the bucket proves nothing about being allowed to write to it, and
  * the whole upload path depends on that. Opt-in, because it puts an object in
  * someone's bucket; it removes it again and fails loudly if it cannot.
@@ -200,6 +246,16 @@ const main = async () => {
           env.S3_FORCE_PATH_STYLE,
           env.S3_ACCESS_KEY_ID,
           env.S3_SECRET_ACCESS_KEY,
+        ),
+      );
+    }
+
+    if (process.argv.includes("--mail") && env.RESEND_API_KEY !== "") {
+      outcomes.push(
+        await checkMailDelivery(
+          env.RESEND_API_KEY,
+          required("MAIL_FROM"),
+          required("MAIL_TO_EDITORIAL"),
         ),
       );
     }
