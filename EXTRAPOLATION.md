@@ -412,6 +412,19 @@ zeichnet die Mail im Rahmen eines Mailprogramms, das Absender und Betreff schon
 anzeigt; eine Mail, die allein im Postfach liegt, muss beides selbst sagen. Das
 steht so schon oben.
 
+### Node 22 ist die Fassung, gegen die gebaut wird
+
+Nicht aus der Vorlage, sondern aus einem Fehlschlag gelernt. Das Image läuft auf
+`node:22-alpine` und die CI auf Node 22; auf dem Entwicklungsrechner lief Node 26.
+`node --test tests/` — ein Verzeichnis als Argument — funktioniert auf 26 und
+scheitert auf 22, wo Node den Ordner als Datei zu laden versucht: *Cannot find
+module …/tests*. Lokal grün, in der CI rot, und die Ursache lag nicht im Test.
+
+→ Die Testskripte benennen ihre Dateien jetzt per Muster statt per Ordner, so wie
+es die Integrationszeile ohnehin schon tat. Und `.nvmrc` sowie `engines` im
+`package.json` sagen, welche Node-Fassung gilt, damit derselbe Unterschied nicht
+noch einmal unbemerkt bleibt.
+
 ### Welche Systemmail tatsächlich verschickt wird
 
 Die Vorlagen und der Resend-Versand waren beide gebaut und nie verbunden. An
