@@ -119,11 +119,15 @@ export const htmlToInline = (html: string): TipTapNode[] => {
   return nodes;
 };
 
-let counter = 0;
-const nextId = () => {
-  counter += 1;
-  return `b${counter}`;
-};
+/**
+ * Drawn, not counted. A module counter is evaluated once while the page is
+ * rendered on the server and once more in the browser, and both start at zero
+ * — so a block made after the document was parsed could carry an id the
+ * document had already used. Two lines with one id is not a cosmetic problem:
+ * the editor finds a line by its id to put the caret in it, and `querySelector`
+ * answers with whichever comes first, which sent the caret into the headline.
+ */
+const nextId = () => crypto.randomUUID();
 
 export const emptyBlock = (kind: BlockKind = "paragraph"): Block => ({
   id: nextId(),

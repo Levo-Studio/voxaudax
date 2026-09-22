@@ -280,7 +280,10 @@ export function Editor({
           <div className="ml-auto flex gap-2">
             <Link
               href={`/admin/artikel/${article.id}/vorschau`}
-              className="rounded-lg border border-bd px-3.5 py-2 text-[12.5px] font-bold text-tx no-underline transition-colors duration-200 ease-out hover:border-ac"
+              // inline-flex, because an inline link's text sits on its
+              // baseline and the button beside it centres its own label — the
+              // two words then stood at different heights in the same row.
+              className="inline-flex items-center rounded-lg border border-bd px-3.5 py-2 text-[12.5px] font-bold text-tx no-underline transition-colors duration-200 ease-out hover:border-ac"
             >
               Vorschau
             </Link>
