@@ -450,10 +450,10 @@ export function Editor({
           <div className="va-in">
             <div className="border-b border-bd px-[18px] pt-[18px] pb-4">
               <div className="flex items-baseline justify-between">
-                {/* The article variant, not the card: that is the panel the
-                    reader meets at the top of the piece, and it is the only
-                    one the template draws the grid on — so a preview on a card
-                    showed the switch doing nothing. */}
+                {/* The article head, not the card: that is the panel the grid
+                    is drawn on, so a preview on a card showed the switch doing
+                    nothing. Its own variant, because the real one is sized
+                    against the window and this box is 300px wide. */}
                 <span className={LABEL_CLASS}>Vorschau · Artikelkopf</span>
                 <span className="text-[11.5px] font-semibold text-tm">
                   {coverImage ? "eigenes Bild" : `generiert · ${colour.name}`}
@@ -467,7 +467,7 @@ export function Editor({
                   eyebrow="Titelthema"
                   word={cover.word}
                   line={cover.line}
-                  variant="article"
+                  variant="preview"
                 />
               </div>
             </div>

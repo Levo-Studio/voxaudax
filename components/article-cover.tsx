@@ -6,7 +6,12 @@ import {
 import type { CoverPhotograph } from "@/lib/queries";
 import { imageHref } from "@/lib/routes";
 
-export type ArticleCoverVariant = "hero" | "article" | "card" | "related";
+export type ArticleCoverVariant =
+  | "hero"
+  | "article"
+  | "card"
+  | "related"
+  | "preview";
 
 type VariantStyles = {
   panel: string;
@@ -80,6 +85,22 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
     wrap: "whitespace-normal md:whitespace-nowrap",
     hasGrid: false,
     eyebrowInFlow: true,
+  },
+  /**
+   * The editor's own preview of the article head: the same panel, the same
+   * grid, and every size fixed. The real one scales with `md:` and `vw`, which
+   * measure the window — and the preview sits in a 300px column while the
+   * window is wide, so those sizes drew a 88px word across a 114px box and out
+   * the other side.
+   */
+  preview: {
+    panel: "aspect-[21/8] px-4 py-[15px] [--cover-grid:26px]",
+    eyebrow: "top-[13px] left-4 text-[8.5px] tracking-[0.16em]",
+    word: "text-[26px] leading-[0.9] tracking-[-0.05em]",
+    line: "mt-1.5 text-[10.5px]",
+    wrap: "whitespace-nowrap",
+    hasGrid: true,
+    eyebrowInFlow: false,
   },
   related: {
     panel:
