@@ -8,6 +8,8 @@ import {
   MAX_MESSAGE_LENGTH,
   MAX_NAME_LENGTH,
   MAX_ROLE_LENGTH,
+  MIN_MESSAGE_LENGTH,
+  MIN_NAME_LENGTH,
   type ContactState,
 } from "@/lib/contact";
 import { environment } from "@/lib/env";
@@ -18,7 +20,7 @@ const submission = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Bitte einen Namen angeben.")
+    .min(MIN_NAME_LENGTH, "Bitte einen Namen angeben.")
     .max(MAX_NAME_LENGTH, "Der Name ist zu lang."),
   role: z.string().trim().max(MAX_ROLE_LENGTH).default(""),
   email: z
@@ -28,7 +30,7 @@ const submission = z.object({
   message: z
     .string()
     .trim()
-    .min(10, "Bitte schreib etwas mehr dazu.")
+    .min(MIN_MESSAGE_LENGTH, "Bitte schreib etwas mehr dazu.")
     .max(MAX_MESSAGE_LENGTH, "Die Nachricht ist zu lang für dieses Formular."),
   consent: z.literal("on", {
     error: "Ohne die Kenntnisnahme dürfen wir die Angaben nicht verarbeiten.",

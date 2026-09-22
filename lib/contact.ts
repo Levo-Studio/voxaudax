@@ -14,6 +14,15 @@ export const CONCERNS = [
 export type Concern = (typeof CONCERNS)[number];
 
 /**
+ * What the server insists on, stated here rather than in the action, because a
+ * "use server" module may export nothing but async functions — so the form
+ * could not read these and would have had a second copy of every number to
+ * drift from. Both ends of the check now count to the same figure.
+ */
+export const MIN_NAME_LENGTH = 2;
+export const MIN_MESSAGE_LENGTH = 10;
+
+/**
  * The longest a name and a message may be. Both are also set on the fields
  * themselves, so the browser stops a long paste before the server has to.
  */
