@@ -1,10 +1,12 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { ArchiveSearch } from "@/components/archive-search";
 import { FormerTag } from "@/components/former-tag";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { ArchiveSkeleton } from "@/components/skeleton";
 import { longDate, machineDate, shortDate } from "@/lib/format";
 import { alternates } from "@/lib/metadata";
 import {
@@ -118,7 +120,36 @@ function FilterMenu({
   );
 }
 
-export default async function ArchivePage({
+export default function ArchivePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader current="archiv" />
+
+      <main className="max-w-[860px] flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-[52px]">
+        <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[42px] md:leading-none">
+          Archiv
+        </h1>
+
+        <Suspense fallback={<ArchiveSkeleton />}>
+          <ArchiveResults searchParams={searchParams} />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+/**
+ * Everything on this page needs the same five answers, so none of it can be
+ * drawn before they arrive — the search field included, which has to know the
+ * categories, the years and the authors before it can offer them.
+ */
+async function ArchiveResults({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -150,13 +181,7 @@ export default async function ArchivePage({
   const activeAuthor = authors.find((entry) => entry.slug === author);
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <SiteHeader current="archiv" />
-
-      <main className="max-w-[860px] flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-[52px]">
-        <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[42px] md:leading-none">
-          Archiv
-        </h1>
+    <>
 
         <ArchiveSearch
           filters={{ category, year, author }}
@@ -262,9 +287,6 @@ export default async function ArchivePage({
             Filter zurücksetzen
           </Link>
         ) : null}
-      </main>
-
-      <SiteFooter />
-    </div>
+    </>
   );
 }

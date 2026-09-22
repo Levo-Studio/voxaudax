@@ -1,7 +1,7 @@
 import "server-only";
 import { Resend } from "resend";
 
-import { environment, mailEnvironment } from "@/lib/env";
+import { environment } from "@/lib/env";
 import { environmentSchema } from "@/lib/env-schema";
 import { type Mail, renderMail } from "@/lib/mail/render";
 
@@ -57,6 +57,12 @@ const resend = (apiKey: string) => (transport ??= new Resend(apiKey));
 export type MailDelivery = {
   to: readonly string[];
   mail: Mail;
+  /**
+   * Where a reply goes. Defaults to the editorial address, which is right for
+   * everything this application writes itself; the contact form overrides it
+   * with the reader's own address, because a reply there is meant for them.
+   */
+  replyTo?: string;
 };
 
 /**
@@ -64,7 +70,7 @@ export type MailDelivery = {
  * the approval mail goes to every admin and to the person who submitted, and
  * those two sets overlap whenever an admin submits something.
  */
-export const sendMail = async ({ to, mail }: MailDelivery): Promise<string> => {
+export const sendMail = async ({ to, mail, replyTo }: MailDelivery): Promise<string> => {
   const recipients = [...new Set(to)];
 
   if (recipients.length === 0) {
@@ -79,7 +85,7 @@ export const sendMail = async ({ to, mail }: MailDelivery): Promise<string> => {
   ).emails.send({
     from: configuration.MAIL_FROM,
     to: recipients,
-    replyTo: configuration.MAIL_TO_EDITORIAL,
+    replyTo: replyTo ?? configuration.MAIL_TO_EDITORIAL,
     subject,
     html,
     text,
@@ -92,18 +98,15 @@ export const sendMail = async ({ to, mail }: MailDelivery): Promise<string> => {
 };
 
 
-/* ---------------------------------------------------------------------------
- * Two transports to the same provider, deliberately left side by side for now.
- * The templates above go through the Resend SDK; the contact form below posts
- * to the API itself, because it predates them and carries its own deadline.
- * Folding the form onto `sendMail` is the obvious next step and is written down
- * in EXTRAPOLATION.md — it is not done here because with no key in this
- * environment the change could not be exercised.
- * ------------------------------------------------------------------------- */
-
 /**
  * The one message the public site sends. It goes to the editorial address and
  * nowhere else: no copy to the sender, no list, no analytics hook.
+ *
+ * It used to post to the Resend API itself, past the templates beside it, and
+ * arrived as bare lines of text while every other mail from this newspaper
+ * carried its shape. It goes through the same sender as the rest now — the only
+ * thing it asks for on its own is the reply address, which is the reader's and
+ * not the editors'.
  */
 export type EditorialMessage = {
   name: string;
@@ -117,20 +120,6 @@ export type SendOutcome =
   | { sent: true }
   | { sent: false; reason: "unconfigured" | "rejected" };
 
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-
-const plainText = (message: EditorialMessage) =>
-  [
-    `Name: ${message.name}`,
-    message.role.length === 0 ? undefined : `Klasse oder Rolle: ${message.role}`,
-    `E-Mail: ${message.email}`,
-    `Anliegen: ${message.subject}`,
-    "",
-    message.body,
-  ]
-    .filter((line) => line !== undefined)
-    .join("\n");
-
 /**
  * Returns why it failed rather than throwing, because the caller has to tell
  * the person in front of the form something true. What the log gets is the
@@ -139,10 +128,10 @@ const plainText = (message: EditorialMessage) =>
 export const sendEditorialMessage = async (
   message: EditorialMessage,
 ): Promise<SendOutcome> => {
-  let credentials: ReturnType<typeof mailEnvironment>;
+  let to: string;
 
   try {
-    credentials = mailEnvironment();
+    to = environment().MAIL_TO_EDITORIAL;
   } catch (cause) {
     console.error(
       `Contact form: ${cause instanceof Error ? cause.message : "mail is not configured"}`,
@@ -151,34 +140,34 @@ export const sendEditorialMessage = async (
   }
 
   try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      // Undici waits five minutes for headers. A mail host that hangs would
-      // hold the contact form open for all five, with the person in front of
-      // it watching a spinner rather than being offered the fallback below.
-      signal: AbortSignal.timeout(10_000),
-      headers: {
-        authorization: `Bearer ${credentials.RESEND_API_KEY}`,
-        "content-type": "application/json",
+    await sendMail({
+      to: [to],
+      // The sender is a person, so an answer has to reach them by replying.
+      replyTo: message.email,
+      mail: {
+        template: "editorialMessage",
+        props: {
+          siteUrl: environment().NEXT_PUBLIC_SITE_URL,
+          to,
+          name: message.name,
+          role: message.role,
+          email: message.email,
+          subject: message.subject,
+          body: message.body,
+        },
       },
-      body: JSON.stringify({
-        from: credentials.MAIL_FROM,
-        to: [environment().MAIL_TO_EDITORIAL],
-        // The sender is a person, so an answer has to reach them by replying.
-        reply_to: message.email,
-        subject: `${message.subject}: ${message.name}`,
-        text: plainText(message),
-      }),
     });
 
-    if (!response.ok) {
-      console.error(`Contact form: the mail provider answered ${response.status}`);
-      return { sent: false, reason: "rejected" };
+    return { sent: true };
+  } catch (cause) {
+    if (cause instanceof MailNotConfigured) {
+      console.error(`Contact form: ${cause.message}`);
+      return { sent: false, reason: "unconfigured" };
     }
 
-    return { sent: true };
-  } catch {
-    console.error("Contact form: the mail provider could not be reached");
+    console.error(
+      `Contact form: ${cause instanceof Error ? cause.message : "the mail provider could not be reached"}`,
+    );
     return { sent: false, reason: "rejected" };
   }
 };

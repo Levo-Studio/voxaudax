@@ -13,7 +13,7 @@ export function LoginForm() {
   const [state, submit, pending] = useActionState(signInAction, EMPTY);
 
   return (
-    <div className="flex flex-col justify-center p-6 md:p-11">
+    <div className="flex flex-col items-center justify-center p-6 md:p-11">
       {/* One column, one width: heading, paragraph, alert and fields all sit on
           380px. The alert is not in the template at all, and at full width it
           ran past every field under it. */}

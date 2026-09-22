@@ -468,6 +468,67 @@ wird, sagt der Entwurf nicht.
 Nicht aus der Vorlage abgeleitet, sondern ausdrücklich angewiesen — und der
 Aufgabenstellung entgegenstehend, deshalb hier festgehalten.
 
+### Jede öffentliche Seite liest bei jedem Aufruf
+
+Nicht in der Vorlage, sondern aus einem Fehler gelernt. Sechs Seiten trugen
+`revalidate = 300` und wurden damit beim Bauen vorgerendert — im Container, der
+absichtlich keine Datenbank erreicht. Eingebacken wurde also ihr **Leerzustand**:
+die Startseite zeigte „Noch ist nichts veröffentlicht", während das Archiv aus
+derselben Datenbank zwölf Artikel auslieferte — weil das Archiv nie vorgerendert
+wurde. Nach fünf Minuten zog sich die Startseite selbst nach, aber jeder Deploy
+begann mit einer leeren Zeitung.
+
+→ Alle öffentlichen Seiten tragen jetzt `dynamic = "force-dynamic"`. Was vorher
+fünf Minuten Zwischenspeicher waren, ist jetzt Streaming: Kopf, Fuß und
+Überschriften stehen in der ersten Antwort, die Abfrage folgt in ein Skelett.
+
+→ Die Artikelseite streamt **nicht** als Ganzes, und das ist der eine Fall, wo
+es falsch wäre: ein unbekannter Slug antwortet 404, ein alter leitet um, und
+beides sind Entscheidungen über die Antwort selbst — nach dem ersten
+ausgelieferten Byte nicht mehr zu treffen. Nur „Weiterlesen" darunter kommt
+nach, mit einer eigenen Abfrage über ganz andere Artikel.
+
+→ Beim Kontaktformular wartet nur die Chefredaktion in der Seitenspalte. Das
+Formular selbst braucht keine Abfrage und steht sofort da.
+
+→ `orNoneAtBuildTime` fängt jetzt **nur während des Baus**. Vorher fing es ohne
+zu fragen wann, und jeder Laufzeitfehler sah aus wie eine leere Zeitung: eine
+weggebrochene Datenbank wurde dem Leser als „Noch ist nichts veröffentlicht"
+gemeldet und sonst niemandem. Jetzt schlägt sie zu `app/error.tsx` durch.
+
+→ Die Skelette (`components/skeleton.tsx`) haben die Maße dessen, was sie
+ersetzt, damit beim Eintreffen nichts springt. Ein Schimmer statt eines Pulses,
+weil zwanzig pulsende Zeilen wie zwanzig blinkende Dinge lesen und ein Streifen
+darüber wie eine ladende Seite. Unter `prefers-reduced-motion` steht die Form
+still, aber sie steht.
+
+### Das violette Panel auf den drei Einzelseiten
+
+**7a** zeichnet es nur beim Anmelden. Auf Ansage steht es jetzt auch bei
+„Passwort vergessen" und „Neues Passwort setzen" — **nur auf dem Desktop**.
+
+→ Auf dem Telefon bleibt es dem Login vorbehalten. Dort ist die rechte Spalte
+der ganze Schirm, und ein Band Violett über einem Formular, das ohnehin der
+einzige Inhalt ist, schiebt das erste Feld unter die Kante.
+
+### Die Kontaktmail sieht aus wie die anderen sechs
+
+Sie ging als nackter Text raus, an den gestalteten Vorlagen vorbei, weil sie
+älter war als sie und ihren eigenen Versandweg mitbrachte. Der Vermerk im Code,
+das zusammenzulegen, stand schon da.
+
+→ Siebte Vorlage, gleicher Rahmen wie die übrigen: Kopfzeile „An …" mit dem
+Betreff, Faktenbox mit Name, Klasse, Adresse und Anliegen, darunter der
+geschriebene Text Zeile für Zeile, und ein Abschlusssatz.
+
+→ **Kein Knopf.** Jede andere Mail endet in einer Handlung; diese endet in einer
+Antwort, und die Antwortadresse steht im Umschlag statt als Verweis im Text.
+`sendMail` nimmt dafür jetzt eine eigene Antwortadresse — die der schreibenden
+Person, nicht die der Redaktion.
+
+→ Der Text bleibt Text. Er kommt aus dem offenen Netz, und die einzige Stelle,
+an der er stehen darf, ist eine mit `white-space: pre-wrap` — nie als Markup.
+
 ### Verweis auf den Quelltext im Fuß
 
 Nicht in der Vorlage. Auf Ansage: die Zeitung liegt offen auf GitHub, also sagt

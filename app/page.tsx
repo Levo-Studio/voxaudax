@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { ArticleBrief, ArticleCard } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
@@ -8,6 +9,7 @@ import { FormerTag } from "@/components/former-tag";
 import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { HomeSkeleton } from "@/components/skeleton";
 import { Supporters } from "@/components/supporters";
 import {
   formatNumber,
@@ -29,11 +31,20 @@ import {
 import { archiveHref, articleHref } from "@/lib/routes";
 
 /**
- * Five minutes: an article scheduled to the minute reaches the front page
- * within five of the minute it was scheduled for, and a page nobody has asked
- * for in five minutes is not worth a database round trip either.
+ * Rendered for every request, not once every five minutes.
+ *
+ * Prerendering put the front page together at build time, inside an image that
+ * has no route to the database on purpose — so what was baked in was the empty
+ * state, the one the page draws before the first article exists, and it stayed
+ * that way until the window ran out. The archive never had the problem because
+ * it was never prerendered, which is why one was full and the other empty out
+ * of the same database.
+ *
+ * What was five minutes of cache is now streaming: the header, the footer and
+ * the headings go out in the first response, and the part that waits for a
+ * query follows into a skeleton.
  */
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   alternates: alternates("/"),
@@ -41,7 +52,23 @@ export const metadata: Metadata = {
 
 const MEMBER_PILLS = 8;
 
-export default async function HomePage() {
+export default function HomePage() {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader current="home" />
+
+      <main className="flex-1">
+        <Suspense fallback={<HomeSkeleton />}>
+          <HomeContent />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+async function HomeContent() {
   const [articles, total, supporters, members, editorialPage] = await Promise.all([
     orNoneAtBuildTime(homepageArticles(), []),
     orNoneAtBuildTime(publishedArticleCount(), 0),
@@ -63,11 +90,8 @@ export default async function HomePage() {
   const furtherMembers = members.length - shownMembers.length;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <SiteHeader current="home" />
-
-      <main className="flex-1">
-        {lead === undefined ? (
+    <>
+      {lead === undefined ? (
           <p className="px-[18px] py-12 text-[17px] font-medium text-tm md:px-10">
             Noch ist nichts veröffentlicht. Die erste Ausgabe entsteht gerade.
           </p>
@@ -234,10 +258,7 @@ export default async function HomePage() {
               Kontakt aufnehmen
             </Link>
           </div>
-        </section>
-      </main>
-
-      <SiteFooter />
-    </div>
+      </section>
+    </>
   );
 }

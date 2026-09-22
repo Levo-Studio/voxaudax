@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { Avatar, toneForPosition } from "@/components/avatar";
 import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { MembersSkeleton } from "@/components/skeleton";
 import { splitEditorialPage } from "@/lib/editorial-page";
 import { editorialAddress } from "@/lib/env";
 import { toSlug } from "@/lib/format";
@@ -21,7 +23,31 @@ export const metadata: Metadata = {
   alternates: alternates("/redaktion"),
 };
 
-export default async function EditorialPage() {
+/**
+ * Rendered for every request. Prerendering built this page inside an image with
+ * no route to the database, so what got baked in was its empty state — the note
+ * on `app/page.tsx` has the whole of it. The shell goes out first and the query
+ * follows into a skeleton.
+ */
+export const dynamic = "force-dynamic";
+
+export default function EditorialPage() {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader current="redaktion" />
+
+      <main className="max-w-[900px] flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-12">
+        <Suspense fallback={<MembersSkeleton />}>
+          <EditorialContent />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+async function EditorialContent() {
   const [page, members] = await Promise.all([
     orNoneAtBuildTime(pageBySlug("redaktion"), undefined),
     orNoneAtBuildTime(editorialMembers(), []),
@@ -31,11 +57,8 @@ export default async function EditorialPage() {
   const editorialEmail = editorialAddress();
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <SiteHeader current="redaktion" />
-
-      <main className="max-w-[900px] flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-12">
-        <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[46px] md:leading-none">
+    <>
+      <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[46px] md:leading-none">
           {page?.title ?? "Die Redaktion"}
         </h1>
 
@@ -126,9 +149,6 @@ export default async function EditorialPage() {
             <Inline node={node} />
           </p>
         ))}
-      </main>
-
-      <SiteFooter />
-    </div>
+    </>
   );
 }

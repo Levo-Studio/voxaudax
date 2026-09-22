@@ -14,10 +14,18 @@ import { coverColorById, coverGridOverlay } from "@/lib/cover";
  */
 const PANEL = coverColorById("violett");
 
-export function BrandPanel({ children }: { children?: ReactNode }) {
+export function BrandPanel({
+  children,
+  className = "",
+}: {
+  children?: ReactNode;
+  /** Where the panel is allowed to appear — 7a shows it at every width, the
+      three pages that stand on their own only from `md` up. */
+  className?: string;
+}) {
   return (
     <div
-      className="relative flex flex-col overflow-hidden px-[18px] pt-6 pb-7 [--cover-grid:44px] md:p-11 md:[--cover-grid:58px]"
+      className={`relative flex flex-col overflow-hidden px-[18px] pt-6 pb-7 [--cover-grid:44px] md:p-11 md:[--cover-grid:58px] ${className}`}
       style={{ background: PANEL.value, color: PANEL.text }}
     >
       <div

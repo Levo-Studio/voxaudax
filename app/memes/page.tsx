@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { MemeWallSkeleton } from "@/components/skeleton";
 import { editorialAddress } from "@/lib/env";
 import { formatNumber, machineDate, relativeDays, shortDate } from "@/lib/format";
 import { alternates } from "@/lib/metadata";
@@ -39,7 +41,27 @@ const after = (value: string | string[] | undefined) => {
   return raw !== undefined && MEME_ID.test(raw) ? raw : undefined;
 };
 
-export default async function MemesPage({
+export default function MemesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader current="memes" />
+
+      <main className="flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-12">
+        <Suspense fallback={<MemeWallSkeleton />}>
+          <MemeWall searchParams={searchParams} />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
+
+async function MemeWall({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -53,10 +75,7 @@ export default async function MemesPage({
   const editorialEmail = editorialAddress();
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <SiteHeader current="memes" />
-
-      <main className="flex-1 px-[18px] pt-[22px] pb-7 md:px-10 md:pt-10 md:pb-12">
+    <>
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <h1 className="text-[30px] leading-[1.02] font-extrabold tracking-[-0.04em] md:text-[46px] md:leading-none">
@@ -128,9 +147,6 @@ export default async function MemesPage({
             — veröffentlicht wird nur, was niemanden bloßstellt.
           </p>
         </div>
-      </main>
-
-      <SiteFooter />
-    </div>
+    </>
   );
 }

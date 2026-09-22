@@ -3,6 +3,10 @@ import { render } from "@react-email/render";
 import type { MailTemplate } from "@/lib/mail/template";
 import { type ApprovalProps, approvalMail } from "@/lib/mail/templates/approval";
 import {
+  type EditorialMessageProps,
+  editorialMessageMail,
+} from "@/lib/mail/templates/editorial-message";
+import {
   type InvitationProps,
   invitationMail,
 } from "@/lib/mail/templates/invitation";
@@ -23,6 +27,7 @@ import { MailShell } from "@/lib/mail/ui";
  */
 export type Mail =
   | { template: "approval"; props: ApprovalProps }
+  | { template: "editorialMessage"; props: EditorialMessageProps }
   | { template: "invitation"; props: InvitationProps }
   | { template: "passwordChangedByAdmin"; props: PasswordChangedByAdminProps }
   | { template: "passwordReset"; props: PasswordResetProps };
@@ -64,6 +69,8 @@ export const renderMail = (mail: Mail): Promise<RenderedMail> => {
   switch (mail.template) {
     case "approval":
       return renderWith(approvalMail, mail.props);
+    case "editorialMessage":
+      return renderWith(editorialMessageMail, mail.props);
     case "invitation":
       return renderWith(invitationMail, mail.props);
     case "passwordChangedByAdmin":

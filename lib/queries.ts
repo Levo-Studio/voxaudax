@@ -30,15 +30,25 @@ import { freeSlug } from "@/lib/slug";
 /**
  * A build has no route to the database and is given no credential for one — the
  * same reason `app/sitemap.ts`, `app/rss.xml` and `generateStaticParams` already
- * answer for themselves. A prerendered page therefore has to be able to come
- * out empty, and its empty state is the one it already draws before the first
- * article exists; the revalidate window renders it again on the first request
- * after deployment, against the database the container does have.
+ * answer for themselves. Whatever is still prerendered therefore has to be able
+ * to come out empty, and its empty state is the one it already draws before the
+ * first article exists.
+ *
+ * **Only during the build.** It used to catch without asking when, which made
+ * every runtime failure look like an empty newspaper: a database that had gone
+ * away was reported to the reader as "Noch ist nichts veröffentlicht" and to
+ * nobody else at all. A page that cannot reach its data at request time is an
+ * error and is allowed to say so — `app/error.tsx` is what it reaches.
  */
+const BUILDING = process.env.NEXT_PHASE === "phase-production-build";
+
 export const orNoneAtBuildTime = <Result, None>(
   query: Promise<Result>,
   none: None,
-) => query.catch((): Result | None => none);
+) =>
+  BUILDING
+    ? query.catch((): Result | None => none)
+    : (query as Promise<Result | None>);
 
 /**
  * Published is not the same as due: an article can carry the status while its

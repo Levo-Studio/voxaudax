@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
 
-import { DocumentPage, MissingDocument } from "@/components/document-page";
+import { Suspense } from "react";
+
+import { DocumentBody, DocumentPage, MissingDocument } from "@/components/document-page";
+import { DocumentSkeleton } from "@/components/skeleton";
 import { editorialAddress } from "@/lib/env";
 import { alternates } from "@/lib/metadata";
 import { orNoneAtBuildTime, pageBySlug } from "@/lib/queries";
 
-export const revalidate = 300;
+/**
+ * Rendered for every request. Prerendering built this page inside an image with
+ * no route to the database, so what got baked in was its empty state — the note
+ * on `app/page.tsx` has the whole of it. The shell goes out first and the query
+ * follows into a skeleton.
+ */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Impressum",
@@ -13,11 +22,21 @@ export const metadata: Metadata = {
   alternates: alternates("/impressum"),
 };
 
-export default async function ImprintPage() {
+export default function ImprintPage() {
+  return (
+    <DocumentPage trailing={{ label: "Datenschutzerklärung →", href: "/datenschutz" }}>
+      <Suspense fallback={<DocumentSkeleton />}>
+        <ImprintBody />
+      </Suspense>
+    </DocumentPage>
+  );
+}
+
+async function ImprintBody() {
   const page = await orNoneAtBuildTime(pageBySlug("impressum"), undefined);
 
   return (
-    <DocumentPage
+    <DocumentBody
       title={page?.title ?? "Impressum"}
       document={page?.body}
       missing={
@@ -26,7 +45,6 @@ export default async function ImprintPage() {
           editorialEmail={editorialAddress()}
         />
       }
-      trailing={{ label: "Datenschutzerklärung →", href: "/datenschutz" }}
     />
   );
 }

@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
 
-import { DocumentPage, MissingDocument } from "@/components/document-page";
+import { Suspense } from "react";
+
+import { DocumentBody, DocumentPage, MissingDocument } from "@/components/document-page";
+import { DocumentSkeleton } from "@/components/skeleton";
 import { editorialAddress } from "@/lib/env";
 import { alternates } from "@/lib/metadata";
 import { orNoneAtBuildTime, pageBySlug } from "@/lib/queries";
 
-export const revalidate = 300;
+/**
+ * Rendered for every request. Prerendering built this page inside an image with
+ * no route to the database, so what got baked in was its empty state — the note
+ * on `app/page.tsx` has the whole of it. The shell goes out first and the query
+ * follows into a skeleton.
+ */
+export const dynamic = "force-dynamic";
 
 /**
  * The template never drew this page, so it is built like the imprint in 5c —
@@ -24,11 +33,21 @@ export const generateMetadata = async (): Promise<Metadata> => {
   };
 };
 
-export default async function PrivacyPage() {
+export default function PrivacyPage() {
+  return (
+    <DocumentPage trailing={{ label: "Impressum →", href: "/impressum" }}>
+      <Suspense fallback={<DocumentSkeleton />}>
+        <PrivacyBody />
+      </Suspense>
+    </DocumentPage>
+  );
+}
+
+async function PrivacyBody() {
   const page = await orNoneAtBuildTime(pageBySlug("datenschutz"), undefined);
 
   return (
-    <DocumentPage
+    <DocumentBody
       title={page?.title ?? "Datenschutz"}
       document={page?.body}
       missing={
@@ -37,7 +56,6 @@ export default async function PrivacyPage() {
           editorialEmail={editorialAddress()}
         />
       }
-      trailing={{ label: "Impressum →", href: "/impressum" }}
     />
   );
 }
