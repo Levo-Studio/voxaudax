@@ -102,6 +102,18 @@ select:focus-visible {
 }
 
 /**
+ * A line under the text instead of a box around it. The title field is a
+ * headline that happens to be editable, and a rectangle around a headline
+ * reads as an error state — but a field with no focus at all fails 2.4.7. The
+ * inset shadow takes no space, so nothing moves when it appears: 2px of the
+ * accent colour, 6.9:1 against the page in light and 8.1:1 in dark.
+ */
+.va-focus-underline:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -2px 0 var(--ac);
+}
+
+/**
  * The template's own entrance, `@keyframes vaIn`, at the template's own values.
  * The reduced-motion block below flattens it to a single frame, so a reader who
  * asked for no motion sees the finished state and never the offset.

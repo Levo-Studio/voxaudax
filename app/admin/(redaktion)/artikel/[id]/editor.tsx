@@ -321,6 +321,31 @@ export function Editor({
 
   const [submitProblem, setSubmitProblem] = useState<string | null>(null);
 
+  /**
+   * The autosave already writes every two seconds, so this changes nothing the
+   * article would not have got anyway. What it changes is knowing: somebody
+   * who has typed a page and wants to close the tab should be able to press
+   * something and be told it is stored, rather than read a timestamp and hope.
+   */
+  const saveDraft = () =>
+    startTransition(async () => {
+      const answer = await autosaveAction(article.id, {
+        title,
+        teaser,
+        body: JSON.stringify(document_),
+        coverWord: cover.word,
+        coverLine: cover.line,
+        colorId: cover.colorId,
+        coverGrid: cover.grid ?? true,
+        categoryId,
+        publishAt,
+      });
+
+      if (answer.savedAt === null) return;
+      setSavedAt(new Date(answer.savedAt));
+      setUnsaved(false);
+    });
+
   const submit = () =>
     startTransition(async () => {
       const { outcome } = await submitAction(article.id);
@@ -366,6 +391,14 @@ export function Editor({
             </Link>
             <button
               type="button"
+              onClick={saveDraft}
+              disabled={status !== "draft"}
+              className="inline-flex cursor-pointer items-center rounded-lg border border-bd bg-transparent px-3.5 py-2 font-control text-[12.5px] font-bold text-tx transition-colors duration-200 ease-out hover:border-ac disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Als Entwurf speichern
+            </button>
+            <button
+              type="button"
               onClick={submit}
               disabled={status !== "draft"}
               className={`${PRIMARY_BUTTON_CLASS} py-2 text-[12.5px]`}
@@ -393,7 +426,7 @@ export function Editor({
             value={title}
             onChange={(event) => touch(setTitle)(event.target.value)}
             aria-label="Titel"
-            className="va-focus-inside mt-2 w-full border-none bg-transparent p-0 text-[25px] leading-[1.08] font-extrabold tracking-[-0.04em] text-tx md:text-[34px]"
+            className="va-focus-underline mt-2 w-full border-none bg-transparent p-0 text-[25px] leading-[1.08] font-extrabold tracking-[-0.04em] text-tx md:text-[34px]"
           />
           <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px] font-semibold text-tm">
             <span>Slug</span>
