@@ -5,6 +5,7 @@ import type { Member } from "@/lib/authorize";
 import { somebodyElseCouldApprove } from "@/lib/editorial/second-pair";
 import type { ArticleCover, TipTapDocument } from "@/lib/content";
 import { db } from "@/lib/db/client";
+import { reconcileArticleImages } from "@/lib/editorial/detached-images";
 import { articles, categories, slugHistory, users } from "@/lib/db/schema";
 import { may } from "@/lib/roles";
 import { LIKE_ESCAPE, likeContains } from "@/lib/search";
@@ -320,7 +321,15 @@ export const saveArticle = async (
     )
     .returning({ id: articles.id });
 
-  return written === undefined ? ("conflict" as const) : updatedAt;
+  if (written === undefined) return "conflict" as const;
+
+  // A picture the writer just took out of the text is taken out for good — but
+  // marked rather than deleted, because an undo a second later would otherwise
+  // find nothing where its address points. `reconcileArticleImages` never
+  // throws: losing a photograph must not cost the paragraph it stood in.
+  await reconcileArticleImages(existing.body, patch.body);
+
+  return updatedAt;
 };
 
 /**

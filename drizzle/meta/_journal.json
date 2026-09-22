@@ -64,6 +64,13 @@
       "when": 1790092627030,
       "tag": "0008_article_owner_and_author_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790094862829,
+      "tag": "0009_detached_images",
+      "breakpoints": true
     }
   ]
 }

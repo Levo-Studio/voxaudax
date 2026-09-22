@@ -150,6 +150,21 @@ export const images = pgTable("images", {
   uploadedBy: uuid("uploaded_by").references((): AnyPgColumn => users.id, {
     onDelete: "set null",
   }),
+
+  /**
+   * When the last article that showed this picture stopped showing it.
+   *
+   * Set rather than deleted, because the editor saves a second after the last
+   * keystroke: a picture removed and put back — an undo, a cut and paste, a
+   * block dragged past the end of the list — would otherwise be gone between
+   * the two saves, and what came back would point at nothing. Putting it back
+   * clears this again; what stays marked for a day is swept.
+   *
+   * Only the article path ever writes it, so a meme and a sponsor's logo,
+   * which no article body names, are never marked and never swept.
+   */
+  detachedAt: timestamp("detached_at", { withTimezone: true }),
+
   createdAt: createdAt(),
 });
 
