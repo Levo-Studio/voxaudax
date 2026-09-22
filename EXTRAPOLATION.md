@@ -350,22 +350,29 @@ keines von beidem uneinig sein können; ein schon vergebener Name liefert die
 vorhandene Zeile zurück statt einer zweiten daneben. Auf der Startseite taucht
 sie auf, sobald der erste Artikel darin veröffentlicht ist.
 
-### Frage beim Verlassen des Editors
+### Beim Verlassen des Editors wird gesichert, nicht gefragt
 
 Nicht in der Vorlage. Der Editor sichert von selbst, aber zwischen dem letzten
 Anschlag und dem Speichern liegt eine Lücke, und wer in dieser Lücke geht,
 verliert das Getippte.
 
-→ Zwei Wege, weil es zwei Arten des Weggehens gibt. Tab schließen, neu laden
-oder die Anwendung verlassen kann nur der Browser halten, mit seinem eigenen
-Wortlaut (`beforeunload`). Ein Link innerhalb des Backoffices lädt die Seite
-gar nicht neu und erreicht das nie — der Klick wird deshalb vorher abgefangen
-und im Dialog der Seite beantwortet.
+→ Es stand zuerst eine Frage an dieser Stelle — „Ungesicherte Änderungen,
+trotzdem verlassen?“. Sie ist entfernt worden, weil sie nichts entscheidet: wer
+gerade eine Seite getippt hat, will sie behalten, und die Antwort war jedes Mal
+dieselbe. Ein Klick auf einen Link im Backoffice lädt die Seite nicht neu, also
+wird er abgefangen, der Artikel geschrieben und erst danach gewechselt. Die
+Meldung oben rechts sagt, dass es passiert ist.
 
-→ Gefragt wird nur, wenn wirklich etwas offen ist. Dafür zählt der Editor die
-Änderungen und merkt sich den Stand, mit dem eine Sicherung losgeschickt wurde:
-kommt sie zurück und hat sich der Zähler nicht bewegt, ist alles gesichert.
-Sonst hätte die Frage auch dann gestanden, wenn längst alles beim Server war.
+→ Abgefangen wird nur, wenn wirklich etwas offen ist. Dafür zählt der Editor
+die Änderungen und merkt sich den Stand, mit dem eine Sicherung losgeschickt
+wurde: kommt sie zurück und hat sich der Zähler nicht bewegt, ist alles
+gesichert und der Klick läuft ungebremst durch.
+
+→ Das geschlossene Tab bekommt diese Behandlung nicht. Ein Browser gibt einem
+Weggehenden keine Zeit mehr für eine Anfrage, und `beforeunload` dürfte nur
+wieder fragen. Was dort noch auf dem Spiel steht, ist die Wartezeit der
+Selbstsicherung von gut einer Sekunde — nicht mehr die Minuten, die eine Frage
+abgedeckt hätte.
 
 ### „- " am Zeilenanfang macht eine Aufzählung
 

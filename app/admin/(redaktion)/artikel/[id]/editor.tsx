@@ -140,7 +140,6 @@ export function Editor({
    */
   const [unsaved, setUnsaved] = useState(false);
   const edits = useRef(0);
-  const [leavingTo, setLeavingTo] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -181,21 +180,24 @@ export function Editor({
   };
 
   /**
-   * Closing the tab, reloading, or following a link out of the application:
-   * only the browser can hold those, and only with its own wording.
+   * The write, read through a reference rather than closed over: the listener
+   * below is registered once per state of `unsaved` and would otherwise keep
+   * the function it was mounted with — and with it the title and the text as
+   * they were at that moment.
    */
-  useEffect(() => {
-    if (!unsaved) return;
-
-    const hold = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", hold);
-    return () => window.removeEventListener("beforeunload", hold);
-  }, [unsaved]);
+  const store = useRef<() => Promise<void>>(async () => undefined);
 
   /**
-   * A link inside the application never reaches `beforeunload`, because the
-   * page is not unloaded — so the click is caught first and answered in the
-   * page's own dialog, which can say what is at stake.
+   * Leaving with something unsaved writes it instead of asking about it. The
+   * question was the wrong one: nobody who has just typed a page wants to be
+   * asked whether to keep it, and the answer is always the same.
+   *
+   * A link inside the application does not unload the page, so the click is
+   * caught first, the article is written, and the navigation follows — the
+   * notice in the corner says it happened. A closed tab cannot be given the
+   * same treatment, because a browser grants no time for a request on the way
+   * out; what is at risk there is the autosave's own delay of just over a
+   * second, and no longer the minutes a question would have covered.
    */
   useEffect(() => {
     if (!unsaved) return;
@@ -212,12 +214,17 @@ export function Editor({
       if (destination.pathname === window.location.pathname) return;
 
       event.preventDefault();
-      setLeavingTo(destination.pathname + destination.search);
+      const going = destination.pathname + destination.search;
+
+      startTransition(async () => {
+        await store.current();
+        router.push(going as Route);
+      });
     };
 
     document.addEventListener("click", intercept, true);
     return () => document.removeEventListener("click", intercept, true);
-  }, [unsaved]);
+  }, [unsaved, router]);
 
   const toMarkdown = () => setMarkdown(documentToMarkdown(blocksToDocument(blocks, htmlToInline)));
 
@@ -329,33 +336,41 @@ export function Editor({
   const [submitProblem, setSubmitProblem] = useState<string | null>(null);
 
   /**
-   * The autosave already writes every two seconds, so this changes nothing the
-   * article would not have got anyway. What it changes is knowing: somebody
-   * who has typed a page and wants to close the tab should be able to press
+   * The write itself, awaitable. `startTransition` hands back nothing, so a
+   * caller that has to know when the article is stored — the one that leaves
+   * the page afterwards — cannot go through the button's handler.
+   */
+  const storeNow = async () => {
+    const answer = await autosaveAction(article.id, {
+      title,
+      teaser,
+      body: JSON.stringify(document_),
+      coverWord: cover.word,
+      coverLine: cover.line,
+      colorId: cover.colorId,
+      coverGrid: cover.grid ?? true,
+      categoryId,
+      publishAt,
+    });
+
+    if (answer.savedAt === null) {
+      toast("Der Entwurf ließ sich nicht speichern.", "problem");
+      return;
+    }
+
+    setSavedAt(new Date(answer.savedAt));
+    setUnsaved(false);
+    toast("Als Entwurf gespeichert.");
+  };
+
+  /**
+   * The autosave already writes a second after the last keystroke, so the
+   * button changes nothing the article would not have got anyway. What it
+   * changes is knowing: somebody who has typed a page should be able to press
    * something and be told it is stored, rather than read a timestamp and hope.
    */
-  const saveDraft = () =>
-    startTransition(async () => {
-      const answer = await autosaveAction(article.id, {
-        title,
-        teaser,
-        body: JSON.stringify(document_),
-        coverWord: cover.word,
-        coverLine: cover.line,
-        colorId: cover.colorId,
-        coverGrid: cover.grid ?? true,
-        categoryId,
-        publishAt,
-      });
-
-      if (answer.savedAt === null) {
-        toast("Der Entwurf ließ sich nicht speichern.", "problem");
-        return;
-      }
-      setSavedAt(new Date(answer.savedAt));
-      setUnsaved(false);
-      toast("Als Entwurf gespeichert.");
-    });
+  const saveDraft = () => startTransition(storeNow);
+  store.current = storeNow;
 
   const submit = () =>
     startTransition(async () => {
@@ -458,54 +473,6 @@ export function Editor({
             </button>
           </div>
         </div>
-
-        {leavingTo === null ? null : (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Seite verlassen"
-            // Oben und nicht mittig: mittig auf einer langen Seite heißt
-            // irgendwo im Text, und die Frage gehört an den Rand des Blicks,
-            // nicht zwischen zwei Absätze.
-            className="fixed inset-0 z-50 flex justify-center bg-black/40 px-5 pt-6 md:pt-10"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setLeavingTo(null);
-            }}
-          >
-            <div className={`${PANEL_CLASS} va-in h-fit w-full max-w-[420px]`}>
-              <div className={PANEL_HEADING_CLASS}>Ungesicherte Änderungen</div>
-              <div className="flex flex-col gap-3 p-5">
-                <p className="m-0 text-[13.5px] leading-[1.55] font-medium text-tm">
-                  An diesem Artikel ist etwas geschrieben, das noch nicht beim
-                  Server angekommen ist. Wer jetzt geht, verliert es.
-                </p>
-                <div className="mt-1 flex flex-wrap gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setLeavingTo(null)}
-                    className={PRIMARY_BUTTON_CLASS}
-                  >
-                    Hierbleiben
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const destination = leavingTo;
-                      setUnsaved(false);
-                      setLeavingTo(null);
-                      // After the state that holds the interceptor is gone, so
-                      // the navigation is not caught a second time.
-                      window.requestAnimationFrame(() => router.push(destination as Route));
-                    }}
-                    className={QUIET_BUTTON_CLASS}
-                  >
-                    Verwerfen und gehen
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {slugDraft === null ? null : (
           <div
