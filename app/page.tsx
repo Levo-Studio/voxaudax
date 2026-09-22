@@ -57,7 +57,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <SiteHeader current="home" showCategoryBar />
+      <SiteHeader current="home" />
 
       <main className="flex-1">
         {lead === undefined ? (

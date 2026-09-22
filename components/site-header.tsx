@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { CategoryBar } from "@/components/category-bar";
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", href: "/" },
@@ -17,8 +16,6 @@ const MOBILE_NAV_ID = "hauptnavigation";
 
 type SiteHeaderProps = {
   current?: NavKey;
-  showCategoryBar?: boolean;
-  activeCategory?: string;
 };
 
 /**
@@ -28,8 +25,6 @@ type SiteHeaderProps = {
  */
 export function SiteHeader({
   current,
-  showCategoryBar = false,
-  activeCategory,
 }: SiteHeaderProps) {
   const navLinks = NAV_ITEMS.map((item) => (
     <Link
@@ -88,7 +83,6 @@ export function SiteHeader({
         {navLinks}
       </nav>
 
-      {showCategoryBar ? <CategoryBar active={activeCategory} /> : null}
     </header>
   );
 }
