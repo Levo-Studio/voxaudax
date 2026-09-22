@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireCapability } from "@/lib/authorize";
 import { findMemberById, setMustChangePassword } from "@/lib/editorial/members";
+import { announcePasswordChange } from "@/lib/editorial/announce";
 import { setPasswordFor } from "@/lib/editorial/passwords";
 import { callFields } from "@/lib/session";
 
@@ -53,6 +54,13 @@ export const setPasswordAction = async (
   }
 
   await setMustChangePassword(memberId, mustChange);
+
+  // 12a. The password itself is handed over in person and stands in no mail;
+  // what goes out is that it was changed, by whom, and that every session is
+  // over — so somebody who did not ask for this learns of it from us rather
+  // than from being locked out.
+  await announcePasswordChange({ changedBy: admin, memberId });
+
   revalidatePath("/admin/nutzer");
 
   return { problem: null, done: true, revokedSessions: outcome.revokedSessions };
