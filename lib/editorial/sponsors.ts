@@ -24,6 +24,7 @@ const rows = () =>
       endsAt: sponsors.endsAt,
       active: sponsors.active,
       status: sponsors.status,
+      rejectionReason: sponsors.rejectionReason,
       createdBy: sponsors.createdBy,
       logoImageId: sponsors.logoImageId,
       logoAlt: images.alt,
@@ -164,7 +165,11 @@ export const approveSponsor = async (approver: Member, sponsorId: string) => {
   return "approved" as const;
 };
 
-export const rejectSponsor = async (approver: Member, sponsorId: string) => {
+export const rejectSponsor = async (
+  approver: Member,
+  sponsorId: string,
+  reason: string,
+) => {
   const [row] = await db
     .select({ createdBy: sponsors.createdBy, status: sponsors.status })
     .from(sponsors)
@@ -175,7 +180,7 @@ export const rejectSponsor = async (approver: Member, sponsorId: string) => {
 
   await db
     .update(sponsors)
-    .set({ status: "abgelehnt", active: false })
+    .set({ status: "abgelehnt", active: false, rejectionReason: reason })
     .where(eq(sponsors.id, sponsorId));
 
   return "rejected" as const;

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { ArticleBody } from "@/components/article-body";
 import { ArticleCover } from "@/components/article-cover";
 import { BlockEditor } from "@/components/admin/block-editor";
+import { RejectionNote } from "@/components/admin/rejection-note";
 import {
   Avatar,
   FIELD_CLASS,
@@ -38,6 +39,7 @@ type Category = { readonly id: string; readonly name: string };
 export type EditorArticle = {
   readonly id: string;
   readonly slug: string;
+  readonly rejectionReason: string | null;
   readonly title: string;
   readonly teaser: string;
   readonly body: TipTapDocument;
@@ -362,6 +364,18 @@ export function Editor({
             </button>
           </div>
         </div>
+
+        {/* Where the reason belongs: on the article, at the top, in front of
+            the person who has to answer it. It folds away, because it is read
+            once and then worked on. */}
+        {article.rejectionReason === null || status !== "draft" ? null : (
+          <div className="mx-4 mt-5 rounded-[10px] border border-ac2 px-4 py-3 md:mx-[30px]">
+            <div className="text-[11px] font-bold tracking-[0.1em] text-ac2 uppercase">
+              Zurückgegeben
+            </div>
+            <RejectionNote reason={article.rejectionReason} />
+          </div>
+        )}
 
         <div className="px-4 pt-6 md:px-[30px]">
           <div className={LABEL_CLASS}>Titel</div>

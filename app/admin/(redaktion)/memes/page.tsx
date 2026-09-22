@@ -1,3 +1,4 @@
+import { RejectionNote } from "@/components/admin/rejection-note";
 import { FilterPill, PANEL_CLASS, PANEL_HEADING_CLASS } from "@/components/admin/controls";
 import { ToggleSwitch } from "@/components/admin/toggle-switch";
 import { toggleMemeVisibilityAction } from "@/app/admin/(redaktion)/memes/actions";
@@ -79,6 +80,7 @@ export default async function MemesPage({
                             ? "Online"
                             : "Ausgeblendet"}
                     </span>
+                    <RejectionNote reason={meme.rejectionReason} />
                     {mayDecide ? (
                       <form action={toggleMemeVisibilityAction} className="ml-auto">
                         <input type="hidden" name="memeId" value={meme.id} />

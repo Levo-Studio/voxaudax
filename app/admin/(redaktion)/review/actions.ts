@@ -27,17 +27,45 @@ const decide = async (
 export const approveArticleAction = async (articleId: string) =>
   decide("approveArticlesAndMemes", (member) => approveArticle(member, articleId));
 
-export const returnArticleAction = async (articleId: string) =>
-  decide("approveArticlesAndMemes", (member) => returnToDraft(member, articleId));
+/**
+ * A refusal carries a reason, and the reason is not optional: "abgelehnt" on
+ * its own tells the author that something is wrong and nothing about what. It
+ * is trimmed and capped here, because it is written by a person into a box and
+ * read by another person out of a list.
+ */
+const MAXIMUM_REASON = 500;
+
+const reasoned = (reason: string) => reason.trim().slice(0, MAXIMUM_REASON);
+
+export const returnArticleAction = async (articleId: string, reason: string) => {
+  const written = reasoned(reason);
+  if (written.length === 0) return { outcome: "reason_missing" };
+
+  return decide("approveArticlesAndMemes", (member) =>
+    returnToDraft(member, articleId, written),
+  );
+};
 
 export const approveMemeAction = async (memeId: string) =>
   decide("approveArticlesAndMemes", (member) => approveMeme(member, memeId));
 
-export const rejectMemeAction = async (memeId: string) =>
-  decide("approveArticlesAndMemes", (member) => rejectMeme(member, memeId));
+export const rejectMemeAction = async (memeId: string, reason: string) => {
+  const written = reasoned(reason);
+  if (written.length === 0) return { outcome: "reason_missing" };
+
+  return decide("approveArticlesAndMemes", (member) =>
+    rejectMeme(member, memeId, written),
+  );
+};
 
 export const approveSponsorAction = async (sponsorId: string) =>
   decide("approveSponsors", (member) => approveSponsor(member, sponsorId));
 
-export const rejectSponsorAction = async (sponsorId: string) =>
-  decide("approveSponsors", (member) => rejectSponsor(member, sponsorId));
+export const rejectSponsorAction = async (sponsorId: string, reason: string) => {
+  const written = reasoned(reason);
+  if (written.length === 0) return { outcome: "reason_missing" };
+
+  return decide("approveSponsors", (member) =>
+    rejectSponsor(member, sponsorId, written),
+  );
+};

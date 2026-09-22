@@ -38,6 +38,7 @@ export default async function ArticleEditorPage({
       article={{
         id: article.id,
         slug: article.slug,
+        rejectionReason: article.rejectionReason,
         title: article.title,
         teaser: article.teaser,
         body: article.body,

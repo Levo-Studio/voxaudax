@@ -34,6 +34,7 @@ const listColumns = {
   slug: articles.slug,
   title: articles.title,
   status: articles.status,
+  rejectionReason: articles.rejectionReason,
   updatedAt: articles.updatedAt,
   publishAt: articles.publishAt,
   publishedAt: articles.publishedAt,
@@ -121,6 +122,7 @@ export const articleForEditor = async (member: Member, articleId: string) => {
       categoryId: articles.categoryId,
       authorId: articles.authorId,
       status: articles.status,
+      rejectionReason: articles.rejectionReason,
       publishAt: articles.publishAt,
       publishedAt: articles.publishedAt,
       submittedAt: articles.submittedAt,
@@ -307,9 +309,17 @@ export const submitForReview = async (member: Member, articleId: string) => {
   const existing = await articleForEditor(member, articleId);
   if (existing === null || existing.status !== "draft") return false;
 
+  // The reason described the draft that was sent back; once it is handed in
+  // again it describes nothing, and leaving it would have the author reading
+  // an objection to work they have already redone.
   await db
     .update(articles)
-    .set({ status: "review", submittedAt: new Date(), updatedAt: new Date() })
+    .set({
+      status: "review",
+      submittedAt: new Date(),
+      rejectionReason: null,
+      updatedAt: new Date(),
+    })
     .where(eq(articles.id, articleId));
 
   return true;
@@ -360,7 +370,11 @@ export const approveArticle = async (approver: Member, articleId: string) => {
   return "approved" as const;
 };
 
-export const returnToDraft = async (approver: Member, articleId: string) => {
+export const returnToDraft = async (
+  approver: Member,
+  articleId: string,
+  reason: string,
+) => {
   const [row] = await db
     .select({ authorId: articles.authorId, status: articles.status })
     .from(articles)
@@ -371,7 +385,12 @@ export const returnToDraft = async (approver: Member, articleId: string) => {
 
   await db
     .update(articles)
-    .set({ status: "draft", submittedAt: null, updatedAt: new Date() })
+    .set({
+      status: "draft",
+      submittedAt: null,
+      rejectionReason: reason,
+      updatedAt: new Date(),
+    })
     .where(eq(articles.id, articleId));
 
   return "returned" as const;

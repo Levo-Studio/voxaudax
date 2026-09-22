@@ -12,6 +12,7 @@ const withImage = () =>
       caption: memes.caption,
       visible: memes.visible,
       status: memes.status,
+      rejectionReason: memes.rejectionReason,
       createdAt: memes.createdAt,
       createdBy: memes.createdBy,
       authorName: users.name,
@@ -152,7 +153,7 @@ export const approveMeme = async (approver: Member, memeId: string) => {
   return "approved" as const;
 };
 
-export const rejectMeme = async (approver: Member, memeId: string) => {
+export const rejectMeme = async (approver: Member, memeId: string, reason: string) => {
   const [row] = await db
     .select({ createdBy: memes.createdBy, status: memes.status })
     .from(memes)
@@ -163,10 +164,11 @@ export const rejectMeme = async (approver: Member, memeId: string) => {
 
   // Both, and for different reasons: the status takes it out of the queue so
   // the decision sticks, and `visible` keeps it off the wall even if somebody
-  // later publishes it by hand.
+  // later publishes it by hand. The reason goes with them, because a refusal
+  // nobody can read is a refusal nobody can answer.
   await db
     .update(memes)
-    .set({ status: "abgelehnt", visible: false })
+    .set({ status: "abgelehnt", visible: false, rejectionReason: reason })
     .where(eq(memes.id, memeId));
 
   return "rejected" as const;

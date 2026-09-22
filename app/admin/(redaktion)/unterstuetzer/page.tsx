@@ -1,3 +1,4 @@
+import { RejectionNote } from "@/components/admin/rejection-note";
 import { COLUMN_HEADING_CLASS, PANEL_CLASS, PANEL_HEADING_CLASS } from "@/components/admin/controls";
 import { ToggleSwitch } from "@/components/admin/toggle-switch";
 import { toggleSponsorAction } from "@/app/admin/(redaktion)/unterstuetzer/actions";
@@ -72,6 +73,7 @@ export default async function SponsorsPage() {
                         ? " · abgelehnt"
                         : ""}
                   </span>
+                  <RejectionNote reason={sponsor.rejectionReason} />
                 </span>
               </span>
               <span className="text-[13px] font-semibold text-tm">{SPONSOR_KINDS[sponsor.kind]}</span>

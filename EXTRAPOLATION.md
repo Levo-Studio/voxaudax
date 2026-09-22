@@ -416,7 +416,7 @@ seinem — zweimal dieselbe Einladung, zweimal eigenständig gesetzt.
 stand der Text der Startseite im Code: eine geänderte Uhrzeit hätte an zwei
 Stellen gepflegt werden müssen und wäre an einer stehen geblieben.
 
-### Abgelehnte Einreichungen: `abgelehnt` statt nur unsichtbar
+### Abgelehnte Einreichungen bleiben stehen, mit Begründung
 
 Die Vorlage zeigt auf 11a den Knopf „Ablehnen", sagt aber nicht, was danach mit
 der Einreichung geschieht.
@@ -427,14 +427,24 @@ also für immer in der Freigabeliste, und der Knopf sah aus, als täte er nichts
 Der Grund lag im Enum: `approval_status` kannte nur `review` und `published`,
 eine abgelehnte Einreichung hatte **keinen Zustand, in den sie gehen konnte**.
 
-→ Migration 0005 ergänzt `abgelehnt` — rein additiv. Ablehnen setzt jetzt
-beides: den Status, damit die Entscheidung hält, und `visible` beziehungsweise
-`active`, damit nichts davon einen Leser erreicht, falls die Zeile später von
-Hand veröffentlicht wird. Das Backoffice benennt den Zustand.
+→ Migration 0005 ergänzt `abgelehnt`, Migration 0006 eine Spalte
+`rejection_reason` auf Artikeln, Memes und Sponsoren. Beides rein additiv.
 
-→ Ein Artikel geht weiterhin nach `draft` zurück und nicht nach `abgelehnt`:
-seine Autorin soll daran weiterarbeiten, was für ein Meme oder einen Sponsor
-nicht gilt.
+→ **Gelöscht wird nichts.** Die Einreichung bleibt stehen und heißt „Abgelehnt";
+daneben steht „Grund ansehen" und klappt den Text auf. Ein `<details>`, kein
+immer offener Kasten: die Liste wird gelesen, um etwas zu finden, und ein
+Absatz Kritik unter jeder abgelehnten Zeile hätte den Rest vom Bildschirm
+geschoben.
+
+→ **Die Begründung ist Pflicht.** Ablehnen öffnet erst ein Feld; ohne Text
+bleibt „Senden" gesperrt, und der Server prüft es noch einmal, weil ein
+gesperrter Knopf keine Regel ist. „Abgelehnt" allein sagt der einreichenden
+Person, dass etwas nicht stimmt, und nichts darüber, was.
+
+→ Beim Artikel heißt der Knopf weiterhin „Zurück" und der Artikel geht nach
+`draft`: seine Autorin soll daran weiterarbeiten. Der Grund steht dann oben im
+Editor, wo sie ihn beantwortet, und wird beim erneuten Einreichen gelöscht —
+er beschrieb den Entwurf, der zurückkam, und nicht den, der nun da ist.
 
 ### Ausgeschiedene Personen: `ehemalig` statt Löschung
 

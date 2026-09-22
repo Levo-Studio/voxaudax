@@ -7,6 +7,7 @@ import { DISABLED_CLASS } from "@/components/admin/controls";
 const REFUSALS: Record<string, string> = {
   own_submission: "Die eigene Einreichung gibt niemand frei.",
   alt_text_missing: "Ohne Alt-Text ist die Freigabe gesperrt.",
+  reason_missing: "Ohne Begründung wird nichts abgelehnt.",
   unknown: "Diese Einreichung wartet nicht mehr.",
 };
 
@@ -24,7 +25,7 @@ export function DecisionButtons({
   layout = "row",
 }: {
   approve: () => Promise<{ outcome: string }>;
-  reject: () => Promise<{ outcome: string }>;
+  reject: (reason: string) => Promise<{ outcome: string }>;
   approveLabel: string;
   rejectLabel: string;
   blocked: boolean;
@@ -34,10 +35,19 @@ export function DecisionButtons({
   const [pending, startTransition] = useTransition();
   const reasonId = useId();
 
+  /**
+   * Refusing takes a second step, because it takes a sentence. The author is
+   * told "abgelehnt" either way; without the reason they are told that
+   * something is wrong and nothing about what.
+   */
+  const [reason, setReason] = useState<string | null>(null);
+  const reasonFieldId = useId();
+
   const run = (action: () => Promise<{ outcome: string }>) =>
     startTransition(async () => {
       const { outcome } = await action();
       setRefusal(REFUSALS[outcome] ?? null);
+      if (REFUSALS[outcome] === undefined) setReason(null);
     });
 
   return (
@@ -56,14 +66,49 @@ export function DecisionButtons({
           Alt-Text fehlt
         </span>
       ) : null}
-      <button
-        type="button"
-        onClick={() => run(reject)}
-        disabled={pending}
-        className={`cursor-pointer rounded-lg border border-bd bg-transparent px-[13px] py-2 font-control text-[12.5px] font-bold text-ac2 transition-colors duration-200 ease-out hover:border-ac2 ${DISABLED_CLASS}`}
-      >
-        {rejectLabel}
-      </button>
+      {reason === null ? (
+        <button
+          type="button"
+          onClick={() => setReason("")}
+          disabled={pending}
+          className={`cursor-pointer rounded-lg border border-bd bg-transparent px-[13px] py-2 font-control text-[12.5px] font-bold text-ac2 transition-colors duration-200 ease-out hover:border-ac2 ${DISABLED_CLASS}`}
+        >
+          {rejectLabel}
+        </button>
+      ) : (
+        <span className="flex w-full flex-col gap-1.5">
+          <label className="text-left text-[11px] font-bold tracking-[0.1em] text-tm uppercase" htmlFor={reasonFieldId}>
+            Begründung
+          </label>
+          <textarea
+            id={reasonFieldId}
+            autoFocus
+            rows={3}
+            maxLength={500}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Was muss anders werden? Die einreichende Person liest das."
+            className="w-full rounded-lg border border-bd bg-s2 px-[11px] py-[9px] text-left font-control text-[12.5px] font-semibold text-tx outline-ac placeholder:text-tm"
+          />
+          <span className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => { setReason(null); setRefusal(null); }}
+              className="cursor-pointer rounded-lg border border-bd bg-transparent px-[13px] py-2 font-control text-[12.5px] font-bold text-tm transition-colors duration-200 ease-out hover:text-tx"
+            >
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              onClick={() => run(() => reject(reason))}
+              disabled={pending || reason.trim().length === 0}
+              className={`cursor-pointer rounded-lg border-none bg-ac2 px-[13px] py-2 font-control text-[12.5px] font-bold text-s1 transition-[filter] duration-200 ease-out hover:brightness-110 ${DISABLED_CLASS}`}
+            >
+              Senden
+            </button>
+          </span>
+        </span>
+      )}
       <button
         type="button"
         onClick={() => run(approve)}

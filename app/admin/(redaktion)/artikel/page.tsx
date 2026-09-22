@@ -37,6 +37,12 @@ const SCHEDULE = new Intl.DateTimeFormat("de-DE", {
 });
 
 const subtitle = (row: ArticleRow) => {
+  // The whole row is a link, so the reason cannot fold out here — a `details`
+  // inside an anchor navigates on the first click. It is said in one word and
+  // written out on the article itself, which is where it is acted on.
+  if (row.status === "draft" && row.rejectionReason !== null) {
+    return `${row.categoryName} · zurückgegeben`;
+  }
   if (row.status === "review") return `${row.categoryName} · wartet auf Freigabe`;
   if (row.status === "draft" && row.publishAt !== null) {
     return `${row.categoryName} · geplant für ${SCHEDULE.format(row.publishAt)}`;

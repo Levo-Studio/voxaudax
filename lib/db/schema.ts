@@ -172,6 +172,14 @@ export const articles = pgTable(
       .references(() => users.id, { onDelete: "restrict" }),
     status: articleStatus("status").notNull().default("draft"),
 
+    /**
+     * Why a reviewer sent it back, in their own words. Kept on the row rather
+     * than mailed and forgotten: the person who has to act on it is looking at
+     * the article, not at their inbox. Cleared when it is submitted again, so
+     * a reason never outlives the draft it was about.
+     */
+    rejectionReason: text("rejection_reason"),
+
     /** What the review list's "Wartet seit" counts from, and no edit moves it. */
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
 
@@ -236,6 +244,10 @@ export const memes = pgTable(
     caption: text("caption"),
     visible: boolean("visible").notNull().default(true),
     status: approvalStatus("status").notNull().default("review"),
+
+    /** Why it was turned down, in the reviewer's own words. */
+    rejectionReason: text("rejection_reason"),
+
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
@@ -267,6 +279,10 @@ export const sponsors = pgTable(
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     active: boolean("active").notNull().default(true),
     status: approvalStatus("status").notNull().default("review"),
+
+    /** Why it was turned down, in the reviewer's own words. */
+    rejectionReason: text("rejection_reason"),
+
     createdBy: uuid("created_by").references(() => users.id, {
       onDelete: "set null",
     }),
