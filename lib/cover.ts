@@ -35,6 +35,16 @@ export const isCoverColorId = (value: unknown): value is CoverColorId =>
 export const coverColorById = (id: CoverColorId): CoverColor =>
   COVER_COLORS_BY_ID[id];
 
+/**
+ * The template's grid, drawn in the panel's own ink at 14% rather than in white
+ * — white was right only while every cover sat on the one violet. Both the
+ * article covers and the back office's brand panel draw it, so it lives here.
+ */
+export const coverGridOverlay = (ink: string) => {
+  const line = `color-mix(in srgb, ${ink} 14%, transparent)`;
+  return `linear-gradient(to right, ${line} 0 1px, transparent 1px), linear-gradient(to bottom, ${line} 0 1px, transparent 1px)`;
+};
+
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 

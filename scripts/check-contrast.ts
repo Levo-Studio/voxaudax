@@ -1,8 +1,19 @@
 import { readFileSync } from "node:fs";
 
-import { COVER_COLORS } from "../lib/cover.ts";
+import { COVER_COLORS, coverColorById } from "../lib/cover.ts";
 
 const COMPONENT = new URL("../components/article-cover.tsx", import.meta.url);
+
+/**
+ * The back office's brand panel wears one cover colour instead of fourteen, and
+ * its faded type is spread over two files: the panel draws the wordmark's
+ * label, the page that uses it passes the paragraph. Both are read, because a
+ * fade added in either place is a fade that renders.
+ */
+const BRAND_PANEL = [
+  new URL("../components/admin/brand-panel.tsx", import.meta.url),
+  new URL("../app/admin/page.tsx", import.meta.url),
+];
 
 const MINIMUM_RATIO = 4.5;
 
@@ -73,8 +84,8 @@ const composite = (ink: string, panel: string, opacity: number) => {
 const ARBITRARY_OPACITY = /opacity-\[(\d*\.?\d+)\]/g;
 const SCALE_OPACITY = /opacity-(\d{1,3})(?![\w.[-])/g;
 
-const renderedOpacities = () => {
-  const source = readFileSync(COMPONENT, "utf8");
+const renderedOpacities = (...sources: readonly URL[]) => {
+  const source = sources.map((file) => readFileSync(file, "utf8")).join("\n");
   const found = [
     ...[...source.matchAll(ARBITRARY_OPACITY)].map((match) =>
       Number(match[1]),
@@ -86,7 +97,9 @@ const renderedOpacities = () => {
   return [...new Set([1, ...found])].sort((a, b) => b - a);
 };
 
-const opacities = renderedOpacities();
+const opacities = renderedOpacities(COMPONENT);
+const panelOpacities = renderedOpacities(...BRAND_PANEL);
+const panelColour = coverColorById("violett");
 
 type Failure = { readonly what: string; readonly ratio: number; readonly ink: string; readonly ground: string };
 
@@ -104,6 +117,19 @@ for (const opacity of opacities) {
         ground: colour.value,
       });
     }
+  }
+}
+
+for (const opacity of panelOpacities) {
+  const ink = composite(panelColour.text, panelColour.value, opacity);
+  const ratio = contrastRatio(ink, panelColour.value);
+  if (ratio < MINIMUM_RATIO) {
+    failures.push({
+      what: `brand panel${opacity === 1 ? "" : ` at opacity ${opacity}`}`,
+      ratio,
+      ink,
+      ground: panelColour.value,
+    });
   }
 }
 
@@ -127,7 +153,10 @@ for (const failure of failures) {
   );
 }
 
-const checked = opacities.length * COVER_COLORS.length + Object.keys(THEMES).length * INTERFACE_PAIRS.length;
+const checked =
+  opacities.length * COVER_COLORS.length +
+  panelOpacities.length +
+  Object.keys(THEMES).length * INTERFACE_PAIRS.length;
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} of ${checked} colour pairs fail WCAG AA.`);

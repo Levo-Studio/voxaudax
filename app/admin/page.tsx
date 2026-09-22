@@ -16,7 +16,7 @@ export default async function AdminLoginPage() {
 
   return (
     <div className="grid min-h-dvh bg-s1 text-tx md:grid-cols-[1.1fr_1fr]">
-      <BrandPanel footer="Mittwochs, 7. Stunde, Raum 214">
+      <BrandPanel>
         <p className="mt-4 max-w-[36ch] text-[15px] leading-relaxed font-medium opacity-90 md:text-[17px]">
           Artikel schreiben, bebildern und veröffentlichen. Zugang bekommt, wer in der
           Redaktion mitarbeitet.

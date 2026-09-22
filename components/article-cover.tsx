@@ -1,4 +1,8 @@
-import { resolveCoverColor, type CoverColorId } from "@/lib/cover";
+import {
+  coverGridOverlay,
+  resolveCoverColor,
+  type CoverColorId,
+} from "@/lib/cover";
 import type { CoverPhotograph } from "@/lib/queries";
 import { imageHref } from "@/lib/routes";
 
@@ -100,11 +104,6 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
  * exactly, so any fade at all drops it under. Both are small type — the
  * category is 10px — and `pnpm check:contrast` now measures what composites.
  */
-const gridOverlay = (ink: string) => {
-  const line = `color-mix(in srgb, ${ink} 14%, transparent)`;
-  return `linear-gradient(to right, ${line} 0 1px, transparent 1px), linear-gradient(to bottom, ${line} 0 1px, transparent 1px)`;
-};
-
 type ArticleCoverProps = {
   /** Feeds the hash that picks the colour when the editor left it alone. */
   title: string;
@@ -161,7 +160,7 @@ export function ArticleCover({
           aria-hidden
           className="absolute inset-0"
           style={{
-            backgroundImage: gridOverlay(color.text),
+            backgroundImage: coverGridOverlay(color.text),
             backgroundSize: "var(--cover-grid) 100%, 100% var(--cover-grid)",
           }}
         />

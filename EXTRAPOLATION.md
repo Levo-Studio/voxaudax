@@ -237,6 +237,14 @@ WCAG 2.4.7 verletzt hätte, färbt sich der Kasten selbst: 1 px Rahmen plus 1 px
 Ring in der Akzentfarbe, also die 2 px Umfang, die SC 2.4.11 verlangt, bei
 6,9:1 gegen die Seite im hellen und 8,1:1 im dunklen Schema.
 
+### Zeile „Mittwochs, 7. Stunde, Raum 214" im Login entfernt
+
+Bildschirm 7a setzt sie als dritte Zeile unten in das Markenfeld.
+
+→ Auf Ansage entfernt. Mit nur noch zwei Kindern hätte `justify-between` den
+Block auf den Boden gedrückt, deshalb sitzt er jetzt mittig in dem Raum, den
+die Wortmarke übrig lässt — optisch dort, wo ihn die Vorlage zeigt.
+
 ### Kein Suche-Knopf im Kopf
 
 Die Vorlage setzt rechts in die Kopfzeile eine Pille „Suche", die auf das
