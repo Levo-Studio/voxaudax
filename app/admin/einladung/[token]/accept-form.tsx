@@ -27,7 +27,7 @@ export function AcceptInvitationForm({ token }: { token: string }) {
   const measured = strength(password);
 
   return (
-    <form action={submit} className="mt-[18px] flex max-w-[400px] flex-col gap-3.5">
+    <form action={submit} className="mt-[18px] flex flex-col gap-3.5">
       <Field
         label="Passwort"
         name="password"

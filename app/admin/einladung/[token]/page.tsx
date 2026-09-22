@@ -1,17 +1,11 @@
 import Link from "next/link";
 
 import { AcceptInvitationForm } from "@/app/admin/einladung/[token]/accept-form";
+import { AuthPanel } from "@/components/admin/auth-panel";
 import { openInvitation } from "@/lib/editorial/invitations";
 import { roleLabel } from "@/lib/roles";
 
 export const metadata = { title: "Einladung annehmen · Vox Audax Redaktion" };
-
-const Brand = () => (
-  <Link href="/admin" className="flex items-baseline gap-[9px] no-underline">
-    <span className="text-[19px] font-extrabold tracking-[-0.04em] text-ac">VOX AUDAX</span>
-    <span className="text-[11px] font-bold tracking-[0.14em] text-tm uppercase">Redaktion</span>
-  </Link>
-);
 
 /**
  * Screen 8b — the page behind the link. The token is read here only to decide
@@ -27,28 +21,29 @@ export default async function AcceptInvitationPage({
   const invitation = await openInvitation(token);
 
   return (
-    <main className="mx-auto max-w-[560px] px-4 py-10 md:px-10">
-      <Brand />
-
+    <AuthPanel>
       {invitation === null ? (
         <>
-          <h1 className="mt-[22px] text-[26px] leading-[1.06] font-extrabold tracking-[-0.035em] md:text-[32px]">
+          <h1 className="mt-[22px] text-[26px] leading-[1.06] font-extrabold tracking-[-0.035em] md:text-[30px]">
             Dieser Link führt nicht mehr weiter
           </h1>
-          <p className="mt-2.5 max-w-[46ch] text-[15.5px] leading-relaxed font-medium text-tm">
+          <p className="mt-2.5 text-[15px] leading-relaxed font-medium text-tm">
             Einladungen gelten 24 Stunden oder 7 Tage und lassen sich nur einmal verwenden.
             Bitte die Chefredaktion um eine neue.
           </p>
-          <Link href="/admin" className="mt-4 inline-block text-[13px] font-semibold text-ac no-underline">
+          <Link
+            href="/admin"
+            className="mt-4 text-[13px] font-semibold text-ac no-underline"
+          >
             Zur Anmeldung
           </Link>
         </>
       ) : (
         <>
-          <h1 className="mt-[22px] text-[26px] leading-[1.06] font-extrabold tracking-[-0.035em] md:text-[32px]">
+          <h1 className="mt-[22px] text-[26px] leading-[1.06] font-extrabold tracking-[-0.035em] md:text-[30px]">
             Willkommen, {invitation.name.split(" ")[0]}
           </h1>
-          <p className="mt-2.5 max-w-[46ch] text-[15.5px] leading-relaxed font-medium text-tm">
+          <p className="mt-2.5 text-[15px] leading-relaxed font-medium text-tm">
             {invitation.invitedByName} hat dich als {roleLabel(invitation.role, invitation.form)}{" "}
             eingeladen. Setz ein Passwort, danach kannst du dich jederzeit unter /admin anmelden.
           </p>
@@ -59,6 +54,6 @@ export default async function AcceptInvitationPage({
           <AcceptInvitationForm token={token} />
         </>
       )}
-    </main>
+    </AuthPanel>
   );
 }

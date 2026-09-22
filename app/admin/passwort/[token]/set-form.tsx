@@ -11,7 +11,7 @@ export function SetNewPasswordForm({ token }: { token: string }) {
   const [state, submit, pending] = useActionState(setNewPasswordAction.bind(null, token), EMPTY);
 
   return (
-    <form action={submit} className="mt-5 flex max-w-[400px] flex-col gap-3.5">
+    <form action={submit} className="mt-[18px] flex flex-col gap-3.5">
       <Field label="Neues Passwort" name="password" type="password" autoComplete="new-password" required minLength={10} />
       <Field label="Wiederholen" name="repeat" type="password" autoComplete="new-password" required />
 
