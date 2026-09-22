@@ -51,6 +51,7 @@ export const deliverAuthMail = async (message: EmailMessage): Promise<void> => {
           template: "passwordReset",
           props: {
             siteUrl: environment().NEXT_PUBLIC_SITE_URL,
+            to: message.to,
             firstName: await firstNameFor(message.to),
             resetUrl: linkTo(`/admin/passwort/${message.token}`),
           },

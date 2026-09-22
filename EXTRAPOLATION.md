@@ -188,13 +188,26 @@ am Text klebt und nicht an den Rand der 44px-Fläche rutscht.
 Die Mail-Karten in **11b**, **8b**, **12a** und **12b** sind Ausschnitte, keine
 vollständigen Mails.
 
-- Die Zeile „An alle Admins und …" samt fettem Betreff sitzt im **Mock-Kopf des
-  Mailprogramms**, und „Die Mail, die ankommt" ist eine Beschriftung des
-  Entwurfsdokuments. Beides wird nicht in die Mail gerendert: die Empfängerliste
-  ist der Umschlag, die fette Zeile der Betreff.
-- **Kopf und Fußzeile** sind ergänzt, weil eine eigenständige Mail einen
-  erkennbaren Absender braucht. Wortmarke wie in 8b und 12b, Fußzeile im
-  Wortlaut des Entwurfs.
+- Die Zeile „An alle Admins und …" samt fettem Betreff **gehört in die Mail**.
+  Sie war zuerst als Mock-Kopf eines Mailprogramms gelesen und weggelassen
+  worden, weil ein Postfach Empfänger und Betreff ohnehin anzeigt. Auf Ansage
+  des Auftraggebers steht sie jetzt so in jeder Mail, wie der Entwurf sie
+  zeichnet: 12px, fett, gedämpft, darunter der Betreff in 13,5px — getrennt
+  durch eine Linie vom Rumpf. Wer angeschrieben ist, schreibt die Vorlage und
+  nicht der Versand: „An alle Admins und …" ist ein Satz über die Nachricht.
+- „Die Mail, die ankommt" bleibt draußen — das ist eine Beschriftung des
+  Entwurfsdokuments, wie „Kein Passwort im Klartext …" in 8b.
+- **Keine Wortmarke und keine Fußzeile.** Eine Weile trug die Mail beides, mit
+  der Begründung, eine allein im Postfach liegende Mail müsse ihren Absender
+  nennen. Der Entwurf zeichnet weder das eine noch das andere, und die
+  Entscheidung ist zurückgenommen: es gilt, was gezeichnet ist.
+- **Beide Farbschemata.** Die Karte, die Linien, der Knopf und die Faktenbox
+  sind in hell und dunkel geprüft. Der Knopf hatte im Dunkeln seine Rundung
+  verloren — die Dunkelregel malte den Hintergrund auch auf die Beschriftung und
+  legte damit ein Rechteck über die runde Zelle darunter. Die Beschriftung
+  bekommt dort jetzt nur noch ihre Farbe.
+- Das freigegebene Meme sitzt **randbündig** zwischen Kopf und Rumpf, wie 11b es
+  zeichnet, nicht als gerahmtes Bild im Text.
 - **Vorschautexte** zeichnet der Entwurf nicht. Sie ergänzen, was der Betreff
   weglässt, statt ihn zu wiederholen.
 - **Das Meme hat keinen Titel**, also nutzt seine Freigabemail den ausgeschriebenen

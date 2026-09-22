@@ -31,6 +31,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       template: "approval",
       props: {
         siteUrl: SITE_URL,
+        submitterEmail: "jonas.weidmann@voxaudax.de",
         reviewer: { name: "Mira Özkan", roleLabel: "Redakteurin" },
         approvedAt,
         item: {
@@ -49,6 +50,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       template: "approval",
       props: {
         siteUrl: SITE_URL,
+        submitterEmail: "tom.kessler@voxaudax.de",
         reviewer: { name: "Lina Brenner", roleLabel: "Chefredakteurin" },
         approvedAt: new Date("2026-09-21T16:11:00Z"),
         item: {
@@ -71,6 +73,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       template: "invitation",
       props: {
         siteUrl: SITE_URL,
+        to: "tom.kessler@voxaudax.de",
         firstName: "Tom",
         invitedBy: "Lina Brenner",
         roleLabel: "Autor",
@@ -85,6 +88,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       template: "invitation",
       props: {
         siteUrl: SITE_URL,
+        to: "mira.oezkan@voxaudax.de",
         firstName: "Mira",
         invitedBy: "Lina Brenner",
         roleLabel: "Redakteurin",
@@ -99,6 +103,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       template: "passwordChangedByAdmin",
       props: {
         siteUrl: SITE_URL,
+        to: "mira.oezkan@voxaudax.de",
         firstName: "Mira",
         changedBy: { name: "Lina Brenner", pronoun: "ihr" },
         changedAt: new Date("2026-09-21T16:22:00Z"),
@@ -112,6 +117,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       template: "passwordReset",
       props: {
         siteUrl: SITE_URL,
+        to: "mira.oezkan@voxaudax.de",
         firstName: "Mira",
         resetUrl: `${SITE_URL}/admin/passwort/8f3ac41d7b25e690`,
       },

@@ -11,6 +11,8 @@ export type InvitationValidity = "24-hours" | "7-days";
 
 export type InvitationProps = {
   siteUrl: string;
+  /** Shown in the grey line above the subject, as 8b draws it. */
+  to: string;
   firstName: string;
   invitedBy: string;
   roleLabel: string;
@@ -37,6 +39,8 @@ const validitySentence = (props: InvitationProps) =>
 
 export const invitationMail: MailTemplate<InvitationProps> = {
   subject: () => "Dein Zugang zur Vox-Audax-Redaktion",
+
+  addressLine: (props) => `An ${props.to}`,
 
   preheader: (props) =>
     `${props.invitedBy} hat dich als ${props.roleLabel} eingeladen. Der Link gilt ${validityLabel(props.validity)}.`,

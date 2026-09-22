@@ -26,6 +26,8 @@ const handedOverBy = ({ name, pronoun }: ChangingAdmin) => pronoun ?? name;
 
 export type PasswordChangedByAdminProps = {
   siteUrl: string;
+  /** Shown in the grey line above the subject, as 12a and 12b draw it. */
+  to: string;
   firstName: string;
   changedBy: ChangingAdmin;
   changedAt: Date;
@@ -50,6 +52,8 @@ const WARNING =
 export const passwordChangedByAdminMail: MailTemplate<PasswordChangedByAdminProps> =
   {
     subject: () => "Dein Passwort wurde geändert",
+
+    addressLine: (props) => `An ${props.to}`,
 
     preheader: (props) =>
       `${props.changedBy.name} hat es am ${germanDate(props.changedAt)} um ${germanTime(props.changedAt)} gesetzt. Alle Sitzungen sind beendet.`,

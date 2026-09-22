@@ -41,12 +41,18 @@ const renderWith = async <Props extends { siteUrl: string }>(
   props: Props,
 ): Promise<RenderedMail> => {
   const preheader = template.preheader(props);
+  const subject = template.subject(props);
 
   return {
-    subject: template.subject(props),
+    subject,
     preheader,
     html: await render(
-      <MailShell preheader={preheader} siteUrl={props.siteUrl}>
+      <MailShell
+        preheader={preheader}
+        addressLine={template.addressLine(props)}
+        subject={subject}
+        banner={template.banner?.(props)}
+      >
         {template.body(props)}
       </MailShell>,
     ),

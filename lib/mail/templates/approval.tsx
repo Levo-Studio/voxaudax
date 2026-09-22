@@ -6,7 +6,7 @@ import {
   Emphasis,
   type Fact,
   FactList,
-  FullWidthImage,
+  BannerImage,
   Paragraph,
   type PreviewImage,
   SpelledOutLink,
@@ -39,6 +39,8 @@ type ApprovedMeme = {
  */
 export type ApprovalProps = {
   siteUrl: string;
+  /** The address of the person who submitted it; 11b names them in the line. */
+  submitterEmail: string;
   reviewer: Reviewer;
   approvedAt: Date;
   item: ApprovedArticle | ApprovedMeme;
@@ -82,10 +84,16 @@ export const approvalMail: MailTemplate<ApprovalProps> = {
       ? `Online: „${item.title}“`
       : "Online: neues Meme in der Galerie",
 
+  // 11b: "An alle Admins und jonas.weidmann@voxaudax.de".
+  addressLine: (props) => `An alle Admins und ${props.submitterEmail}`,
+
   preheader: (props) =>
     props.item.kind === "article"
       ? `Freigegeben von ${props.reviewer.name} · ${props.reviewer.roleLabel} · ${props.item.category}`
       : `Freigegeben von ${props.reviewer.name} · ${props.reviewer.roleLabel} · hochgeladen von ${props.item.uploader}`,
+
+  banner: ({ item }) =>
+    item.kind === "meme" ? <BannerImage image={item.preview} /> : null,
 
   body: (props) => {
     const { item } = props;
@@ -93,8 +101,7 @@ export const approvalMail: MailTemplate<ApprovalProps> = {
 
     return (
       <>
-        {item.kind === "meme" ? <FullWidthImage image={item.preview} /> : null}
-        <Paragraph spaced={item.kind === "meme"}>
+        <Paragraph spaced={false}>
           <Emphasis>{actor}</Emphasis>
           {rest}
         </Paragraph>

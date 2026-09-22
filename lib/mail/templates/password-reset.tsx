@@ -10,6 +10,8 @@ import {
 
 export type PasswordResetProps = {
   siteUrl: string;
+  /** Shown in the grey line above the subject, as 12a and 12b draw it. */
+  to: string;
   firstName: string;
   resetUrl: string;
 };
@@ -25,6 +27,8 @@ const UNREQUESTED =
 
 export const passwordResetMail: MailTemplate<PasswordResetProps> = {
   subject: () => "Neues Passwort für deinen Redaktionszugang",
+
+  addressLine: (props) => `An ${props.to}`,
 
   preheader: () =>
     "Der Link gilt eine Stunde und lässt sich nur einmal verwenden.",

@@ -2,7 +2,6 @@ import type { CSSProperties, ReactNode } from "react";
 import { Body, Head, Html, Img, Link, Preview } from "@react-email/components";
 
 import {
-  CONTENT_WIDTH_PX,
   MAIL_WIDTH_PX,
   fontStack,
   monoStack,
@@ -37,6 +36,9 @@ const darkPalette = `
     .va-border { border-color: ${dark.border} !important; }
     .va-accent { color: ${dark.accent} !important; }
     .va-action { background: ${dark.accent} !important; color: ${dark.onAccent} !important; }
+    /* The label only. Painting a background on it too would lay a square over
+       the rounded cell underneath and square the button off. */
+    .va-action-label { color: ${dark.onAccent} !important; }
   }
 `;
 
@@ -54,12 +56,7 @@ const cardStyle: CSSProperties = {
   maxWidth: `${MAIL_WIDTH_PX}px`,
   backgroundColor: light.surface,
   border: `1px solid ${light.border}`,
-  borderRadius: "14px",
-};
-
-const edgeCellStyle: CSSProperties = {
-  padding: "20px 32px",
-  fontFamily: fontStack,
+  borderRadius: "12px",
 };
 
 export const bodyTextStyle: CSSProperties = {
@@ -258,7 +255,7 @@ export const ActionButton = ({ href, label }: { href: string; label: string }) =
               color: light.onAccent,
               textDecoration: "none",
             }}
-            className="va-action"
+            className="va-action-label"
           >
             {label}
           </Link>
@@ -295,8 +292,13 @@ export type PreviewImage = {
   height: number;
 };
 
-export const FullWidthImage = ({ image }: { image: PreviewImage }) => {
-  const width = Math.min(image.width, CONTENT_WIDTH_PX);
+/**
+ * Flush to the card's edges, between the header and the body — where 11b draws
+ * the approved meme. No padding and no rounding of its own: the card clips it,
+ * and a line underneath separates it from the first sentence.
+ */
+export const BannerImage = ({ image }: { image: PreviewImage }) => {
+  const width = MAIL_WIDTH_PX;
   const height = Math.round((image.height / image.width) * width);
 
   return (
@@ -306,7 +308,7 @@ export const FullWidthImage = ({ image }: { image: PreviewImage }) => {
       cellPadding={0}
       cellSpacing={0}
       border={0}
-      style={{ width: "100%", marginTop: "18px" }}
+      style={{ width: "100%" }}
     >
       <tbody>
         <tr>
@@ -314,9 +316,9 @@ export const FullWidthImage = ({ image }: { image: PreviewImage }) => {
             align="center"
             style={{
               backgroundColor: light.surfaceSunken,
-              border: `1px solid ${light.border}`,
-              borderRadius: "10px",
-              padding: "8px",
+              borderBottom: `1px solid ${light.border}`,
+              fontSize: 0,
+              lineHeight: 0,
             }}
             className="va-sunken va-border"
           >
@@ -330,7 +332,6 @@ export const FullWidthImage = ({ image }: { image: PreviewImage }) => {
                 width: "100%",
                 maxWidth: `${width}px`,
                 height: "auto",
-                borderRadius: "6px",
               }}
             />
           </td>
@@ -342,11 +343,29 @@ export const FullWidthImage = ({ image }: { image: PreviewImage }) => {
 
 type ShellProps = {
   preheader: string;
-  siteUrl: string;
+  addressLine: string;
+  subject: string;
+  banner?: ReactNode;
   children: ReactNode;
 };
 
-export const MailShell = ({ preheader, siteUrl, children }: ShellProps) => (
+/**
+ * The card the design draws, and nothing around it. It carried a VOX AUDAX
+ * wordmark and a footer for a while, on the reasoning that a mail standing
+ * alone in an inbox has to name its sender — the design shows neither, and the
+ * decision was overruled: this is what the mail looks like.
+ *
+ * So the grey "An …" line and the subject above the message, which had been
+ * read as the mock header of a mail programme, are part of the message after
+ * all. They are drawn here, once, for every template.
+ */
+export const MailShell = ({
+  preheader,
+  addressLine,
+  subject,
+  banner,
+  children,
+}: ShellProps) => (
   <Html lang="de" dir="ltr">
     <Head>
       <meta name="color-scheme" content="light dark" />
@@ -381,62 +400,39 @@ export const MailShell = ({ preheader, siteUrl, children }: ShellProps) => (
                   <tr>
                     <td
                       style={{
-                        ...edgeCellStyle,
+                        padding: "14px 18px",
                         borderBottom: `1px solid ${light.border}`,
+                        fontFamily: fontStack,
+                        fontSize: "12px",
+                        lineHeight: "1.5",
+                        fontWeight: 600,
+                        color: light.textMuted,
                       }}
-                      className="va-border"
+                      className="va-muted va-border"
                     >
-                      <Link
-                        href={siteUrl}
-                        style={{ textDecoration: "none", color: light.accent }}
+                      {addressLine}
+                      <br />
+                      <span
+                        style={{
+                          fontFamily: fontStack,
+                          fontSize: "13.5px",
+                          fontWeight: 700,
+                          color: light.text,
+                        }}
+                        className="va-text"
                       >
-                        <span
-                          style={{
-                            fontFamily: fontStack,
-                            fontSize: "18px",
-                            fontWeight: 800,
-                            letterSpacing: "-0.04em",
-                            color: light.accent,
-                          }}
-                          className="va-accent"
-                        >
-                          VOX AUDAX
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: fontStack,
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            letterSpacing: "0.14em",
-                            textTransform: "uppercase",
-                            color: light.textMuted,
-                          }}
-                          className="va-muted"
-                        >
-                          &nbsp;&nbsp;Redaktion
-                        </span>
-                      </Link>
+                        {subject}
+                      </span>
                     </td>
                   </tr>
+                  {banner === undefined || banner === null ? null : (
+                    <tr>
+                      <td style={{ padding: 0 }}>{banner}</td>
+                    </tr>
+                  )}
                   <tr>
-                    <td style={{ ...edgeCellStyle, padding: "26px 32px 30px" }}>
+                    <td style={{ padding: "18px", fontFamily: fontStack }}>
                       {children}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td
-                      style={{
-                        ...edgeCellStyle,
-                        borderTop: `1px solid ${light.border}`,
-                      }}
-                      className="va-border"
-                    >
-                      <p
-                        style={{ ...mutedTextStyle, fontSize: "12px" }}
-                        className="va-muted"
-                      >
-                        Vox Audax · Schülerzeitung des Uhland-Gymnasiums
-                      </p>
                     </td>
                   </tr>
                 </tbody>
