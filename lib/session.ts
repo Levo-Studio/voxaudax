@@ -5,17 +5,25 @@ import { velveAuth } from "@/lib/auth";
 import { environment } from "@/lib/env";
 
 /**
- * The name and the attributes @velve/auth writes itself when its own HTTP
- * handler answers. That handler is not mounted: the back office calls the
- * server methods, which return the token rather than setting a cookie, so this
- * module is the only thing that writes a session cookie. The name is still the
- * library's own, so a token this file wrote is a token the library reads.
+ * The attributes @velve/auth writes itself when its own HTTP handler answers.
+ * That handler is not mounted: the back office calls the server methods, which
+ * return the token rather than setting a cookie, so this module is the only
+ * thing that reads or writes one and the name is ours to choose.
+ *
+ * Development drops the `__Host-` prefix and `Secure`, because WebKit refuses
+ * such a cookie over plain http — localhost included, measured against the
+ * engine rather than assumed — and a session that is never stored ends the
+ * moment the response that set it is over. Production is https and keeps both:
+ * the prefix is what pins the cookie to this exact host and path, and it is
+ * worth more there than the convenience is here.
  */
-const SESSION_COOKIE = "__Host-velve_session";
+const HTTPS_ONLY = process.env.NODE_ENV === "production";
+
+const SESSION_COOKIE = HTTPS_ONLY ? "__Host-velve_session" : "velve_session";
 
 const COOKIE_ATTRIBUTES = {
   httpOnly: true,
-  secure: true,
+  secure: HTTPS_ONLY,
   sameSite: "lax",
   path: "/",
 } as const;

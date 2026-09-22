@@ -245,6 +245,24 @@ Bildschirm 7a setzt sie als dritte Zeile unten in das Markenfeld.
 Block auf den Boden gedrückt, deshalb sitzt er jetzt mittig in dem Raum, den
 die Wortmarke übrig lässt — optisch dort, wo ihn die Vorlage zeigt.
 
+### Sitzungscookie ohne `__Host-` und `Secure` in der Entwicklung
+
+Die Aufgabenstellung sagt nichts über Cookie-Attribute; gesetzt war
+`__Host-velve_session` mit `Secure`, wie es die Bibliothek selbst schreibt.
+
+WebKit — also Safari — speichert ein solches Cookie über einfaches `http`
+nicht, `localhost` eingeschlossen. Gemessen gegen beide Engines:
+
+| Engine | `__Host-` + `Secure` | ohne beides |
+|---|---|---|
+| Chromium | angekommen | angekommen |
+| WebKit | **verloren** | angekommen |
+
+→ In der Entwicklung heißt das Cookie `velve_session` und trägt kein `Secure`.
+Die Produktion läuft über https und behält beides: der Präfix bindet das Cookie
+an genau diesen Host und Pfad und ist dort mehr wert als die Bequemlichkeit
+hier. Gegengeprüft in WebKit, Anmeldung und zehn Navigationen.
+
 ### Kein Suche-Knopf im Kopf
 
 Die Vorlage setzt rechts in die Kopfzeile eine Pille „Suche", die auf das
