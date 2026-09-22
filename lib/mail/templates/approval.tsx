@@ -98,7 +98,9 @@ export const approvalMail: MailTemplate<ApprovalProps> = {
           <Emphasis>{actor}</Emphasis>
           {rest}
         </Paragraph>
-        <FactList facts={facts(props)} />
+        {/* 74px on the article, 96px on the meme — the design measures the
+            label column per screen so the values line up under one another. */}
+        <FactList facts={facts(props)} labelWidth={item.kind === "article" ? 74 : 96} />
         <ActionButton href={item.url} label={buttonLabel(item)} />
         <SpelledOutLink href={item.url} />
       </>

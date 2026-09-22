@@ -5,10 +5,8 @@ import {
   ActionButton,
   type Fact,
   FactList,
-  Note,
+  ClosingNote,
   Paragraph,
-  PartingRule,
-  SpelledOutLink,
 } from "@/lib/mail/ui";
 
 /**
@@ -16,7 +14,15 @@ import {
  * von ihr", so the admin's pronoun is part of the message and cannot be
  * guessed from a name.
  */
-type ChangingAdmin = { name: string; pronoun: "ihr" | "ihm" };
+type ChangingAdmin = { name: string; pronoun: "ihr" | "ihm" | null };
+
+/**
+ * 12a writes "Du bekommst es persönlich von ihr." The editorial team also
+ * knows a neutral form, which the design does not draw and for which no
+ * German pronoun reads cleanly in this sentence — so that one case says the
+ * name instead. The two forms the design does cover keep its wording exactly.
+ */
+const handedOverBy = ({ name, pronoun }: ChangingAdmin) => pronoun ?? name;
 
 export type PasswordChangedByAdminProps = {
   siteUrl: string;
@@ -30,7 +36,7 @@ const changeSentence = ({
   changedBy,
   changedAt,
 }: PasswordChangedByAdminProps) =>
-  `${changedBy.name} hat am ${germanDate(changedAt)} um ${germanTime(changedAt)} ein neues Passwort für deinen Zugang gesetzt. Du bekommst es persönlich von ${changedBy.pronoun}.`;
+  `${changedBy.name} hat am ${germanDate(changedAt)} um ${germanTime(changedAt)} ein neues Passwort für deinen Zugang gesetzt. Du bekommst es persönlich von ${handedOverBy(changedBy)}.`;
 
 const facts = ({ changedBy }: PasswordChangedByAdminProps): readonly Fact[] => [
   { label: "Geändert von", value: changedBy.name },
@@ -55,11 +61,9 @@ export const passwordChangedByAdminMail: MailTemplate<PasswordChangedByAdminProp
           <br />
           {changeSentence(props)}
         </Paragraph>
-        <FactList facts={facts(props)} />
+        <FactList facts={facts(props)} labelWidth={110} />
         <ActionButton href={props.loginUrl} label="Zur Anmeldung" />
-        <SpelledOutLink href={props.loginUrl} />
-        <PartingRule />
-        <Note>{WARNING}</Note>
+        <ClosingNote>{WARNING}</ClosingNote>
       </>
     ),
 

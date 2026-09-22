@@ -200,7 +200,48 @@ vollständigen Mails.
 - **Das Meme hat keinen Titel**, also nutzt seine Freigabemail den ausgeschriebenen
   Betreff aus 11b statt eines Titelmusters.
 - „Du bekommst es persönlich von **ihr**." (12a) ist gegendert und aus einem Namen
-  nicht ableitbar, also trägt der Prüfer sein Pronomen mit.
+  nicht ableitbar, also trägt der Prüfer sein Pronomen mit. Die Redaktion kennt
+  daneben die Anrede **neutral**, die der Entwurf nicht zeichnet und für die kein
+  deutsches Pronomen in diesem Satz sauber liest — dieser eine Fall schreibt
+  deshalb den Namen. Die beiden gezeichneten Formen behalten den Wortlaut.
+
+### Die Maße der Mails kommen aus dem Entwurf
+
+Sie waren es zuerst nicht: gebaut standen 15px Fließtext gegen 14,5 im Entwurf,
+13px Nebenzeile gegen 12,5, 18px Blockabstand gegen 14, ein Knopf mit 13/22 und
+14px Schrift gegen 11/18 und 13,5. Einzeln unauffällig, zusammen eine andere
+Mail. Nachgemessen und gleichgezogen:
+
+| | Entwurf und jetzt gebaut |
+|---|---|
+| Fließtext | 14,5px / 1,65 / 500 |
+| Nebenzeile | 12,5px / 1,6 / 500 |
+| Blockabstand | 14px |
+| Knopf | 11/18px, Radius 9px, 13,5px / 700 |
+| Faktenbox | Innenrand 12/14px, Rahmen 10px, 13px / 1,7 / 600 |
+| Ausgeschriebener Link | JetBrains Mono, 11,5px |
+| Abschlusssatz | 12px Abstand, 12px über der Linie |
+
+→ Die Beschriftungsspalte der Faktenbox ist je Screen anders breit — 74px beim
+Artikel, 96px beim Meme, 110px bei der Passwortmeldung —, damit die Werte
+untereinander stehen. Das ist eine Angabe des Entwurfs und keine Schätzung aus
+der Textlänge, also gibt die Vorlage sie mit.
+
+→ **Die Reihenfolge stand ebenfalls falsch.** Beim Passwortlink stand die
+ausgeschriebene Adresse direkt unter dem Knopf; im Entwurf steht sie ganz unten,
+nach dem Abschlusssatz. 12a hatte eine ausgeschriebene Adresse, die der Entwurf
+gar nicht zeigt.
+
+→ **„Kein Passwort im Klartext …" ist keine Mailzeile.** In 8b steht der Satz
+**unter** der Mailkarte, in derselben Position und demselben Grau wie „Die
+E-Mail, die ankommt" — eine Anmerkung des Entwurfsdokuments über das Verfahren.
+Er wird nicht mehr in die Mail gerendert. Die Textfassung behält die Adresse,
+weil eine Nur-Text-Mail keinen Knopf hat, der sie tragen könnte.
+
+→ Bleibt abweichend, und zwar bewusst: **Kopf- und Fußzeile**. Der Entwurf
+zeichnet die Mail im Rahmen eines Mailprogramms, das Absender und Betreff schon
+anzeigt; eine Mail, die allein im Postfach liegt, muss beides selbst sagen. Das
+steht so schon oben.
 
 ### Welche Systemmail tatsächlich verschickt wird
 

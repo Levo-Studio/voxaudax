@@ -4,7 +4,7 @@ import {
   ActionButton,
   Note,
   Paragraph,
-  PartingRule,
+  ClosingNote,
   SpelledOutLink,
 } from "@/lib/mail/ui";
 
@@ -37,10 +37,9 @@ export const passwordResetMail: MailTemplate<PasswordResetProps> = {
         {REQUEST}
       </Paragraph>
       <ActionButton href={props.resetUrl} label="Neues Passwort setzen" />
-      <SpelledOutLink href={props.resetUrl} />
       <Note>{VALIDITY}</Note>
-      <PartingRule />
-      <Note>{UNREQUESTED}</Note>
+      <ClosingNote>{UNREQUESTED}</ClosingNote>
+      <SpelledOutLink href={props.resetUrl} />
     </>
   ),
 

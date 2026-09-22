@@ -65,7 +65,7 @@ const edgeCellStyle: CSSProperties = {
 export const bodyTextStyle: CSSProperties = {
   margin: 0,
   fontFamily: fontStack,
-  fontSize: "15px",
+  fontSize: "14.5px",
   lineHeight: "1.65",
   fontWeight: 500,
   color: light.text,
@@ -74,7 +74,7 @@ export const bodyTextStyle: CSSProperties = {
 export const mutedTextStyle: CSSProperties = {
   margin: 0,
   fontFamily: fontStack,
-  fontSize: "13px",
+  fontSize: "12.5px",
   lineHeight: "1.6",
   fontWeight: 500,
   color: light.textMuted,
@@ -83,7 +83,7 @@ export const mutedTextStyle: CSSProperties = {
 type BlockProps = { children: ReactNode; spaced?: boolean };
 
 const spacing = (spaced: boolean | undefined) =>
-  spaced === false ? "0" : "16px";
+  spaced === false ? "0" : "14px";
 
 export const Paragraph = ({ children, spaced }: BlockProps) => (
   <p style={{ ...bodyTextStyle, marginTop: spacing(spaced) }} className="va-text">
@@ -101,6 +101,29 @@ export const Emphasis = ({ children }: { children: ReactNode }) => (
   <strong style={{ fontWeight: 700 }}>{children}</strong>
 );
 
+/**
+ * The closing remark and the line above it, which the design draws as one
+ * paragraph with a border on its top edge rather than as a rule followed by
+ * text. Built that way here too: a separate rule would need its own margin on
+ * both sides, and the two would then have to be kept in step by hand.
+ *
+ * A border on a `p` is one of the few pieces of CSS every mail client renders,
+ * so it needs no table around it.
+ */
+export const ClosingNote = ({ children }: { children: ReactNode }) => (
+  <p
+    style={{
+      ...mutedTextStyle,
+      marginTop: "12px",
+      paddingTop: "12px",
+      borderTop: `1px solid ${light.border}`,
+    }}
+    className="va-muted va-border"
+  >
+    {children}
+  </p>
+);
+
 /** A rule that separates a closing remark from the message above it. */
 export const PartingRule = () => (
   <table
@@ -109,7 +132,7 @@ export const PartingRule = () => (
     cellPadding={0}
     cellSpacing={0}
     border={0}
-    style={{ width: "100%", marginTop: "18px" }}
+    style={{ width: "100%", marginTop: "12px" }}
   >
     <tbody>
       <tr>
@@ -130,7 +153,19 @@ export const PartingRule = () => (
 
 export type Fact = { label: string; value: string };
 
-export const FactList = ({ facts }: { facts: readonly Fact[] }) => (
+/**
+ * The design sets the label column of each screen to its own width — 74px on
+ * the article, 96px on the meme, 110px on the password notice — so that the
+ * values line up under one another without the longest label pushing them
+ * across. It is the caller's measurement, not a guess made from the text.
+ */
+export const FactList = ({
+  facts,
+  labelWidth,
+}: {
+  facts: readonly Fact[];
+  labelWidth: number;
+}) => (
   <table
     role="presentation"
     width="100%"
@@ -139,21 +174,25 @@ export const FactList = ({ facts }: { facts: readonly Fact[] }) => (
     border={0}
     style={{
       width: "100%",
-      marginTop: "18px",
+      marginTop: "14px",
       border: `1px solid ${light.border}`,
       borderRadius: "10px",
     }}
     className="va-border"
   >
     <tbody>
-      {facts.map((fact) => (
+      {facts.map((fact, index) => (
         <tr key={fact.label}>
           <td
+            width={labelWidth}
             style={{
-              padding: "8px 6px 8px 16px",
+              paddingTop: index === 0 ? "12px" : 0,
+              paddingBottom: index === facts.length - 1 ? "12px" : 0,
+              paddingLeft: "14px",
+              paddingRight: "10px",
               fontFamily: fontStack,
               fontSize: "13px",
-              lineHeight: "1.5",
+              lineHeight: "1.7",
               fontWeight: 600,
               color: light.textMuted,
               whiteSpace: "nowrap",
@@ -165,10 +204,12 @@ export const FactList = ({ facts }: { facts: readonly Fact[] }) => (
           </td>
           <td
             style={{
-              padding: "8px 16px 8px 8px",
+              paddingTop: index === 0 ? "12px" : 0,
+              paddingBottom: index === facts.length - 1 ? "12px" : 0,
+              paddingRight: "14px",
               fontFamily: fontStack,
               fontSize: "13px",
-              lineHeight: "1.5",
+              lineHeight: "1.7",
               fontWeight: 600,
               color: light.text,
               verticalAlign: "top",
@@ -193,7 +234,7 @@ export const ActionButton = ({ href, label }: { href: string; label: string }) =
     cellPadding={0}
     cellSpacing={0}
     border={0}
-    style={{ marginTop: "18px" }}
+    style={{ marginTop: "14px" }}
   >
     <tbody>
       <tr>
@@ -209,9 +250,9 @@ export const ActionButton = ({ href, label }: { href: string; label: string }) =
             href={href}
             style={{
               display: "inline-block",
-              padding: "13px 22px",
+              padding: "11px 18px",
               fontFamily: fontStack,
-              fontSize: "14px",
+              fontSize: "13.5px",
               fontWeight: 700,
               lineHeight: "1",
               color: light.onAccent,
@@ -233,7 +274,7 @@ export const SpelledOutLink = ({ href }: { href: string }) => (
     style={{
       margin: "12px 0 0",
       fontFamily: monoStack,
-      fontSize: "12px",
+      fontSize: "11.5px",
       lineHeight: "1.5",
       color: light.textMuted,
       wordBreak: "break-all",

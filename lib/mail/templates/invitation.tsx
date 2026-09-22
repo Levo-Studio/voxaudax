@@ -4,8 +4,6 @@ import {
   ActionButton,
   Note,
   Paragraph,
-  PartingRule,
-  SpelledOutLink,
 } from "@/lib/mail/ui";
 
 /** How long the invitation stays usable, as the admin chose when sending it. */
@@ -29,8 +27,13 @@ const invitationSentence = ({ invitedBy, roleLabel }: InvitationProps) =>
 const validitySentence = (props: InvitationProps) =>
   `Der Link gilt ${validityLabel(props.validity)} und lässt sich nur einmal verwenden. Wenn du nichts damit anfangen kannst, ignorier die Mail einfach.`;
 
-const PLEDGE =
-  "Kein Passwort im Klartext, keine Zugangsdaten per Mail — verschickt wird ausschließlich der einmalige Link.";
+/**
+ * 8b draws this line **below** the mail card, next to it in the design
+ * document — a note about how invitations work, in the same place and the same
+ * grey as "Die E-Mail, die ankommt". It is not a line of the message, so it is
+ * not rendered into one. The plaintext part keeps the address itself, because
+ * a text mail has no button to carry it.
+ */
 
 export const invitationMail: MailTemplate<InvitationProps> = {
   subject: () => "Dein Zugang zur Vox-Audax-Redaktion",
@@ -46,10 +49,7 @@ export const invitationMail: MailTemplate<InvitationProps> = {
         {invitationSentence(props)}
       </Paragraph>
       <ActionButton href={props.passwordUrl} label="Passwort setzen" />
-      <SpelledOutLink href={props.passwordUrl} />
       <Note>{validitySentence(props)}</Note>
-      <PartingRule />
-      <Note>{PLEDGE}</Note>
     </>
   ),
 
@@ -59,7 +59,6 @@ export const invitationMail: MailTemplate<InvitationProps> = {
       invitationSentence(props),
       ["Passwort setzen:", props.passwordUrl],
       validitySentence(props),
-      PLEDGE,
       SIGNATURE,
     ]),
 };
