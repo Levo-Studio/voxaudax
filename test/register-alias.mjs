@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { statSync } from "node:fs";
 import { registerHooks } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -12,6 +12,20 @@ const root = pathToFileURL(`${process.cwd()}/`);
 
 const EXTENSIONS = ["", ".ts", ".tsx", ".mts", "/index.ts"];
 
+/**
+ * A file, not merely something at that path. `lib/mail.ts` and `lib/mail/`
+ * stand side by side, and the bare candidate matched the directory first — so
+ * `@/lib/mail` resolved to a folder and Node refused to import it, while the
+ * bundler had been resolving it to the module all along.
+ */
+const isFile = (url) => {
+  try {
+    return statSync(fileURLToPath(url)).isFile();
+  } catch {
+    return false;
+  }
+};
+
 registerHooks({
   resolve(specifier, context, next) {
     if (!specifier.startsWith("@/")) return next(specifier, context);
@@ -20,7 +34,7 @@ registerHooks({
 
     for (const extension of EXTENSIONS) {
       const candidate = new URL(base.href + extension);
-      if (existsSync(fileURLToPath(candidate))) return next(candidate.href, context);
+      if (isFile(candidate)) return next(candidate.href, context);
     }
 
     return next(base.href, context);

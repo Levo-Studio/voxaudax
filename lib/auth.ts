@@ -46,10 +46,12 @@ const sendMail = async (message: EmailMessage): Promise<void> => {
     return;
   }
 
-  throw new Error(
-    `Outbound mail is not wired yet, so the "${message.kind}" message was not sent. ` +
-      "RESEND_API_KEY and MAIL_FROM have no value in this environment.",
-  );
+  // Imported here rather than at the top so that this module still loads in a
+  // script or a test without the mail renderer, React and a database client
+  // coming with it. Everything below the import decides what to send; a
+  // missing key is reported by `lib/mail.ts`, which is the half that reads it.
+  const { deliverAuthMail } = await import("@/lib/auth-delivery");
+  await deliverAuthMail(message);
 };
 
 /**

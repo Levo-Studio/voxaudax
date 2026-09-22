@@ -202,6 +202,42 @@ vollständigen Mails.
 - „Du bekommst es persönlich von **ihr**." (12a) ist gegendert und aus einem Namen
   nicht ableitbar, also trägt der Prüfer sein Pronomen mit.
 
+### Welche Systemmail tatsächlich verschickt wird
+
+Die Vorlagen und der Resend-Versand waren beide gebaut und nie verbunden. An
+`lib/auth.ts` stand statt einer Übergabe ein Wurf mit dem Satz, `RESEND_API_KEY`
+und `MAIL_FROM` hätten in dieser Umgebung keinen Wert — der Code hat die beiden
+Schlüssel nie angesehen, der Satz war mit gesetztem Schlüssel genauso falsch wie
+ohne. Die Folge war still: „Passwort vergessen" sagte „die Mail ist unterwegs",
+`requestOwnReset` fing den Wurf ab und protokollierte ihn, und es ging nie etwas
+raus.
+
+→ `lib/auth-delivery.ts` ist die fehlende Übergabe. Sie wird aus `lib/auth.ts`
+dynamisch geladen, und den Versender lädt sie selbst noch einmal dynamisch, damit
+weder die Anmeldung noch diese Datei React und den Mail-Renderer mitschleppt,
+solange nichts gesendet wird.
+
+| Nachricht der Bibliothek | Was passiert |
+|---|---|
+| `password_reset` | Geht über Resend raus, Vorlage `passwordReset` |
+| `request_for_unknown_address` | Geht **nicht** raus, und zwar absichtlich |
+| `email_verification` | Wird beim Einlösen der Einladung abgefangen und im selben Aufruf verbraucht |
+| `email_change`, `magic_link`, `sign_up_attempt_on_existing_account` | Keine Vorlage; der Fehler benennt die Art |
+
+→ Die unbekannte Adresse bekommt nichts. Screen 12b verspricht, dass eine
+Anfrage nicht verrät, ob es das Konto gibt — das hält nur, solange beide Zweige
+gleich viel kosten, also darf dieser nicht werfen, während der andere sendet. Zu
+schreiben wäre ohnehin nichts: kein Name zum Grüßen, kein Link, nichts zu tun.
+
+→ **Noch nicht verdrahtet, obwohl die Vorlage da ist:** die Freigabemail aus
+**11b** und die Benachrichtigung aus **12a**. Die Einladung ist bewusst keine
+Mail, sondern ein Link, der im Backoffice genau einmal angezeigt wird.
+
+→ Bei 12a fehlt eine Entscheidung, keine Verdrahtung: die Vorlage trägt das
+Pronomen des Admins als `"ihr" | "ihm"`, und die Anrede der Redaktion kennt
+daneben `neutral`. Was in dem Satz stehen soll, wenn ein Konto neutral geführt
+wird, sagt der Entwurf nicht.
+
 ---
 
 ## 6. Abweichungen auf Ansage des Auftraggebers
