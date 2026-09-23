@@ -6,6 +6,7 @@ import { ArticleBrief, ArticleCard } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar, toneForPosition } from "@/components/avatar";
 import { FormerTag } from "@/components/former-tag";
+import { OpenSource } from "@/components/open-source";
 import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -148,11 +149,15 @@ async function HomeContent() {
               </div>
             </div>
 
-            {/* 4a sets the cover above the headline, 3a beside it. */}
+            {/* 4a sets the cover above the headline, 3a beside it.
+                The top margin is for the phone only: there the cover is the
+                first thing under the header, and it sat against the rule with
+                nothing between them. On the desktop the panel fills its own
+                half of the grid and needs no gap of its own. */}
             <Link
               href={articleHref(lead.slug)}
               aria-label={`Artikel öffnen: ${lead.title}`}
-              className="order-first block min-w-0 px-[18px] pb-4 md:order-none md:h-full md:px-0 md:pb-0"
+              className="order-first block min-w-0 px-[18px] pt-5 pb-4 md:order-none md:h-full md:px-0 md:pt-0 md:pb-0"
             >
               <ArticleCover
                 variant="hero"
@@ -260,6 +265,8 @@ async function HomeContent() {
             </Link>
           </div>
       </section>
+
+      <OpenSource />
     </>
   );
 }

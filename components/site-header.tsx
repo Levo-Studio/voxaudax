@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { MobileMenu } from "@/components/mobile-menu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const NAV_ITEMS = [
@@ -12,8 +13,6 @@ const NAV_ITEMS = [
 
 export type NavKey = (typeof NAV_ITEMS)[number]["key"];
 
-const MOBILE_NAV_ID = "hauptnavigation";
-
 type SiteHeaderProps = {
   current?: NavKey;
 };
@@ -22,6 +21,11 @@ type SiteHeaderProps = {
  * There is no search button: the field lives on the archive, and "Archiv" is
  * already in the navigation, so a second control pointing at the same page only
  * competed with it.
+ *
+ * On a phone the five destinations are behind the hamburger rather than in a
+ * strip under the header. That strip stood on every page and scrolled sideways,
+ * so it cost a row of screen before the first headline and hid its own last
+ * entry.
  */
 export function SiteHeader({
   current,
@@ -66,23 +70,9 @@ export function SiteHeader({
 
         <div className="ml-auto flex items-center gap-2 text-[12.5px] font-bold md:gap-3.5">
           <ThemeSwitcher />
-          <a
-            href={`#${MOBILE_NAV_ID}`}
-            className="inline-flex min-h-11 items-center text-tm transition-colors hover:text-tx md:hidden"
-          >
-            Menü
-          </a>
+          <MobileMenu items={NAV_ITEMS} current={current} />
         </div>
       </div>
-
-      <nav
-        id={MOBILE_NAV_ID}
-        aria-label="Hauptnavigation"
-        className="flex gap-5 overflow-x-auto px-[18px] pb-3 text-sm font-bold whitespace-nowrap md:hidden"
-      >
-        {navLinks}
-      </nav>
-
     </header>
   );
 }
