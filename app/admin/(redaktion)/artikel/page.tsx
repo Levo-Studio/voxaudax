@@ -185,7 +185,7 @@ export default async function ArticlesPage({
       </div>
 
       {may(member.role, "readOthersDrafts") ? null : (
-        <p className="mt-3.5 text-[12.5px] font-medium text-tm">
+        <p className="mt-3.5 px-4 text-[12.5px] font-medium text-tm md:px-0">
           Als Autor siehst du hier ausschließlich deine eigenen Artikel — fremde Entwürfe sind
           weder sichtbar noch aufrufbar.
         </p>
@@ -194,7 +194,7 @@ export default async function ArticlesPage({
       {/* The one question this list does not answer: a piece can be published,
           correct and nowhere in sight because eleven newer ones are in front
           of it. */}
-      <div className="mt-3.5">
+      <div className="mt-3.5 px-4 md:px-0">
         <PlacementNote />
       </div>
     </>
