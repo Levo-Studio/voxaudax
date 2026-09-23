@@ -107,7 +107,7 @@ export function MobileMenu({
 
         <nav
           aria-label="Hauptnavigation"
-          className="flex flex-1 flex-col justify-center gap-1 px-[18px] pb-24"
+          className="flex flex-1 flex-col justify-center gap-1 px-[18px]"
         >
           {items.map((item, position) => (
             <Link
@@ -125,6 +125,26 @@ export function MobileMenu({
             </Link>
           ))}
         </nav>
+
+        {/* Set apart from the five, and quieter: the back office is not a
+            sixth destination of the newspaper, it is the door beside it. The
+            five above are where a reader goes; this is where the people who
+            write it go. */}
+        <div className="border-t border-bd px-[18px] py-5">
+          <Link
+            href="/admin"
+            onClick={close}
+            style={{ transitionDelay: open ? "305ms" : "0ms" }}
+            className={`inline-flex min-h-11 items-center gap-2 text-[15px] font-bold text-tm transition-[opacity,translate,color] duration-300 ease-out hover:text-tx ${
+              open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+            }`}
+          >
+            Anmelden
+            <span aria-hidden className="text-[13px]">
+              →
+            </span>
+          </Link>
+        </div>
       </div>
     </>
   );
