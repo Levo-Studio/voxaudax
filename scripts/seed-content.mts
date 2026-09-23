@@ -575,7 +575,7 @@ export const PAGES: readonly {
       },
       { h2: "Verantwortlich für den Inhalt" },
       {
-        p: "Lina Brenner (Chefredakteurin) und Jonas Weidmann (Chefredakteur). Betreuende Lehrkraft: Dr. Annika Halm. redaktion@voxaudax.de",
+        p: "Jonathan Fischer ist verantwortlich für den Inhalt und volljährig. Eine betreuende Lehrkraft gibt es nicht. Zu erreichen über redaktion@voxaudax.de.",
       },
       { h2: "Haftung für Inhalte" },
       {
@@ -623,7 +623,7 @@ export const PAGES: readonly {
       },
       { h2: "Verantwortlich" },
       {
-        p: "Schülerzeitung Vox Audax, Uhland-Gymnasium, Uhlandstraße 12, 72072 Tübingen. Verantwortlich im Sinne der DSGVO ist die Chefredaktion: Lina Brenner und Jonas Weidmann, redaktion@voxaudax.de. Betreuende Lehrkraft: Dr. Annika Halm. Die vollständigen Angaben stehen im Impressum.",
+        p: "Schülerzeitung Vox Audax, Uhland-Gymnasium, Uhlandstraße 12, 72072 Tübingen. Verantwortlich im Sinne der DSGVO ist Jonathan Fischer, redaktion@voxaudax.de. Die vollständigen Angaben stehen im Impressum.",
       },
       { h2: "Was diese Seite nicht tut" },
       {
@@ -649,7 +649,7 @@ export const PAGES: readonly {
       },
       { h2: "Konten der Redaktion" },
       {
-        p: "Wer für die Zeitung schreibt, bekommt ein Konto mit Name, E-Mail-Adresse, Initialen, Rolle, Ressorts, wahlweise einer Kurzbiografie und einem Profilbild. Das Passwort wird nur als Hash gespeichert, nie im Klartext. Grundlage ist die Mitarbeit in der Redaktion, Art. 6 Abs. 1 lit. b DSGVO; angelegt wird ein Konto per Einladung durch die Chefredaktion.",
+        p: "Wer für die Zeitung schreibt, bekommt ein Konto mit Name, E-Mail-Adresse, Initialen, Rolle, Ressorts, wahlweise einer Kurzbiografie und einem Profilbild. Das Passwort wird nur als Hash gespeichert, nie im Klartext. Grundlage ist die Mitarbeit in der Redaktion, Art. 6 Abs. 1 lit. b DSGVO; angelegt wird ein Konto per Einladung durch die Redaktionsleitung.",
       },
       {
         p: "Zu jeder Anmeldung gehören ein Sitzungscookie und, in der Datenbank, die auf das Netz gekürzte IP-Adresse (IPv4 auf /24, IPv6 auf /64) sowie die Browser- und Systemfamilie, etwa „Firefox on Android\". Beides steht auf der eigenen Kontoseite, damit eine fremde Anmeldung auffällt. Eine Sitzung endet nach sieben Tagen ohne Nutzung, spätestens nach 30 Tagen, und beim Abmelden sofort.",

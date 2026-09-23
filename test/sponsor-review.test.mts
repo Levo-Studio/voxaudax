@@ -53,7 +53,7 @@ describe("who has to go through the review and who does not", () => {
     const [created] = await createSponsor(author, input("Prüfeintrag"));
     sponsorId = created!.id;
 
-    const [own] = await createSponsor(approver, input("Eintrag der Chefredaktion"));
+    const [own] = await createSponsor(approver, input("Eintrag der Redaktionsleitung"));
     ownId = own!.id;
   });
 
@@ -102,7 +102,7 @@ describe("who has to go through the review and who does not", () => {
   });
 
   it("does not send an approver's own change back to the queue", async () => {
-    await updateSponsor(approver, ownId, input("Eintrag der Chefredaktion, geändert"));
+    await updateSponsor(approver, ownId, input("Eintrag der Redaktionsleitung, geändert"));
     assert.equal(await statusById(ownId), "published");
   });
 });
