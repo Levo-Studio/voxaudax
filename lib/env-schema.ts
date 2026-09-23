@@ -67,6 +67,17 @@ export const environmentSchema = z.object({
   MAIL_TO_EDITORIAL: z.email(),
 
   /**
+   * The proxies in front of this application, as CIDR ranges or plain
+   * addresses, separated by commas. Empty — the default — means there is none,
+   * and then no `X-Forwarded-For` is believed at all.
+   *
+   * Behind Traefik this has to name Traefik's own range, or the rate limiter
+   * counts every caller into one bucket. It is a topology fact and not a
+   * secret, which is why it stands in `.env.example` with a value.
+   */
+  TRUSTED_PROXIES: z.string().default(""),
+
+  /**
    * @velve/auth reads this as canonical base64url and needs 32 decoded bytes.
    * Measuring the string instead would pass a 32-character value carrying 24
    * bytes of entropy, and `openssl rand -base64 32` — which produces "+", "/"

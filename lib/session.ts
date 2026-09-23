@@ -2,6 +2,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 
 import { velveAuth } from "@/lib/auth";
+import { clientAddress, parseTrustedProxies } from "@/lib/client-address";
 import { environment } from "@/lib/env";
 
 /**
@@ -73,7 +74,13 @@ export const callFields = async (kind: "render" | "mutation") => {
 
   return {
     origin: origin ?? new URL(environment().NEXT_PUBLIC_SITE_URL).origin,
-    ipAddress: header.get("x-forwarded-for"),
+    // Not the raw header. It is a list, and it is written by whoever is
+    // calling unless a proxy in front is named — `lib/client-address` has the
+    // whole of why.
+    ipAddress: clientAddress(
+      header.get("x-forwarded-for"),
+      parseTrustedProxies(environment().TRUSTED_PROXIES),
+    ),
     userAgent: header.get("user-agent"),
   };
 };
