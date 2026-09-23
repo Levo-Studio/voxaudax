@@ -29,7 +29,7 @@ export default async function AcceptInvitationPage({
           </h1>
           <p className="mt-2.5 text-[15px] leading-relaxed font-medium text-tm">
             Einladungen gelten 24 Stunden oder 7 Tage und lassen sich nur einmal verwenden.
-            Bitte die Chefredaktion um eine neue.
+            Bitte die Redaktionsleitung um eine neue.
           </p>
           <Link
             href="/admin"

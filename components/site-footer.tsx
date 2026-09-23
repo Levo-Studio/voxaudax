@@ -6,6 +6,11 @@ const LEGAL_LINKS = [
   { label: "Impressum", href: "/impressum", hint: undefined },
   { label: "Datenschutz", href: "/datenschutz", hint: undefined },
   {
+    label: "Anmelden",
+    href: "/admin",
+    hint: "Für die Redaktion — Artikel schreiben und freigeben",
+  },
+  {
     label: "RSS-Feed",
     href: "/rss.xml",
     // It said "RSS" and nothing else, which tells anybody who does not already

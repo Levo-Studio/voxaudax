@@ -47,7 +47,7 @@ const facts = ({ changedBy }: PasswordChangedByAdminProps): readonly Fact[] => [
 ];
 
 const WARNING =
-  "Das warst nicht du und du hast auch nichts vereinbart? Melde dich sofort bei der Chefredaktion. In dieser Mail steht nie ein Passwort.";
+  "Das warst nicht du und du hast auch nichts vereinbart? Melde dich sofort bei der Redaktionsleitung. In dieser Mail steht nie ein Passwort.";
 
 export const passwordChangedByAdminMail: MailTemplate<PasswordChangedByAdminProps> =
   {

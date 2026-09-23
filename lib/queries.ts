@@ -16,7 +16,7 @@ import {
   userRole,
   users,
 } from "@/lib/db/schema";
-import { toSlug } from "@/lib/format";
+import { initialsOf, toSlug } from "@/lib/format";
 import { ARCHIVE_CEILING, HOMEPAGE_ARTICLES, RELATED_COUNT } from "@/lib/limits";
 import { LIKE_ESCAPE, likeContains } from "@/lib/search";
 import { freeSlug } from "@/lib/slug";
@@ -72,13 +72,18 @@ export type ArticleTeaser = {
   authorInitials: string;
   /** Somebody who has left. The article keeps their name; the masthead does not. */
   authorFormer: boolean;
+  /**
+   * Where the byline leads, and null where it leads nowhere: a guest has no
+   * member row, so the archive has nothing to filter by and the name is set as
+   * plain text rather than as a link into an empty list.
+   */
+  authorSlug: string | null;
 };
 
 export type FullArticle = ArticleTeaser & {
   id: string;
   body: TipTapDocument;
   categoryId: string;
-  authorSlug: string;
   authorBio: string | null;
   authorRole: (typeof userRole.enumValues)[number];
   authorForm: (typeof userForm.enumValues)[number];
@@ -93,9 +98,10 @@ const teaserColumns = {
   wordCount: articles.wordCount,
   categorySlug: categories.slug,
   categoryName: categories.name,
-  authorName: users.name,
-  authorInitials: users.initials,
-  authorFormer: sql<boolean>`${users.status} = 'ehemalig'`,
+  guestAuthor: articles.guestAuthor,
+  memberName: users.name,
+  memberInitials: users.initials,
+  memberFormer: sql<boolean>`${users.status} = 'ehemalig'`,
 };
 
 /**
@@ -103,9 +109,31 @@ const teaserColumns = {
  * every published row — which SQL knows and the type system does not. Narrowing
  * once here beats an assertion at each of the dozen places that print a date.
  */
-const dated = <Row extends { publishedAt: Date | null }>(rows: readonly Row[]) =>
-  rows.flatMap((row) =>
-    row.publishedAt === null ? [] : [{ ...row, publishedAt: row.publishedAt }],
+type Bylined = {
+  guestAuthor: string | null;
+  memberName: string;
+  memberInitials: string;
+  memberFormer: boolean;
+};
+
+const dated = <Row extends Bylined & { publishedAt: Date | null }>(
+  rows: readonly Row[],
+) =>
+  rows.flatMap(
+    ({ publishedAt, guestAuthor, memberName, memberInitials, memberFormer, ...rest }) =>
+      publishedAt === null
+        ? []
+        : [
+            {
+              ...rest,
+              publishedAt,
+              authorName: guestAuthor ?? memberName,
+              authorInitials:
+                guestAuthor === null ? memberInitials : initialsOf(guestAuthor),
+              authorFormer: guestAuthor === null && memberFormer,
+              authorSlug: guestAuthor === null ? toSlug(memberName) : null,
+            },
+          ],
   );
 
 const teaserQuery = () =>
@@ -171,9 +199,7 @@ export const articleBySlug = cache(async (
       .limit(1),
   );
 
-  return article === undefined
-    ? undefined
-    : { ...article, authorSlug: toSlug(article.authorName) };
+  return article;
 });
 
 /**

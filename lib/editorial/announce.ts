@@ -76,7 +76,7 @@ export const announceInvitation = async (input: {
         firstName: firstNameOf(input.name),
         invitedBy: input.invitedBy.name,
         // The role as it will be written on the person, not the enum value:
-        // "Autor", "Redakteurin", "Chefredaktion".
+        // "Autor", "Redakteurin", "Redaktionsleitung".
         roleLabel: roleLabel(input.role, input.form),
         passwordUrl: link(input.path),
         validity: input.validity,

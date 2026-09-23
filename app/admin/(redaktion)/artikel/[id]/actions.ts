@@ -30,6 +30,12 @@ import { parseDocumentJson } from "@/lib/tiptap";
 const draft = z.object({
   title: z.string().trim().min(1).max(200),
   teaser: z.string().trim().max(400),
+  /**
+   * Empty means the account holder writes under their own name. A name here
+   * replaces the byline and nothing else — 120 characters, because a byline is
+   * a name and sometimes a class, never a sentence.
+   */
+  guestAuthor: z.string().trim().max(120),
   body: z.string(),
   coverWord: z.string().trim().max(40),
   coverLine: z.string().trim().max(120),
@@ -66,6 +72,7 @@ export const autosaveAction = async (articleId: string, input: DraftInput) => {
     body: parseDocumentJson(parsed.data.body),
     cover,
     categoryId: parsed.data.categoryId,
+    guestAuthor: parsed.data.guestAuthor.length === 0 ? null : parsed.data.guestAuthor,
     publishAt: scheduled === null || Number.isNaN(scheduled.getTime()) ? null : scheduled,
     knownUpdatedAt: new Date(parsed.data.knownUpdatedAt),
   });

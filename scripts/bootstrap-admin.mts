@@ -3,6 +3,7 @@ import { db } from "../lib/db/client.ts";
 import { users } from "../lib/db/schema.ts";
 import { invitationPath, issueInvitation } from "../lib/editorial/invitations.ts";
 import { environment } from "../lib/env.ts";
+import { initialsOf } from "../lib/format.ts";
 
 /**
  * The first administrator, who cannot be invited by anyone because nobody
@@ -23,14 +24,6 @@ const option = (name: string) => {
   const value = process.argv[index + 1];
   return value === undefined || value.startsWith("--") ? undefined : value;
 };
-
-const initialsOf = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter((part) => part.length > 0)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 
 const isForm = (value: string): value is "weiblich" | "maennlich" | "neutral" =>
   value === "weiblich" || value === "maennlich" || value === "neutral";

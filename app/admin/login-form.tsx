@@ -22,7 +22,7 @@ export function LoginForm() {
           Anmelden
         </h1>
         <p className="mt-2.5 text-[15px] leading-relaxed font-medium text-tm">
-          Mit deiner Redaktions-Adresse. Kein Konto? Sprich die Chefredaktion an.
+          Mit deiner Redaktions-Adresse. Kein Konto? Sprich die Redaktionsleitung an.
         </p>
 
         {state.failed ? (

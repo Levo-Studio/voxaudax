@@ -42,7 +42,7 @@ export default function AdminError({
         </p>
         <p className="mt-1.5 text-xs font-medium text-tm">
           Oft ist es die Verbindung zur Datenbank und einen Moment später wieder
-          gut. Bleibt es dabei, gib der Chefredaktion die Kennung unten weiter.
+          gut. Bleibt es dabei, gib der Redaktionsleitung die Kennung unten weiter.
         </p>
         <div className="mt-3.5 flex flex-wrap gap-2">
           <button type="button" onClick={reset} className={PRIMARY_BUTTON_CLASS}>

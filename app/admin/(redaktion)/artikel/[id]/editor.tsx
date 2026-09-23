@@ -43,6 +43,8 @@ export type EditorArticle = {
   readonly rejectionReason: string | null;
   readonly title: string;
   readonly teaser: string;
+  /** Empty means the account holder writes under their own name. */
+  readonly guestAuthor: string;
   readonly body: TipTapDocument;
   readonly cover: CoverValue;
   readonly categoryId: string;
@@ -93,6 +95,7 @@ export function Editor({
 }) {
   const [title, setTitle] = useState(article.title);
   const [teaser, setTeaser] = useState(article.teaser);
+  const [guestAuthor, setGuestAuthor] = useState(article.guestAuthor);
   const [blocks, setBlocks] = useState<readonly Block[]>(() => documentToBlocks(article.body));
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [cover, setCover] = useState({
@@ -193,6 +196,7 @@ export function Editor({
           answer = await autosaveAction(article.id, {
             title,
             teaser,
+            guestAuthor,
             body: JSON.stringify(document_),
             coverWord: cover.word,
             coverLine: cover.line,
@@ -220,7 +224,7 @@ export function Editor({
     }, AUTOSAVE_DELAY_MS);
 
     return () => window.clearTimeout(handle);
-  }, [article.id, title, teaser, document_, cover, categoryId, publishAt, overtaken, locked]);
+  }, [article.id, title, teaser, guestAuthor, document_, cover, categoryId, publishAt, overtaken, locked]);
 
   const touch = <T,>(set: (value: T) => void) => (value: T) => {
     dirty.current = true;
@@ -411,6 +415,7 @@ export function Editor({
       answer = await autosaveAction(article.id, {
         title,
         teaser,
+        guestAuthor,
         body: JSON.stringify(document_),
         coverWord: cover.word,
         coverLine: cover.line,
@@ -923,6 +928,30 @@ export function Editor({
                 onChange={(event) => touch(setTeaser)(event.target.value)}
                 className={FIELD_CLASS}
               />
+            </div>
+
+            <div className="border-b border-bd px-[18px] py-4">
+              <label className={`${LABEL_CLASS} mb-1.5`} htmlFor="guest-author">
+                Autor · abweichend
+              </label>
+              <input
+                id="guest-author"
+                value={guestAuthor}
+                readOnly={locked}
+                maxLength={120}
+                placeholder={article.authorName}
+                onChange={(event) => touch(setGuestAuthor)(event.target.value)}
+                aria-describedby="guest-author-note"
+                className={FIELD_CLASS}
+              />
+              {/* Whose name, not whose article: the row stays with the account
+                  that holds it, and who may edit it does not move with the
+                  byline. Said here because the field looks as though it might. */}
+              <p id="guest-author-note" className="mt-1.5 text-[11.5px] leading-[1.5] font-medium text-tm">
+                Leer lassen, dann steht dein Name darunter. Für jemanden ohne Konto — einen
+                Gastbeitrag, eine Klasse — hier den Namen eintragen. Der Artikel bleibt
+                trotzdem deiner: bearbeiten darfst nur du ihn.
+              </p>
             </div>
 
             <div className="px-[18px] pt-4 pb-[18px]">

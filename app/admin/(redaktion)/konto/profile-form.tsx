@@ -83,7 +83,7 @@ export function ProfileForm({
         />
       </label>
       <p id="email-note" className="m-0 text-[11.5px] font-medium text-tm">
-        Die Adresse ist der Anmeldename. Sie ändert die Chefredaktion.
+        Die Adresse ist der Anmeldename. Sie ändert die Redaktionsleitung.
       </p>
 
       <label className="flex flex-col gap-1.5">

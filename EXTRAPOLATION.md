@@ -295,6 +295,52 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Der Autor lässt sich frei eingeben
+
+Auf Ansage der Redaktion. Die Vorlage kennt nur Mitglieder mit Konto; eine
+Schülerzeitung druckt aber Gastbeiträge, und eine Klasse hat keinen Zugang.
+
+→ Eine zusätzliche Spalte `articles.guest_author`, leer im Normalfall. Steht ein
+Name darin, steht er unter der Überschrift statt des Kontoinhabers.
+
+→ **Der Artikel wandert dabei nicht.** `author_id` bleibt, was es war: das
+entscheidet, wer die Zeile bearbeiten darf, und das ist eine andere Frage als
+die, wessen Name darunter steht. Das Feld sagt das auch, weil es aussieht, als
+täte es beides.
+
+→ Ein Gast ist nie „ehemalig" — das ist ein Zustand eines Kontos, und er hat
+keines — und seine Zeile ist **kein Verweis**: das Archiv filtert nach
+Mitgliedern, ein Verweis führte in eine leere Liste. Auf der Artikelseite
+entscheidet das eine kleine Komponente statt eines Ternärs um sechs Zeilen
+Markup, damit die beiden Fassungen nicht in Abstand und Inhalt auseinanderlaufen.
+
+→ Das Kürzel für den Avatar kommt aus dem getippten Namen. `initialsOf` stand
+davor zweimal im Projekt — in `bootstrap-admin` und in der Einladungsaktion —
+und eine dritte Abschrift wäre der Punkt gewesen, an dem die Regel anfängt, sich
+selbst zu widersprechen. Jetzt einmal in `lib/format.ts`.
+
+### Aus Chefredaktion wird Redaktionsleitung
+
+Auf Ansage: das ist der interne Begriff der Redaktion.
+
+→ Er ist geschlechtsneutral, also fallen die drei Anredeformen zusammen. Die
+Struktur mit drei Zeilen bleibt, weil die beiden anderen Rollen sie brauchen und
+ein Sonderfall im Aufruf teurer wäre als drei gleiche Zeilen.
+
+→ Betroffen war beides: die Bezeichnung im Backoffice und der Titel im Impressum.
+Dazu jede Stelle, an der der Text jemanden an die Redaktionsleitung verweist —
+Login, Einladung, Fehlerseite, Kontoseite, Kontaktformular und die Mail über ein
+gesetztes Passwort.
+
+### Anmelden steht im Menü
+
+Nicht in der Vorlage. Wer für die Zeitung schreibt, fand das Backoffice nur, wenn
+er die Adresse kannte.
+
+→ Im Menü auf dem Telefon unter den fünf Zielen, abgesetzt und leiser: das
+Backoffice ist kein sechstes Ziel der Zeitung, sondern die Tür daneben. Und in
+der Fußzeile, wo es auf jeder Breite steht.
+
 ### Die Kontoseite hat eine Überschrift
 
 Sie war die einzige Seite im Backoffice ohne eine. Jede andere nennt sich in

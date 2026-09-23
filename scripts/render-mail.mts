@@ -51,7 +51,7 @@ const previews: ReadonlyArray<{ name: string; mail: Mail }> = [
       props: {
         siteUrl: SITE_URL,
         submitterEmail: "tom.kessler@voxaudax.de",
-        reviewer: { name: "Lina Brenner", roleLabel: "Chefredakteurin" },
+        reviewer: { name: "Lina Brenner", roleLabel: "Redaktionsleitung" },
         approvedAt: new Date("2026-09-21T16:11:00Z"),
         item: {
           kind: "meme",

@@ -8,9 +8,9 @@ import { callFields, writeSessionToken } from "@/lib/session";
 export type AcceptState = { readonly problem: string | null };
 
 const PROBLEMS = {
-  unusable_link: "Dieser Link ist abgelaufen oder wurde schon benutzt. Bitte die Chefredaktion um eine neue Einladung.",
+  unusable_link: "Dieser Link ist abgelaufen oder wurde schon benutzt. Bitte die Redaktionsleitung um eine neue Einladung.",
   address_in_use:
-    "Zu dieser Adresse gibt es bereits ein Konto. Melde dich an oder sprich die Chefredaktion an.",
+    "Zu dieser Adresse gibt es bereits ein Konto. Melde dich an oder sprich die Redaktionsleitung an.",
 } as const;
 
 export const acceptInvitationAction = async (

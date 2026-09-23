@@ -303,9 +303,9 @@ describe("the role matrix answers screen 11c row for row", () => {
   });
 
   it("names a role the way screen 8a's Bezeichnung does", () => {
-    assert.equal(roleLabel("admin", "weiblich"), "Chefredakteurin");
-    assert.equal(roleLabel("admin", "maennlich"), "Chefredakteur");
-    assert.equal(roleLabel("admin", "neutral"), "Chefredaktion");
+    assert.equal(roleLabel("admin", "weiblich"), "Redaktionsleitung");
+    assert.equal(roleLabel("admin", "maennlich"), "Redaktionsleitung");
+    assert.equal(roleLabel("admin", "neutral"), "Redaktionsleitung");
     assert.equal(roleLabel("autor", "weiblich"), "Autorin");
     assert.equal(roleLabel("autor", "neutral"), "Redaktionsmitglied");
     assert.equal(roleLabel("redakteur", "weiblich"), "Redakteurin");
