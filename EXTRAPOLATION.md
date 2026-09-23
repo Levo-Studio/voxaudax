@@ -295,6 +295,12 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Die Kontoseite hat eine Überschrift
+
+Sie war die einzige Seite im Backoffice ohne eine. Jede andere nennt sich in
+einem `h1`; eine Seite, die sich nirgends nennt, lässt einen Screenreader drei
+Panels ansagen und kein Wort darüber, wo man gelandet ist.
+
 ### Das Archiv blättert, statt alles auf einmal zu holen
 
 Es holte den ganzen Bestand in einem Zug, gedeckelt bei 500. Bei zwölf Artikeln

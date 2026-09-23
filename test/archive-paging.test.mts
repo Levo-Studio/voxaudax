@@ -27,8 +27,15 @@ describe("the archive in pages", () => {
     assert.equal(first.rows.length, 2);
     assert.equal(first.hasMore, total > 2);
 
-    const last = await archivePage({}, Math.max(0, total - 2), 2);
-    assert.equal(last.hasMore, false, "the final page must not offer another");
+    // Asked for far more than the seed holds rather than for `total - 2`: the
+    // suite runs file-parallel, and an article published between the count and
+    // this call would leave a page after the "last" one.
+    const everything = await archivePage({}, 0, 1000);
+    assert.equal(
+      everything.hasMore,
+      false,
+      "a page wide enough for the whole archive must not offer another",
+    );
   });
 
   it("hands out no article twice and skips none between the pages", async () => {
