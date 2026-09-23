@@ -295,6 +295,132 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Die Kontoseite hat eine Überschrift
+
+Sie war die einzige Seite im Backoffice ohne eine. Jede andere nennt sich in
+einem `h1`; eine Seite, die sich nirgends nennt, lässt einen Screenreader drei
+Panels ansagen und kein Wort darüber, wo man gelandet ist.
+
+### Das Archiv blättert, statt alles auf einmal zu holen
+
+Es holte den ganzen Bestand in einem Zug, gedeckelt bei 500. Bei zwölf Artikeln
+ist das eine Liste; bei fünfhundert ein langes Scrollen, bei dem jedes Cover
+jedes Jahrgangs gelesen wird, bevor der erste Artikel dran ist.
+
+→ Zwanzig je Seite, darunter „Mehr laden". Ein Knopf und kein endloses Scrollen:
+der Fuß dieser Seite trägt Impressum und Datenschutzerklärung, und eine Liste,
+die beim Näherkommen weiterwächst, erreicht niemand je zu Ende. Der Knopf sagt
+außerdem, was er tun wird.
+
+→ Die Zeile wurde zu `components/archive-row.tsx`, weil sie jetzt zweimal
+gezeichnet wird — vom Server für die erste Seite, vom Browser für die weiteren.
+Eine zweite Abschrift wäre bei der nächsten Änderung auseinandergelaufen.
+
+→ **Die Sortierung hat einen Zweitschlüssel bekommen.** `published_at` allein
+lässt die Reihenfolge zwischen zwei gleichzeitig freigegebenen Artikeln offen,
+und eine offene Reihenfolge über eine Seitengrenze hinweg zeigt eine Zeile
+zweimal und eine andere nie. Die Id entscheidet den Gleichstand.
+
+→ Die Obergrenze von 500 bleibt, aber als Obergrenze und nicht als Seitengröße:
+sie liegt beim sechsundzwanzigsten „Mehr laden", das kein Leser erreicht, und
+hält eine Abfrage davon ab, in zehn Jahren einen ganzen Jahrgangssatz zu lesen.
+
+→ Die Aktion, die nachlädt, liest nichts, was nicht ohnehin öffentlich ist —
+dieselbe Bedingung wie die Seite selbst —, also prüft sie keine Sitzung. Sie
+wirft auch nicht: der Leser hat schon zwanzig Artikel vor sich, und eine
+Ausnahme ersetzte alle durch eine Fehlerseite wegen eines Knopfes, den man
+einfach noch einmal drücken kann.
+
+### Der Feed sagt im Fuß, was er ist
+
+Da stand „RSS" und sonst nichts, was jemandem, der es nicht ohnehin weiß, genau
+nichts sagt. Der Kopf trägt seit jeher den `alternate`-Verweis, über den ein
+Feed-Reader ihn von selbst findet; die Fußzeile ist für die Person, der man es
+sagen muss.
+
+→ „RSS-Feed", mit einem Zusatz im `title`: neue Artikel im Feed-Reader
+abonnieren, ohne Konto und ohne Adresse.
+
+### Wer die Ratenbremse zählt
+
+Nicht in der Vorlage, sondern ein Fehler. `lib/session.ts` reichte
+`X-Forwarded-For` weiter, genau wie er ankam. Zweierlei war daran falsch: der
+Header ist eine **Liste** — `client, proxy1, proxy2` —, also wurde oft eine
+Kette als eine Adresse gezählt, gespeichert und auf der Kontoseite angezeigt.
+Und er wurde bedingungslos geglaubt: wer wollte, schrieb sich einen und bekam
+für jede Anfrage einen eigenen Topf — die Flutbremse abgeschaltet von genau dem
+Anrufer, gegen den sie gedacht ist.
+
+→ `lib/client-address.ts` wendet die Regel der Bibliothek an (`S-RATE-3`): steht
+ein vertrauter Proxy davor, ist der Anrufer die **rechteste** genannte Adresse,
+die nicht selbst ein vertrauter Proxy ist — der letzte Sprung, für den niemand
+Vertrautes bürgt. Die linkeste zu nehmen hieße, jeder darf eine voranstellen und
+sich seinen Topf aussuchen.
+
+→ Die Liste steht in `TRUSTED_PROXIES`, dieselbe geht an `createVelveAuth`, damit
+Anwendung und Bibliothek nicht verschiedener Meinung sein können. Leer heißt:
+nichts wird geglaubt, alle teilen einen Topf — die Voreinstellung der Bibliothek
+und die sichere Art, falsch zu liegen.
+
+→ **Was hier nicht geprüft werden kann.** Die Bibliothek belegt über die
+Gegenstelle der Verbindung, dass die Anfrage wirklich vom Proxy kam. Eine Next
+Server Action sieht keine — `headers()` ist alles. Mit gesetzter Liste wird der
+Header also geglaubt, und das stimmt genau so lange, wie der Container nur über
+den Proxy erreichbar ist.
+
+→ Ein Test hat dabei einen echten Fehler gefangen: `Number("")` ist 0 und nicht
+NaN, also las sich ein vertipptes `10.0.0.0/` als `/0` und deckte das ganze
+Internet ab.
+
+### Der Editor sagt jetzt, dass er nicht speichert
+
+`saveArticle` schreibt nur einen Entwurf; alles andere beantwortet es mit `null`.
+Die Maske ging trotzdem auf und sah aus wie ein funktionierender Editor: man
+konnte einen veröffentlichten Artikel umschreiben, der Selbstsicherung beim
+Ticken zusehen und beim nächsten Laden alles verlieren. Sicher war das, ehrlich
+nicht.
+
+→ Ein Hinweis oben, Titel, Teaser und Markdown schreibgeschützt, der Rumpf mit
+`inert` aus Fokus und Eingabe genommen, und die Selbstsicherung läuft gar nicht
+erst an.
+
+### Das Backoffice hat auf dem Telefon eine Fläche
+
+Die Hülle lag auf `--s2`, die Panels auf `--s1`. Auf dem Desktop ist das der Rand
+um Karten; auf einem Telefon, wo die Panels randlos sind, blieb davon nur ein
+Streifen unter der Kopfzeile, der wie ein zweiter Container aussah.
+
+→ Auf dem Telefon eine Farbe, ab `md` wieder zwei. Der Abstand über dem ersten
+Panel ist weg, es bleiben die Haarlinien.
+
+### Deckkraft auf dem Cover
+
+Die Vorlage setzt die Cover-Zeile auf `opacity:.82` und die „Titelthema"-Zeile
+auf `.8` — richtig, solange jedes Cover auf demselben dunklen Violett saß. Mit
+vierzehn Flächenfarben fallen **sechs von vierzehn** Paletten durch, sobald man
+die Deckkraft mitrechnet: Oliv 4,76 wird zu 3,67, Petrol 4,88 zu 3,71. Beides
+ist Kleintext, also gilt 4,5:1, nicht 3:1.
+
+→ Die Deckkraft entfällt auf beiden Zeilen.
+
+→ Der Kontrast-Wächter hatte genau hier seinen blinden Fleck: er maß die Tinte
+bei voller Stärke und ließ alles durch. Er liest jetzt die Komponente, sammelt
+jede gesetzte Deckkraft und verrechnet sie gegen die Fläche — belegt, indem eine
+Deckkraft testweise wieder eingesetzt wurde und sechs von vierundvierzig Paaren
+rot wurden.
+
+### Ausgegraute Bedienelemente
+
+Die Vorlage graut mit einem Deckkraft-Faktor aus. Zusammengerechnet ergibt das
+2,51:1 auf dem gesperrten „Freigeben" — ausgerechnet der Zustand, dessen
+Beschriftung ein Prüfer lesen muss, um zu verstehen, warum er nicht handeln kann.
+
+→ Ausgegraute Zustände bekommen ein eigenes Tokenpaar statt eines Faktors, und
+der gesperrte Knopf trägt „Alt-Text fehlt" als sichtbaren Text statt nur als
+`title`.
+
+---
+
 ## 5. Was die Vorlage offenlässt
 
 | Frage | Entscheidung | Abgeleitet aus |
@@ -1501,11 +1627,12 @@ Absätzen.
   Solange sie dort steht, startet die Anwendung nicht.
 - **`.design/`** liegt lokal und ist nicht versioniert. Ein Commit wandert
   unumkehrbar in die Historie eines öffentlichen Repositorys.
-- **Kein Löschweg für Artikelbilder.** Memes und Sponsorenlogos lassen sich
-  vollständig entfernen, ein Bild aus einem Artikeltext nicht: es bleibt in
-  `images` und im Objektspeicher stehen, auch wenn es aus dem Text verschwindet.
-  Ein Löschersuchen nach Art. 17 DSGVO ist bis dahin nur vom Betrieb aus zu
-  erfüllen.
+- **`TRUSTED_PROXIES` muss im Betrieb gesetzt werden.** Der Schlüssel ist da und
+  leer bedeutet: kein `X-Forwarded-For` wird geglaubt, alle teilen sich einen
+  Topf der Ratenbremse. Hinter Traefik gehört dessen Bereich hinein, sonst zählt
+  die Bremse die ganze Schule als einen Anrufer. Was der Code nicht prüfen kann:
+  dass der Container **nur** über den Proxy erreichbar ist. Wird er daneben
+  direkt veröffentlicht, lässt sich der Header fälschen.
 - **Resend** ist ein US-Anbieter. Die globalen Regeln schließen Dienste aus, die
   Daten außerhalb der EU speichern; die Aufgabenstellung schreibt Resend
   ausdrücklich vor. Über das Kontaktformular laufen Namen und Nachrichten von

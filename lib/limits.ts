@@ -23,6 +23,13 @@ export const HOMEPAGE_MEMBERS = 8;
  */
 export const ARCHIVE_CEILING = 500;
 
+/**
+ * One page of the archive. It used to be the whole list at once, capped at
+ * `ARCHIVE_CEILING` — fine at twelve articles and a long scroll at five
+ * hundred, with every cover of every year fetched before the first one is read.
+ */
+export const ARCHIVE_PAGE = 20;
+
 /** What a feed reader is given, rather than the whole archive cut down to it. */
 export const FEED_LENGTH = 20;
 

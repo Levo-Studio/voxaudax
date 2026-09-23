@@ -9,6 +9,7 @@ import {
 import { createNodePostgresDriver } from "@velve/auth/pg";
 
 import { captureInProgress } from "@/lib/auth-mail";
+import { parseTrustedProxies } from "@/lib/client-address";
 import { AUTH_IDENTITY_MODE } from "@/lib/db/migrations";
 import { pool } from "@/lib/db/pool";
 import { environment } from "@/lib/env";
@@ -100,6 +101,9 @@ export const velveAuth = () =>
     identity: { mode: AUTH_IDENTITY_MODE },
     keys: keys(),
     origins: allowedOrigins(),
+    // The same list `lib/session` resolves the caller's address against, so
+    // the library and this application cannot disagree about who is in front.
+    trustedProxies: parseTrustedProxies(environment().TRUSTED_PROXIES),
     email: { send: sendMail },
     rateLimit: { perAccount: PER_ACCOUNT_LOCKOUT },
     // Screens 8b, 8c and 12b all say "Mindestens 10 Zeichen"; the library's own

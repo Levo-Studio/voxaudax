@@ -3,20 +3,21 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ArchiveSearch } from "@/components/archive-search";
-import { FormerTag } from "@/components/former-tag";
+import { ArchiveRow } from "@/components/archive-row";
+import { LoadMore } from "@/app/archiv/load-more";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ArchiveSkeleton } from "@/components/skeleton";
-import { longDate, machineDate, shortDate } from "@/lib/format";
+import { ARCHIVE_PAGE } from "@/lib/limits";
 import { alternates } from "@/lib/metadata";
 import {
-  archiveResults,
+  archivePage,
   publishedArticleCount,
   publishedCategories,
   publishedAuthors,
   publishedYears,
 } from "@/lib/queries";
-import { ARCHIVE_PARAMS, archiveHref, articleHref } from "@/lib/routes";
+import { ARCHIVE_PARAMS, archiveHref } from "@/lib/routes";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -165,13 +166,15 @@ async function ArchiveResults({
   const year = positiveYear(single(parameters[ARCHIVE_PARAMS.year]));
   const author = filled(single(parameters[ARCHIVE_PARAMS.author]));
 
-  const [results, total, categories, years, authors] = await Promise.all([
-    archiveResults({
-      query,
-      categorySlug: category,
-      year,
-      authorSlug: author,
-    }),
+  const filters = {
+    query,
+    categorySlug: category,
+    year,
+    authorSlug: author,
+  };
+
+  const [{ rows: results, hasMore }, total, categories, years, authors] = await Promise.all([
+    archivePage(filters, 0, ARCHIVE_PAGE),
     publishedArticleCount(),
     publishedCategories(),
     publishedYears(),
@@ -253,36 +256,14 @@ async function ArchiveResults({
         ) : (
           <div className="mt-6 flex flex-col md:mt-[34px]">
             {results.map((article, position) => (
-              <Link
+              <ArchiveRow
                 key={article.slug}
-                href={articleHref(article.slug)}
-                className={`group block border-t border-bd py-[17px] md:py-5 ${
-                  position === results.length - 1 ? "border-b" : ""
-                }`}
-              >
-                <span className="block text-[11.5px] font-semibold text-tm md:text-xs">
-                  {article.categoryName} ·{" "}
-                  <time dateTime={machineDate(article.publishedAt)}>
-                    <span className="md:hidden">
-                      {shortDate(article.publishedAt)}
-                    </span>
-                    <span className="hidden md:inline">
-                      {longDate(article.publishedAt)}
-                    </span>
-                  </time>
-                  <span className="hidden md:inline">
-                    {" "}
-                    · {article.authorName}
-                    {article.authorFormer ? <FormerTag /> : null}
-                  </span>
-                </span>
-                {/* A measure of its own now that the column is the whole page:
-                    a headline set across 1900px is one long line to track. */}
-                <span className="mt-1.5 block text-[18px] leading-[1.24] font-bold tracking-[-0.02em] transition-colors group-hover:text-ac md:mt-[7px] md:max-w-[62ch] md:text-[23px] md:leading-[1.2] md:tracking-[-0.028em]">
-                  {article.title}
-                </span>
-              </Link>
+                article={article}
+                last={!hasMore && position === results.length - 1}
+              />
             ))}
+
+            {hasMore ? <LoadMore filters={filters} loaded={results.length} /> : null}
           </div>
         )}
 

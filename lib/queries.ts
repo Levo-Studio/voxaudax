@@ -324,6 +324,8 @@ export type ArchiveFilters = {
 
 export const archiveResults = async (
   filters: ArchiveFilters,
+  skip: number,
+  take: number,
 ): Promise<ArticleTeaser[]> => {
   const conditions = [live()];
 
@@ -359,12 +361,31 @@ export const archiveResults = async (
   return dated(
     await teaserQuery()
       .where(and(...conditions))
-      .orderBy(desc(articles.publishedAt))
-      // A ceiling rather than a page: the archive is one list by design, and a
-      // school paper will not reach this. It is here so that an unfiltered
-      // archive cannot become an unbounded read years from now.
-      .limit(ARCHIVE_CEILING),
+      // The id breaks a tie, and a paged list needs one: two articles approved
+      // in the same instant, or a batch scheduled for the same minute, leave
+      // the order undefined between them — and an undefined order across a
+      // page boundary shows one row twice and another never.
+      .orderBy(desc(articles.publishedAt), desc(articles.id))
+      // One more than asked for, so the caller can tell whether another page
+      // exists without counting the whole archive a second time.
+      .limit(Math.min(take, ARCHIVE_CEILING - skip) + 1)
+      .offset(skip),
   );
+};
+
+/**
+ * The ceiling is not a page size. It is here so that an archive nobody ever
+ * prunes cannot become an unbounded read years from now — at twenty a page
+ * that is the twenty-sixth "mehr laden", which no reader will reach, and the
+ * query stops there rather than walking a decade of school newspaper.
+ */
+export const archivePage = async (
+  filters: ArchiveFilters,
+  skip: number,
+  take: number,
+) => {
+  const rows = await archiveResults(filters, skip, take);
+  return { rows: rows.slice(0, take), hasMore: rows.length > take };
 };
 
 export const activeSponsors = () =>

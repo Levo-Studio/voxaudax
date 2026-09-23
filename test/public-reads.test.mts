@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { articles, images, memes, slugHistory, users } from "@/lib/db/schema";
 import { pool } from "@/lib/db/pool";
+import { ARCHIVE_PAGE } from "@/lib/limits";
 import {
   archiveResults,
   articleBySlug,
@@ -138,7 +139,7 @@ describe("the public side shows what is published and nothing beside it", () => 
   it("answers the same for the feed, the sitemap and the archive", async () => {
     holds(await recentArticles(50), "the feed");
     holds(await everyPublishedArticle(), "the sitemap");
-    holds(await archiveResults({}), "the archive");
+    holds(await archiveResults({}, 0, ARCHIVE_PAGE), "the archive");
   });
 
   /**
@@ -192,16 +193,16 @@ describe("the public side shows what is published and nothing beside it", () => 
   });
 
   it("finds the published one through each of the archive's four filters", async () => {
-    holds(await archiveResults({ query: RARE }), "the search");
-    holds(await archiveResults({ categorySlug }), "the category filter");
+    holds(await archiveResults({ query: RARE }, 0, ARCHIVE_PAGE), "the search");
+    holds(await archiveResults({ categorySlug }, 0, ARCHIVE_PAGE), "the category filter");
     holds(
-      await archiveResults({ year: new Date().getFullYear() }),
+      await archiveResults({ year: new Date().getFullYear() }, 0, ARCHIVE_PAGE),
       "the year filter",
     );
 
     const author = (await publishedAuthors()).find((entry) => entry.name === authorName);
     assert.ok(author, "the author filter does not offer the author who published");
-    holds(await archiveResults({ authorSlug: author.slug }), "the author filter");
+    holds(await archiveResults({ authorSlug: author.slug }, 0, ARCHIVE_PAGE), "the author filter");
   });
 
   it("offers no filter that leads into an empty list", async () => {

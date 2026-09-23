@@ -162,8 +162,20 @@ export function Editor({
   const knownUpdatedAt = useRef(article.updatedAt);
   const [overtaken, setOvertaken] = useState(false);
 
+  /**
+   * `saveArticle` writes only a draft — everything else it answers with `null`
+   * and nothing is stored. The mask opened all the same and looked like a
+   * working editor: somebody could rewrite a published article, watch the
+   * autosave tick past and lose all of it on the next reload. Safe it was;
+   * honest it was not.
+   *
+   * The way back into editing is the review page, which returns an article to
+   * its author as a draft.
+   */
+  const locked = status !== "draft";
+
   useEffect(() => {
-    if (!dirty.current || overtaken) return;
+    if (!dirty.current || overtaken || locked) return;
 
     const handle = window.setTimeout(() => {
       // What the document stood at when this save was sent. Anything typed
@@ -208,7 +220,7 @@ export function Editor({
     }, AUTOSAVE_DELAY_MS);
 
     return () => window.clearTimeout(handle);
-  }, [article.id, title, teaser, document_, cover, categoryId, publishAt, overtaken]);
+  }, [article.id, title, teaser, document_, cover, categoryId, publishAt, overtaken, locked]);
 
   const touch = <T,>(set: (value: T) => void) => (value: T) => {
     dirty.current = true;
@@ -524,11 +536,23 @@ export function Editor({
           </div>
         )}
 
+        {locked ? (
+          <p
+            role="status"
+            className="mx-4 mt-5 rounded-[10px] border border-bd bg-s2 px-4 py-3 text-[13px] leading-[1.55] font-semibold text-tm md:mx-[30px]"
+          >
+            Dieser Artikel steht auf „{STATUS_LABELS[status]}“ und lässt sich hier nicht
+            ändern — gespeichert wird nur ein Entwurf. Zurück in den Entwurf kommt er
+            über die Freigabe.
+          </p>
+        ) : null}
+
         <div className="px-4 pt-6 md:px-[30px]">
           <div className={LABEL_CLASS}>Titel</div>
           <input
             value={title}
             onChange={(event) => touch(setTitle)(event.target.value)}
+            readOnly={locked}
             aria-label="Titel"
             className="va-focus-underline mt-2 w-full border-none bg-transparent p-0 text-[25px] leading-[1.08] font-extrabold tracking-[-0.04em] text-tx md:text-[34px]"
           />
@@ -657,7 +681,7 @@ export function Editor({
         </div>
 
         {markdown === null ? (
-          <div className="px-4 pt-6 pb-9 md:px-[30px]">
+          <div inert={locked} className="px-4 pt-6 pb-9 md:px-[30px]">
             <BlockEditor
               blocks={blocks}
               onChange={touch(setBlocks)}
@@ -677,6 +701,7 @@ export function Editor({
             <textarea
               ref={markdownBox}
               value={markdown}
+              readOnly={locked}
               onChange={(event) => touch(setMarkdown)(event.target.value)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
@@ -894,6 +919,7 @@ export function Editor({
                 id="teaser"
                 rows={3}
                 value={teaser}
+                readOnly={locked}
                 onChange={(event) => touch(setTeaser)(event.target.value)}
                 className={FIELD_CLASS}
               />

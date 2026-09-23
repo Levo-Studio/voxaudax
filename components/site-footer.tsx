@@ -3,9 +3,17 @@ import Link from "next/link";
 import { SOURCE_URL, outward } from "@/lib/outward";
 
 const LEGAL_LINKS = [
-  { label: "Impressum", href: "/impressum" },
-  { label: "Datenschutz", href: "/datenschutz" },
-  { label: "RSS", href: "/rss.xml" },
+  { label: "Impressum", href: "/impressum", hint: undefined },
+  { label: "Datenschutz", href: "/datenschutz", hint: undefined },
+  {
+    label: "RSS-Feed",
+    href: "/rss.xml",
+    // It said "RSS" and nothing else, which tells anybody who does not already
+    // know exactly nothing. The head carries the `alternate` link so a reader
+    // finds the feed on its own; this is for the person who has to be told
+    // there is one.
+    hint: "Neue Artikel im Feed-Reader abonnieren — ohne Konto und ohne Adresse",
+  },
 ] as const;
 
 export function SiteFooter() {
@@ -26,6 +34,7 @@ export function SiteFooter() {
             <Link
               key={link.href}
               href={link.href}
+              title={link.hint}
               className="inline-flex min-h-11 items-center transition-colors hover:text-tx md:min-h-0"
             >
               {link.label}

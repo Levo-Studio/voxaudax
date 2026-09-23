@@ -53,7 +53,16 @@ export default async function AccountPage() {
   const devices = await activeSessions();
 
   return (
-    <div className="grid items-start gap-5 md:grid-cols-2">
+    <>
+      {/* The only page in the back office that had no heading at all. Every
+          other one names itself in an `h1`, and a page that names itself
+          nowhere leaves a screen reader announcing three panels with no word
+          about what it landed on. */}
+      <h1 className="mb-3.5 px-4 text-xl font-extrabold tracking-[-0.03em] md:mb-4 md:px-0">
+        Konto
+      </h1>
+
+      <div className="grid items-start gap-5 md:grid-cols-2">
       <div className={PANEL_CLASS}>
         <div className={PANEL_HEADING_CLASS}>Profil</div>
         <ProfileForm
@@ -106,6 +115,7 @@ export default async function AccountPage() {
           <EndOtherSessionsButton />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

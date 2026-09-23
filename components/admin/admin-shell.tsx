@@ -37,7 +37,7 @@ export async function AdminShell({
   ];
 
   return (
-    <div className="min-h-dvh bg-s2 text-tx">
+    <div className="min-h-dvh bg-s1 text-tx md:bg-s2">
       <ToastHost />
       <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-bd bg-s1 px-4 py-3.5 md:px-7">
         <Link href="/admin/artikel" className="flex items-baseline gap-[9px] no-underline">
@@ -82,7 +82,10 @@ export async function AdminShell({
       {/* Edge to edge on a phone. The panels inside drop their radius and their
           side borders at the same width, so a list uses the screen it has
           instead of sitting in a card inside a margin inside a screen. */}
-      <main className="va-in pt-4 pb-9 md:px-7 md:pt-6">{children}</main>
+      {/* No gap above the first panel on a phone: with one background it was a
+          stripe of nothing under the header, and the panel it belonged to
+          looked like a second frame inside the screen. */}
+      <main className="va-in pb-9 md:px-7 md:pt-6">{children}</main>
     </div>
   );
 }

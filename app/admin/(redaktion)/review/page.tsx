@@ -241,7 +241,7 @@ export default async function ReviewPage({
         ) : null}
       </div>
 
-      <p className="mt-3.5 text-[12.5px] font-medium text-tm">
+      <p className="mt-3.5 px-4 text-[12.5px] font-medium text-tm md:px-0">
         Die Rolle <strong className="font-bold text-tx">Autor</strong> sieht diese Seite nicht.
         Freigeben dürfen <strong className="font-bold text-tx">Redakteur</strong> und{" "}
         <strong className="font-bold text-tx">Admin</strong> — niemand gibt die eigene Einreichung
