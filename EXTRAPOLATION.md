@@ -295,6 +295,58 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Wer die Ratenbremse zählt
+
+Nicht in der Vorlage, sondern ein Fehler. `lib/session.ts` reichte
+`X-Forwarded-For` weiter, genau wie er ankam. Zweierlei war daran falsch: der
+Header ist eine **Liste** — `client, proxy1, proxy2` —, also wurde oft eine
+Kette als eine Adresse gezählt, gespeichert und auf der Kontoseite angezeigt.
+Und er wurde bedingungslos geglaubt: wer wollte, schrieb sich einen und bekam
+für jede Anfrage einen eigenen Topf — die Flutbremse abgeschaltet von genau dem
+Anrufer, gegen den sie gedacht ist.
+
+→ `lib/client-address.ts` wendet die Regel der Bibliothek an (`S-RATE-3`): steht
+ein vertrauter Proxy davor, ist der Anrufer die **rechteste** genannte Adresse,
+die nicht selbst ein vertrauter Proxy ist — der letzte Sprung, für den niemand
+Vertrautes bürgt. Die linkeste zu nehmen hieße, jeder darf eine voranstellen und
+sich seinen Topf aussuchen.
+
+→ Die Liste steht in `TRUSTED_PROXIES`, dieselbe geht an `createVelveAuth`, damit
+Anwendung und Bibliothek nicht verschiedener Meinung sein können. Leer heißt:
+nichts wird geglaubt, alle teilen einen Topf — die Voreinstellung der Bibliothek
+und die sichere Art, falsch zu liegen.
+
+→ **Was hier nicht geprüft werden kann.** Die Bibliothek belegt über die
+Gegenstelle der Verbindung, dass die Anfrage wirklich vom Proxy kam. Eine Next
+Server Action sieht keine — `headers()` ist alles. Mit gesetzter Liste wird der
+Header also geglaubt, und das stimmt genau so lange, wie der Container nur über
+den Proxy erreichbar ist.
+
+→ Ein Test hat dabei einen echten Fehler gefangen: `Number("")` ist 0 und nicht
+NaN, also las sich ein vertipptes `10.0.0.0/` als `/0` und deckte das ganze
+Internet ab.
+
+### Der Editor sagt jetzt, dass er nicht speichert
+
+`saveArticle` schreibt nur einen Entwurf; alles andere beantwortet es mit `null`.
+Die Maske ging trotzdem auf und sah aus wie ein funktionierender Editor: man
+konnte einen veröffentlichten Artikel umschreiben, der Selbstsicherung beim
+Ticken zusehen und beim nächsten Laden alles verlieren. Sicher war das, ehrlich
+nicht.
+
+→ Ein Hinweis oben, Titel, Teaser und Markdown schreibgeschützt, der Rumpf mit
+`inert` aus Fokus und Eingabe genommen, und die Selbstsicherung läuft gar nicht
+erst an.
+
+### Das Backoffice hat auf dem Telefon eine Fläche
+
+Die Hülle lag auf `--s2`, die Panels auf `--s1`. Auf dem Desktop ist das der Rand
+um Karten; auf einem Telefon, wo die Panels randlos sind, blieb davon nur ein
+Streifen unter der Kopfzeile, der wie ein zweiter Container aussah.
+
+→ Auf dem Telefon eine Farbe, ab `md` wieder zwei. Der Abstand über dem ersten
+Panel ist weg, es bleiben die Haarlinien.
+
 ### Deckkraft auf dem Cover
 
 Die Vorlage setzt die Cover-Zeile auf `opacity:.82` und die „Titelthema"-Zeile
@@ -1529,20 +1581,12 @@ Absätzen.
   Solange sie dort steht, startet die Anwendung nicht.
 - **`.design/`** liegt lokal und ist nicht versioniert. Ein Commit wandert
   unumkehrbar in die Historie eines öffentlichen Repositorys.
-- **`trustedProxies` fehlt.** Hinter Traefik steht die echte Adresse in
-  `X-Forwarded-For`. Ohne den CIDR-Bereich des Proxys teilen sich entweder alle
-  Anrufer einen Topf der Ratenbremse — dann sperrt einer mit drei Fehlversuchen
-  die ganze Redaktion aus — oder jeder sucht sich seinen eigenen und die Sperre
-  aus 7b gibt es nicht. Beides ist schlecht, und welches von beidem gilt, hängt
-  daran, wie Traefik den Header setzt. **Das zählt jetzt, weil die Anwendung
-  hinter Traefik steht.**
-- **Der Editor öffnet einen veröffentlichten Artikel und speichert dann still
-  nicht.** `articleForEditor` filtert nicht nach Status, `saveArticle` gibt für
-  alles außer „Entwurf" `null` zurück. Sicher ist das, ehrlich noch nicht — die
-  Maske müsste außerhalb von „Entwurf" sichtbar schreibgeschützt sein.
-- **Dynamische Routen sieht die CI nicht.** `pnpm build` rendert eine dynamische
-  Route nie, und seit jede öffentliche Seite `force-dynamic` trägt, gilt das für
-  fast alle. Es braucht einen Rauchtest, der die Seiten wirklich abruft.
+- **`TRUSTED_PROXIES` muss im Betrieb gesetzt werden.** Der Schlüssel ist da und
+  leer bedeutet: kein `X-Forwarded-For` wird geglaubt, alle teilen sich einen
+  Topf der Ratenbremse. Hinter Traefik gehört dessen Bereich hinein, sonst zählt
+  die Bremse die ganze Schule als einen Anrufer. Was der Code nicht prüfen kann:
+  dass der Container **nur** über den Proxy erreichbar ist. Wird er daneben
+  direkt veröffentlicht, lässt sich der Header fälschen.
 - **Resend** ist ein US-Anbieter. Die globalen Regeln schließen Dienste aus, die
   Daten außerhalb der EU speichern; die Aufgabenstellung schreibt Resend
   ausdrücklich vor. Über das Kontaktformular laufen Namen und Nachrichten von
