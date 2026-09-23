@@ -131,6 +131,7 @@ describe("an author cannot reach another author's draft by URL", () => {
       teaser: "",
       body: { type: "doc", content: [] },
       cover: { word: "X", line: "", colorId: "violett" },
+      guestAuthor: null,
       categoryId: (await articleForEditor(owner, draftId))!.categoryId,
       publishAt: null,
       knownUpdatedAt: (await articleForEditor(owner, draftId))!.updatedAt,
@@ -268,6 +269,7 @@ describe("an approved article is not editable by the author who submitted it", (
     teaser: "Nach der Freigabe ersetzt.",
     body: { type: "doc", content: [] },
     cover: { word: "X", line: "", colorId: "violett" },
+    guestAuthor: null,
     publishAt: null,
   });
 

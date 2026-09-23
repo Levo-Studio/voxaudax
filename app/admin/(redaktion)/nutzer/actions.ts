@@ -8,6 +8,7 @@ import { z } from "zod";
 import { velveAuth } from "@/lib/auth";
 import { requireCapability } from "@/lib/authorize";
 import { announceInvitation } from "@/lib/editorial/announce";
+import { initialsOf } from "@/lib/format";
 import { issueInvitation, invitationPath, isLinkLifetime } from "@/lib/editorial/invitations";
 import {
   deleteInvitationsFrom,
@@ -40,14 +41,6 @@ export type InviteState = {
    */
   readonly link: string | null;
 };
-
-const initialsOf = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter((part) => part.length > 0)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join("");
 
 export const inviteAction = async (
   _state: InviteState,

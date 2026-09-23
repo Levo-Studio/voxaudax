@@ -132,13 +132,19 @@ async function HomeContent() {
                 <span>
                   {/* Padding on an inline link grows the box that can be
                       tapped without growing the line it sits in: the byline
-                      stays one line and the name is 44px tall to a thumb. */}
-                  <Link
-                    href={archiveHref({ author: toSlug(lead.authorName) })}
-                    className="py-[15px] text-tx transition-colors hover:text-ac"
-                  >
-                    {lead.authorName}
-                  </Link>
+                      stays one line and the name is 44px tall to a thumb.
+                      A guest has no member row and therefore nothing to
+                      filter by, so their name is text and not a link. */}
+                  {lead.authorSlug === null ? (
+                    <span className="text-tx">{lead.authorName}</span>
+                  ) : (
+                    <Link
+                      href={archiveHref({ author: lead.authorSlug })}
+                      className="py-[15px] text-tx transition-colors hover:text-ac"
+                    >
+                      {lead.authorName}
+                    </Link>
+                  )}
                   {lead.authorFormer ? <FormerTag /> : null}{" "}
                   ·{" "}
                   <time dateTime={machineDate(lead.publishedAt)}>

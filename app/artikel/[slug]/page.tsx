@@ -147,10 +147,10 @@ export default async function ArticlePage({ params }: ArticleParams) {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2.5 border-y border-bd px-[18px] py-3.5 md:mt-6 md:gap-4 md:px-10 md:py-[18px]">
-            <a
-              href={archiveHref({ author: article.authorSlug })}
-              className="flex min-h-11 items-center gap-2.5 md:min-h-0 md:gap-3"
-            >
+            {/* A guest has no member row, so the archive has nothing to filter
+                by: the name is set as text rather than as a link into an empty
+                list. `Byline` picks whichever of the two applies. */}
+            <Byline authorSlug={article.authorSlug}>
               <Avatar initials={article.authorInitials} size="strip" />
               <span>
                 <span className="block text-[12.5px] font-semibold tracking-[-0.02em] md:text-base md:font-bold">
@@ -162,7 +162,7 @@ export default async function ArticlePage({ params }: ArticleParams) {
                   <span className="hidden md:inline"> Lesezeit</span>
                 </span>
               </span>
-            </a>
+            </Byline>
             <ShareControls title={article.title} teaser={article.teaser} />
           </div>
 
@@ -181,12 +181,14 @@ export default async function ArticlePage({ params }: ArticleParams) {
                     {article.authorBio}
                   </p>
                 )}
-                <a
-                  href={archiveHref({ author: article.authorSlug })}
-                  className="mt-1 inline-flex min-h-11 items-center text-[12.5px] font-bold text-ac md:mt-2 md:min-h-0"
-                >
-                  Alle Beiträge von {article.authorName.split(" ")[0]} →
-                </a>
+                {article.authorSlug === null ? null : (
+                  <a
+                    href={archiveHref({ author: article.authorSlug })}
+                    className="mt-1 inline-flex min-h-11 items-center text-[12.5px] font-bold text-ac md:mt-2 md:min-h-0"
+                  >
+                    Alle Beiträge von {article.authorName.split(" ")[0]} →
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -233,5 +235,28 @@ async function ReadOn({
         ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * The byline strip: a link into the archive for a member, plain text for a
+ * guest. One component rather than a ternary around six lines of markup, so
+ * the two cannot drift in spacing or in what they contain.
+ */
+function Byline({
+  authorSlug,
+  children,
+}: {
+  authorSlug: string | null;
+  children: React.ReactNode;
+}) {
+  const shared = "flex min-h-11 items-center gap-2.5 md:min-h-0 md:gap-3";
+
+  return authorSlug === null ? (
+    <span className={shared}>{children}</span>
+  ) : (
+    <a href={archiveHref({ author: authorSlug })} className={shared}>
+      {children}
+    </a>
   );
 }

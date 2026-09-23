@@ -85,3 +85,21 @@ export const toSlug = (value: string) =>
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+
+/**
+ * The two letters on an avatar. Two copies of this stood side by side — one in
+ * `bootstrap-admin`, one in the invitation action — and a third was about to be
+ * written for a guest byline, which is where a rule stops being a detail and
+ * becomes something that has to agree with itself.
+ *
+ * First letters of the first two words. A name of one word gives one letter,
+ * and an empty name gives nothing rather than throwing: the caller decides what
+ * to do with a person who has no name, and it is not this function's business.
+ */
+export const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((part) => part.length > 0)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join("");

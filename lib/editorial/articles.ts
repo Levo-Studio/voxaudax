@@ -142,6 +142,7 @@ export const articleForEditor = async (member: Member, articleId: string) => {
       slug: articles.slug,
       title: articles.title,
       teaser: articles.teaser,
+      guestAuthor: articles.guestAuthor,
       body: articles.body,
       cover: articles.cover,
       categoryId: articles.categoryId,
@@ -261,6 +262,12 @@ export type ArticlePatch = {
   readonly categoryId: string;
   readonly publishAt: Date | null;
   /**
+   * A name for somebody without an account, or null for the account holder's
+   * own. It changes the byline and nothing else: who may edit the row is still
+   * decided by `authorId`, which this does not touch.
+   */
+  readonly guestAuthor: string | null;
+  /**
    * The stand of the row the editor is writing over: `updated_at` as it was
    * when this document was last read or last saved from this screen.
    */
@@ -306,6 +313,7 @@ export const saveArticle = async (
     .set({
       title: patch.title,
       teaser: patch.teaser,
+      guestAuthor: patch.guestAuthor,
       body: patch.body,
       cover: patch.cover,
       categoryId: patch.categoryId,

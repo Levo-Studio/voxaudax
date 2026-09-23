@@ -41,6 +41,7 @@ export default async function ArticleEditorPage({
         rejectionReason: article.rejectionReason,
         title: article.title,
         teaser: article.teaser,
+        guestAuthor: article.guestAuthor ?? "",
         body: article.body,
         cover: article.cover,
         categoryId: article.categoryId,
