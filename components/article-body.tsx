@@ -2,6 +2,7 @@ import { Fragment, type ReactNode } from "react";
 
 import type { TipTapDocument, TipTapNode } from "@/lib/content";
 import { FIGURE_WORD, figureNumbers } from "@/lib/figures";
+import { outward } from "@/lib/outward";
 
 /**
  * The article as screen 3a and 3b's preview draw it. Everything the editor can
@@ -17,8 +18,9 @@ const inline = (nodes: readonly TipTapNode[] | undefined): ReactNode =>
       if (mark.type === "bold") rendered = <strong className="font-bold">{rendered}</strong>;
       if (mark.type === "italic") rendered = <em>{rendered}</em>;
       if (mark.type === "link") {
+        const href = String(mark.attrs?.href ?? "");
         rendered = (
-          <a className="text-ac underline underline-offset-2" href={String(mark.attrs?.href ?? "")}>
+          <a className="text-ac underline underline-offset-2" href={href} {...outward(href)}>
             {rendered}
           </a>
         );

@@ -3,6 +3,7 @@ import { Fragment, type ReactNode } from "react";
 import type { TipTapDocument, TipTapNode } from "@/lib/content";
 import { FIGURE_WORD, figureNumbers } from "@/lib/figures";
 import { safeHref } from "@/lib/links";
+import { outward } from "@/lib/outward";
 
 /**
  * Renders what the editor stores. Two shapes of prose exist on the public site
@@ -39,7 +40,7 @@ const withMarks = (node: TipTapNode, text: ReactNode): ReactNode =>
       return href === undefined ? (
         wrapped
       ) : (
-        <a href={href} className="text-ac underline underline-offset-2">
+        <a href={href} {...outward(href)} className="text-ac underline underline-offset-2">
           {wrapped}
         </a>
       );
