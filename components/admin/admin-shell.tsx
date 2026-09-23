@@ -2,6 +2,7 @@ import { ToastHost } from "@/components/admin/toast";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
 import { AdminNav, type NavItem } from "@/components/admin/admin-nav";
 import { Avatar } from "@/components/admin/controls";
 import { signOutAction } from "@/app/admin/actions";
@@ -44,9 +45,15 @@ export async function AdminShell({
           <span className="text-xs font-bold tracking-[0.14em] text-tm uppercase">Redaktion</span>
         </Link>
 
-        <AdminNav items={items} />
+        {/* From `md` up the six entries fit in the row and everything is in
+            front of you. Below it they did not: the row scrolled sideways and
+            showed three of six, with the review queue — the one entry that
+            carries a number — usually among the hidden. */}
+        <div className="hidden min-w-0 flex-1 md:contents">
+          <AdminNav items={items} />
+        </div>
 
-        <div className="ml-auto flex items-center gap-2.5 text-[12.5px] font-semibold">
+        <div className="ml-auto hidden items-center gap-2.5 text-[12.5px] font-semibold md:flex">
           <span className="hidden rounded-full border border-bd bg-s2 px-2.5 py-[5px] text-tm sm:inline">
             Rolle {roleLabel(member.role, member.form)}
           </span>
@@ -63,9 +70,19 @@ export async function AdminShell({
             </button>
           </form>
         </div>
+
+        <AdminMobileNav
+          items={items}
+          role={roleLabel(member.role, member.form)}
+          name={member.name}
+          signOut={signOutAction}
+        />
       </header>
 
-      <main className="va-in px-4 pt-6 pb-9 md:px-7">{children}</main>
+      {/* Edge to edge on a phone. The panels inside drop their radius and their
+          side borders at the same width, so a list uses the screen it has
+          instead of sitting in a card inside a margin inside a screen. */}
+      <main className="va-in pt-4 pb-9 md:px-7 md:pt-6">{children}</main>
     </div>
   );
 }

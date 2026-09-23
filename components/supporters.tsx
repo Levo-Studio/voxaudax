@@ -81,7 +81,10 @@ export function Supporters({ supporters }: { supporters: readonly Supporter[] })
             <a
               key={supporter.name}
               href={supporter.url}
-              rel="nofollow sponsored noopener"
+              target="_blank"
+              // `nofollow sponsored` says what the link is to a crawler; the
+              // other two are what `outward` puts on everything that leaves.
+              rel="nofollow sponsored noopener noreferrer"
               className={shared}
             >
               {tile}

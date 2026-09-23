@@ -468,6 +468,81 @@ wird, sagt der Entwurf nicht.
 Nicht aus der Vorlage abgeleitet, sondern ausdrücklich angewiesen — und der
 Aufgabenstellung entgegenstehend, deshalb hier festgehalten.
 
+### Auf dem Telefon liegt die Navigation hinter einem Hamburger
+
+**4a** zeigt „Menü" neben einer bereits sichtbaren Navigationsleiste, und so war es
+gebaut: ein Wort, das auf eine Leiste darunter sprang, die auf jeder Seite stand
+und seitlich scrollte. Auf 390px zeigte sie drei von fünf Einträgen, versteckte
+den Rest hinter einer Wischgeste, von der niemand weiß, und kostete eine Zeile
+Bildschirm vor der ersten Schlagzeile.
+
+→ Stattdessen ein Hamburger und ein Blatt über den ganzen Schirm. Die drei
+Striche werden zum Kreuz, die fünf Ziele kommen gestaffelt herein.
+
+→ **Animiert in CSS, nicht mit GSAP.** Die globale Hausregel nennt GSAP, aber
+dieses Projekt animiert durchgehend mit CSS — der Eingang heißt `vaIn` und trägt
+die Werte der Vorlage — und GSAP ist keine Abhängigkeit hier. Eine einzuführen
+für zwei Eigenschaften, die ohnehin animierbar sind, wäre der größere Eingriff.
+
+→ Das Blatt bleibt eingehängt und wird mit `inert` und `visibility`
+abgeschaltet, damit das Schließen ein Übergang ist und kein Verschwinden: ein
+Blatt, das auf dem Bild seines Abweisens weg ist, liest sich als Fehler.
+Escape schließt, der Fokus geht zurück auf den Knopf, die Seite darunter scrollt
+nicht mit, und die Wortmarke kommt mit ins Blatt — sonst wird die obere linke
+Ecke für die Dauer der Bewegung leer.
+
+→ Dasselbe im Backoffice, wo die Leiste sechs Einträge hatte und ebenfalls
+seitlich scrollte — samt der Review-Warteschlange, dem einzigen Eintrag mit einer
+Zahl. Rolle, Name und „Abmelden" ziehen mit ins Blatt, wo Platz dafür ist.
+
+### Das Backoffice nimmt auf dem Telefon den ganzen Schirm
+
+Die Panels waren Karten: Radius, Rahmen ringsum und eine Seitenpolsterung der
+Hülle. Auf einem Telefon kostete das elf Pixel je Seite für eine Liste, die die
+Breite gebraucht hätte — eine Karte in einem Rand in einem Schirm.
+
+→ Ab `md` unverändert eine Karte, darunter randlos: kein Radius, Rahmen nur oben
+und unten, keine Seitenpolsterung. **Der Desktop ist unberührt.**
+
+### Das Cover auf der Startseite bekommt auf dem Telefon Luft
+
+Es saß unmittelbar unter der Kopflinie. 20px darüber, nur auf dem Telefon — auf
+dem Desktop füllt das Panel seine eigene Hälfte des Rasters und braucht keinen
+Abstand.
+
+### Jeder Link, der die Zeitung verlässt, öffnet ein neues Fenster
+
+Auf Ansage. `lib/outward.ts` entscheidet das an einer Stelle statt an vieren.
+
+→ Der Test ist einfach, weil jede Adresse, die diese Anwendung für sich selbst
+schreibt, ein Pfad ist — `articleHref`, `archiveHref`, `imageHref` liefern alle
+einen. Eine absolute http-Adresse ist damit per Definition woanders. Nichts zu
+konfigurieren, dieselbe Antwort auf dem Server und im Browser.
+
+→ `mailto:` und `tel:` bleiben in Ruhe: sie übergeben an ein anderes Programm,
+und ein dafür geöffnetes Tab bleibt leer zurück.
+
+→ `noopener` ist keine Zierde — ohne es kann die geöffnete Seite über
+`window.opener` die zurückliegende umleiten. `noreferrer` hält den Weg des Lesers
+aus fremden Protokollen.
+
+→ **Interne Verweise bleiben im selben Fenster.** Würden sie es nicht, spränge
+bei jedem Klick im Hamburger-Menü ein Tab auf.
+
+### Warum der Quelltext offen ist, steht auf der Startseite
+
+Nicht in der Vorlage. Der Verweis im Fuß sagt, wo der Quelltext liegt, und nichts
+darüber, warum — und „Open Source" bei einer Schülerzeitung lädt genau eine
+Frage ein: ob damit auch die Artikel Freiwild sind.
+
+→ Ein Abschnitt unten auf der Startseite beantwortet beides: warum offen, und
+dass offen der Quelltext ist und nicht die Zeitung. Artikel, Fotos und Memes
+gehören denen, die sie gemacht haben.
+
+→ Die Lizenz ist **MIT**, und der Abschnitt nennt sie nicht aus dem Gedächtnis,
+sondern verlinkt die Datei `LICENSE` im Repository — die ist die Quelle, und wenn
+sie sich ändert, ist der Satz hier nicht plötzlich falsch.
+
 ### Die drei Mails, die nur Vorlagen waren, gehen jetzt raus
 
 **8b**, **11b** und **12a** waren gezeichnet, geschrieben, gerendert und geprüft —

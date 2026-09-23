@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-/** Public, and the same address the README and the package page carry. */
-const SOURCE = "https://github.com/Levo-Studio/voxaudax";
+import { SOURCE_URL, outward } from "@/lib/outward";
 
 const LEGAL_LINKS = [
   { label: "Impressum", href: "/impressum" },
@@ -40,6 +39,7 @@ export function SiteFooter() {
           Built by{" "}
           <a
             href="https://levo-studio.com"
+            {...outward("https://levo-studio.com")}
             className="py-[15px] text-ac transition-opacity hover:opacity-70"
           >
             Levo Studio
@@ -55,8 +55,10 @@ export function SiteFooter() {
             source link is none of the three. `rel="me"` because this is the
             project's own repository and not a citation. */}
         <a
-          href={SOURCE}
-          rel="me noopener"
+          href={SOURCE_URL}
+          target="_blank"
+          // `me` says this repository is the project's own, not a citation.
+          rel="me noopener noreferrer"
           className="mt-2 inline-flex min-h-11 items-center font-medium transition-colors hover:text-tx md:mt-0 md:ml-auto md:min-h-0"
         >
           Quelltext auf GitHub

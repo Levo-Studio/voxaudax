@@ -35,8 +35,13 @@ export const PRIMARY_BUTTON_CLASS =
 export const QUIET_BUTTON_CLASS =
   `cursor-pointer rounded-[9px] border border-bd bg-transparent px-4 py-[11px] font-control text-[13.5px] font-semibold text-tx transition-colors duration-200 ease-out hover:border-ac ${DISABLED_CLASS}`;
 
+/**
+ * A card from `md` up and the full width of the screen below it. On a phone the
+ * radius, the side borders and the margin around them cost eleven pixels a side
+ * and give nothing back: what is inside is a list, and a list wants the width.
+ */
 export const PANEL_CLASS =
-  "overflow-hidden rounded-[14px] border border-bd bg-s1";
+  "overflow-hidden border-y border-bd bg-s1 md:rounded-[14px] md:border";
 
 export const PANEL_HEADING_CLASS =
   "border-b border-bd px-[18px] py-[14px] text-[11px] font-bold tracking-[0.12em] text-tm uppercase";
