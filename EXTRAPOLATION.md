@@ -295,6 +295,34 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Deckkraft auf dem Cover
+
+Die Vorlage setzt die Cover-Zeile auf `opacity:.82` und die „Titelthema"-Zeile
+auf `.8` — richtig, solange jedes Cover auf demselben dunklen Violett saß. Mit
+vierzehn Flächenfarben fallen **sechs von vierzehn** Paletten durch, sobald man
+die Deckkraft mitrechnet: Oliv 4,76 wird zu 3,67, Petrol 4,88 zu 3,71. Beides
+ist Kleintext, also gilt 4,5:1, nicht 3:1.
+
+→ Die Deckkraft entfällt auf beiden Zeilen.
+
+→ Der Kontrast-Wächter hatte genau hier seinen blinden Fleck: er maß die Tinte
+bei voller Stärke und ließ alles durch. Er liest jetzt die Komponente, sammelt
+jede gesetzte Deckkraft und verrechnet sie gegen die Fläche — belegt, indem eine
+Deckkraft testweise wieder eingesetzt wurde und sechs von vierundvierzig Paaren
+rot wurden.
+
+### Ausgegraute Bedienelemente
+
+Die Vorlage graut mit einem Deckkraft-Faktor aus. Zusammengerechnet ergibt das
+2,51:1 auf dem gesperrten „Freigeben" — ausgerechnet der Zustand, dessen
+Beschriftung ein Prüfer lesen muss, um zu verstehen, warum er nicht handeln kann.
+
+→ Ausgegraute Zustände bekommen ein eigenes Tokenpaar statt eines Faktors, und
+der gesperrte Knopf trägt „Alt-Text fehlt" als sichtbaren Text statt nur als
+`title`.
+
+---
+
 ## 5. Was die Vorlage offenlässt
 
 | Frage | Entscheidung | Abgeleitet aus |
@@ -1501,11 +1529,20 @@ Absätzen.
   Solange sie dort steht, startet die Anwendung nicht.
 - **`.design/`** liegt lokal und ist nicht versioniert. Ein Commit wandert
   unumkehrbar in die Historie eines öffentlichen Repositorys.
-- **Kein Löschweg für Artikelbilder.** Memes und Sponsorenlogos lassen sich
-  vollständig entfernen, ein Bild aus einem Artikeltext nicht: es bleibt in
-  `images` und im Objektspeicher stehen, auch wenn es aus dem Text verschwindet.
-  Ein Löschersuchen nach Art. 17 DSGVO ist bis dahin nur vom Betrieb aus zu
-  erfüllen.
+- **`trustedProxies` fehlt.** Hinter Traefik steht die echte Adresse in
+  `X-Forwarded-For`. Ohne den CIDR-Bereich des Proxys teilen sich entweder alle
+  Anrufer einen Topf der Ratenbremse — dann sperrt einer mit drei Fehlversuchen
+  die ganze Redaktion aus — oder jeder sucht sich seinen eigenen und die Sperre
+  aus 7b gibt es nicht. Beides ist schlecht, und welches von beidem gilt, hängt
+  daran, wie Traefik den Header setzt. **Das zählt jetzt, weil die Anwendung
+  hinter Traefik steht.**
+- **Der Editor öffnet einen veröffentlichten Artikel und speichert dann still
+  nicht.** `articleForEditor` filtert nicht nach Status, `saveArticle` gibt für
+  alles außer „Entwurf" `null` zurück. Sicher ist das, ehrlich noch nicht — die
+  Maske müsste außerhalb von „Entwurf" sichtbar schreibgeschützt sein.
+- **Dynamische Routen sieht die CI nicht.** `pnpm build` rendert eine dynamische
+  Route nie, und seit jede öffentliche Seite `force-dynamic` trägt, gilt das für
+  fast alle. Es braucht einen Rauchtest, der die Seiten wirklich abruft.
 - **Resend** ist ein US-Anbieter. Die globalen Regeln schließen Dienste aus, die
   Daten außerhalb der EU speichern; die Aufgabenstellung schreibt Resend
   ausdrücklich vor. Über das Kontaktformular laufen Namen und Nachrichten von
