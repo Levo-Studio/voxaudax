@@ -295,6 +295,46 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Das Archiv blättert, statt alles auf einmal zu holen
+
+Es holte den ganzen Bestand in einem Zug, gedeckelt bei 500. Bei zwölf Artikeln
+ist das eine Liste; bei fünfhundert ein langes Scrollen, bei dem jedes Cover
+jedes Jahrgangs gelesen wird, bevor der erste Artikel dran ist.
+
+→ Zwanzig je Seite, darunter „Mehr laden". Ein Knopf und kein endloses Scrollen:
+der Fuß dieser Seite trägt Impressum und Datenschutzerklärung, und eine Liste,
+die beim Näherkommen weiterwächst, erreicht niemand je zu Ende. Der Knopf sagt
+außerdem, was er tun wird.
+
+→ Die Zeile wurde zu `components/archive-row.tsx`, weil sie jetzt zweimal
+gezeichnet wird — vom Server für die erste Seite, vom Browser für die weiteren.
+Eine zweite Abschrift wäre bei der nächsten Änderung auseinandergelaufen.
+
+→ **Die Sortierung hat einen Zweitschlüssel bekommen.** `published_at` allein
+lässt die Reihenfolge zwischen zwei gleichzeitig freigegebenen Artikeln offen,
+und eine offene Reihenfolge über eine Seitengrenze hinweg zeigt eine Zeile
+zweimal und eine andere nie. Die Id entscheidet den Gleichstand.
+
+→ Die Obergrenze von 500 bleibt, aber als Obergrenze und nicht als Seitengröße:
+sie liegt beim sechsundzwanzigsten „Mehr laden", das kein Leser erreicht, und
+hält eine Abfrage davon ab, in zehn Jahren einen ganzen Jahrgangssatz zu lesen.
+
+→ Die Aktion, die nachlädt, liest nichts, was nicht ohnehin öffentlich ist —
+dieselbe Bedingung wie die Seite selbst —, also prüft sie keine Sitzung. Sie
+wirft auch nicht: der Leser hat schon zwanzig Artikel vor sich, und eine
+Ausnahme ersetzte alle durch eine Fehlerseite wegen eines Knopfes, den man
+einfach noch einmal drücken kann.
+
+### Der Feed sagt im Fuß, was er ist
+
+Da stand „RSS" und sonst nichts, was jemandem, der es nicht ohnehin weiß, genau
+nichts sagt. Der Kopf trägt seit jeher den `alternate`-Verweis, über den ein
+Feed-Reader ihn von selbst findet; die Fußzeile ist für die Person, der man es
+sagen muss.
+
+→ „RSS-Feed", mit einem Zusatz im `title`: neue Artikel im Feed-Reader
+abonnieren, ohne Konto und ohne Adresse.
+
 ### Wer die Ratenbremse zählt
 
 Nicht in der Vorlage, sondern ein Fehler. `lib/session.ts` reichte
