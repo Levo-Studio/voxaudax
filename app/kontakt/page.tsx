@@ -40,7 +40,7 @@ export default function ContactPage() {
           <p className="mt-2 text-[15.5px] leading-[1.6] font-medium text-tm md:mt-3 md:max-w-[52ch] md:text-[17px] md:leading-[1.62]">
             Themenvorschlag, Korrektur, Leserbrief oder Interesse an der
             Redaktion: Die Nachricht landet direkt im Postfach der
-            Chefredaktion.
+            Redaktionsleitung.
           </p>
 
           <ContactForm editorialEmail={editorialEmail} />
@@ -92,7 +92,7 @@ async function EditorsInChief() {
   return (
     <div>
       <div className="text-[11px] font-bold tracking-[0.12em] text-tm uppercase">
-        Chefredaktion
+        Redaktionsleitung
       </div>
       <div className="mt-2.5 flex flex-col gap-2.5">
         {editorsInChief.map((member, position) => (

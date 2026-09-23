@@ -63,9 +63,13 @@ const ROLE_LABELS: Record<Role, Record<Form, string>> = {
     neutral: "Redaktion",
   },
   admin: {
-    weiblich: "Chefredakteurin",
-    maennlich: "Chefredakteur",
-    neutral: "Chefredaktion",
+    // "Redaktionsleitung" braucht keine drei Formen: der Begriff ist
+    // geschlechtsneutral, und das ist der Grund, aus dem die Redaktion ihn
+    // intern benutzt. Die Struktur bleibt, weil die beiden anderen Rollen sie
+    // brauchen und ein Sonderfall im Aufruf teurer wäre als drei gleiche Zeilen.
+    weiblich: "Redaktionsleitung",
+    maennlich: "Redaktionsleitung",
+    neutral: "Redaktionsleitung",
   },
 };
 
@@ -96,9 +100,13 @@ export const FORM_LABELS: Record<Form, string> = {
  */
 const MASTHEAD_TITLES: Record<Role, Record<Form, string>> = {
   admin: {
-    weiblich: "Chefredakteurin",
-    maennlich: "Chefredakteur",
-    neutral: "Chefredaktion",
+    // "Redaktionsleitung" braucht keine drei Formen: der Begriff ist
+    // geschlechtsneutral, und das ist der Grund, aus dem die Redaktion ihn
+    // intern benutzt. Die Struktur bleibt, weil die beiden anderen Rollen sie
+    // brauchen und ein Sonderfall im Aufruf teurer wäre als drei gleiche Zeilen.
+    weiblich: "Redaktionsleitung",
+    maennlich: "Redaktionsleitung",
+    neutral: "Redaktionsleitung",
   },
   redakteur: {
     weiblich: "Redakteurin",

@@ -32,7 +32,7 @@ export const userRole = pgEnum("user_role", ["autor", "redakteur", "admin"]);
 
 /**
  * Drives the gendered role label on the editorial page, in the imprint and in
- * approval mail — "Chefredakteurin" and "Chefredakteur" are the same role.
+ * approval mail — "Redaktionsleitung" is one word for one role.
  */
 export const userForm = pgEnum("user_form", [
   "weiblich",
@@ -182,6 +182,17 @@ export const articles = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => categories.id, { onDelete: "restrict" }),
+    /**
+     * A name typed into the editor, for somebody who wrote a piece and has no
+     * account — a guest, a class, somebody who wrote once. Null is the normal
+     * case and means the byline is the account holder's own name.
+     *
+     * `authorId` stays whatever it was: it is who owns the row in the back
+     * office and decides who may edit it, which is a different question from
+     * whose name stands under the headline.
+     */
+    guestAuthor: text("guest_author"),
+
     authorId: uuid("author_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),

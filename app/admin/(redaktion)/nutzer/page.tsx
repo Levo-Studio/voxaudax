@@ -28,7 +28,7 @@ export default async function UsersPage() {
         <div className="flex flex-wrap items-baseline gap-3 border-b border-bd px-4 py-[18px] md:px-[22px]">
           <h1 className="m-0 text-xl font-extrabold tracking-[-0.03em]">Nutzer</h1>
           <span className="text-[12.5px] font-semibold text-tm">
-            {counts.admin} Chefredakteur · {counts.redakteur} Redakteur ·{" "}
+            {counts.admin} Redaktionsleitung · {counts.redakteur} Redakteur ·{" "}
             {counts.autor} Autor · {counts.invited} eingeladen
             {counts.former === 0 ? null : ` · ${counts.former} ehemalig`}
           </span>

@@ -20,7 +20,7 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
     <form action={submit} className="flex flex-col gap-3 px-5 py-[18px]">
       {forced ? (
         <p role="alert" className="m-0 rounded-[10px] border border-ac2 px-3.5 py-3 text-[13px] leading-[1.5] font-semibold text-ac2">
-          Dein Passwort wurde von der Chefredaktion gesetzt. Bis du ein eigenes vergeben hast,
+          Dein Passwort wurde von der Redaktionsleitung gesetzt. Bis du ein eigenes vergeben hast,
           führt jeder Weg zurück auf diese Seite.
         </p>
       ) : null}
