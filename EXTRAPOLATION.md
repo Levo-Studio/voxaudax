@@ -295,6 +295,30 @@ mit einer anderen Query neu laden — also eine `<nav>` mit `aria-current`.
 
 ---
 
+### Die Karten werden beim Zeigen dunkler, statt zu schweben
+
+Sie hoben sich vier Pixel. Auf einer Reihe von drei las sich das wie drei
+schwebende Dinge und nicht wie eines, auf das gezeigt wird.
+
+→ Stattdessen ein Ton dunkler, `brightness(0.93)`. Das trifft alle vierzehn
+Coverfarben gleich, was keine von Hand gewählte Zweitfarbe je täte, und bleibt
+auf die Geräte beschränkt, die wirklich zeigen können — auf einem Touchscreen
+bliebe sonst eine Karte dunkel stehen und läse sich als ausgewählt.
+
+### Verantwortlich ist eine Person, keine Lehrkraft
+
+Auf Ansage der Redaktion: **Jonathan Fischer** ist verantwortlich für den
+Inhalt, er ist volljährig, und eine betreuende Lehrkraft gibt es nicht.
+
+→ Beide Texte geändert, Impressum und Datenschutzerklärung. Sie stehen in
+`pages` und sind damit redaktioneller Inhalt — die laufende Datenbank ist
+angepasst, und das Saatgut zieht nach, damit eine frische Installation nicht
+wieder die alten Namen aufbaut.
+
+→ **Der Paragraf fehlt mit Absicht.** Der Satz nennt die Tatsachen und zitiert
+keine Norm: welche für eine Schülerzeitung gilt, ist eine rechtliche Frage und
+nicht meine.
+
 ### Der Autor lässt sich frei eingeben
 
 Auf Ansage der Redaktion. Die Vorlage kennt nur Mitglieder mit Konto; eine

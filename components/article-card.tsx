@@ -32,14 +32,17 @@ export function ArticleCard({
     /**
      * The whole card answers to the pointer, not only the words. Hovering the
      * cover and hovering the headline are the same gesture towards the same
-     * article, so both lift it: the panel rises a hair, the headline takes the
-     * accent. `group` carries that from here to both, and the transitions are
-     * on transform and colour, which the compositor can do without a reflow.
+     * article, so both answer: the panel goes a shade darker, the headline
+     * takes the accent. `group` carries that from here to both.
      *
-     * No `hover:` without `group-hover:` on a touch screen: a tap there leaves
-     * the hover state stuck on the last thing touched, and a card that stays
-     * lifted reads as selected. The media query below is what keeps it to
-     * devices that actually point.
+     * A shade and not a lift. The card rose four pixels for a while, which on a
+     * row of three read as three things floating rather than as one of them
+     * being pointed at — and the fourteen cover colours all darken the same
+     * way, which no hand-picked second colour for each of them would.
+     *
+     * Kept to devices that can actually hover: a tap on a touch screen leaves
+     * the hover state on whatever was tapped last, and one card left darker
+     * than the two beside it reads as selected.
      */
     <article className="group grid grid-cols-[104px_1fr] items-start gap-3.5 md:block">
       {/* The cover repeats the headline's destination. Hidden from keyboard and
@@ -48,7 +51,7 @@ export function ArticleCard({
         href={href}
         tabIndex={-1}
         aria-hidden
-        className="block transition-transform duration-200 ease-out can-hover:group-hover:-translate-y-1"
+        className="block transition-[filter] duration-200 ease-out can-hover:group-hover:brightness-[0.93]"
       >
         <ArticleCover
           variant={variant}
