@@ -61,7 +61,7 @@ app/              Seiten. Öffentlich unter /, Backoffice unter /admin
 components/       gemeinsame Bausteine; components/admin/ nur fürs Backoffice
 lib/              alles ohne JSX
 lib/editorial/    Schreibpfade: Artikel, Memes, Sponsoren, Einladungen, Mails
-lib/mail/         sieben react-email-Vorlagen + der Rahmen
+lib/mail/         fünf react-email-Vorlagen + der Rahmen
 lib/checks/       was die detaillierte Health-Route prüft
 drizzle/          Migrationen, dazu drizzle/rollback/ mit je einer Rücknahme
 scripts/          Saatgut, Migrator, Kontrastprüfer, Mailvorschau
@@ -103,7 +103,7 @@ pnpm lint             # eslint
 pnpm test             # 160 Tests: test/ (Datenbank) + tests/ (ohne)
 pnpm check:contrast    # 41 Farbpaare gegen WCAG AA, rechnet auch Deckkraft mit
 pnpm check:env         # .env.example gegen das Schema
-pnpm mail:preview      # rendert alle sieben Mails nach out/mail/
+pnpm mail:preview      # rendert sieben Fassungen aus fünf Vorlagen
 pnpm dev               # Port 7896
 ```
 
@@ -218,10 +218,12 @@ letzten Anschlag, und ein Rückgängig fände sonst nichts mehr.
 
 ### Mails
 
-Sieben Vorlagen unter `lib/mail/templates/`. Sie werden aus
+Fünf Vorlagen unter `lib/mail/templates/`, aus denen sieben Fassungen
+entstehen: die Freigabe zeichnet Artikel und Meme, die Einladung 24 Stunden und
+7 Tage. Sie werden aus
 `lib/editorial/announce.ts` und `lib/auth-delivery.ts` verschickt. **Nichts
 davon wirft:** eine Einladung, die nicht ankam, ist immer noch eine Einladung.
-`pnpm mail:preview` rendert alle sieben ohne Schlüssel.
+`pnpm mail:preview` rendert alle sieben Fassungen ohne Schlüssel.
 
 Die Maße stehen im Entwurf und sind nachgemessen: 14,5px Fließtext, 12,5px
 Nebenzeile, 14px Blockabstand, Knopf 11/18px. Die Mail trägt ihren eigenen Kopf
@@ -325,9 +327,13 @@ Damit es niemand ein zweites Mal tut:
 - **`pnpm build` bei laufendem Dev-Server** zerlegt dessen `.next/`. Erst
   beenden.
 - **`git add -A` nimmt Finder-Dubletten mit.** macOS legt „name 2.ts" neben
-  „name.ts", sechs davon sind so in `main` gelandet. Der Check-Job prüft das
-  jetzt. Und: **vergleichen, bevor man löscht** — ich habe eine weggeworfen und
-  erst danach nachgesehen, was drinstand.
+  „name.ts", sechs davon sind so bis in `main` gelangt. Der Check-Job lehnt so
+  benannte Dateien jetzt ab (Schritt „No duplicated files"). Und: **vergleichen,
+  bevor man löscht** — ich habe eine weggeworfen und erst danach nachgesehen,
+  was drinstand.
+- **`[skip ci]` in der Commit-Botschaft** lässt GitHub den Workflow aus. Nützlich
+  für reine Dokumentation; mit `gh workflow run deploy.yml --ref main` löst man
+  ihn später von Hand aus.
 - **Node 26 lokal gegen Node 22 in der CI.** `node --test tests/` — ein
   Verzeichnis als Argument — läuft auf 26 und scheitert auf 22. Deshalb `.nvmrc`
   und `engines`.
