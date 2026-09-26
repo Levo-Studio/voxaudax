@@ -134,6 +134,13 @@ back to the empty state it draws before the first article — but nothing can be
 read from the database and nobody can sign in. `/api/health/detailed` names that
 as the reason.
 
+## Weiterarbeiten
+
+[`CONTEXT.md`](./CONTEXT.md) fasst zusammen, was man wissen muss, um hier
+weiterzumachen: die Struktur, die Regeln, wie geprüft wird, wie Testdaten
+entstehen und wieder verschwinden, was offen ist und welche Fallen hier schon
+zugeschnappt sind.
+
 ## Design
 
 The interface follows a fixed design specification, kept outside the repository

@@ -29,6 +29,18 @@ jobs:
       - name: Both dockerfiles must stay identical
         run: diff Dockerfile Dockerfile.dokploy
 
+      # macOS writes "name 2.ts" beside "name.ts" when a folder is copied or
+      # synced, and a `git add -A` takes them along without a word. Six of them
+      # reached main that way. Cheaper to fail here than to find them later.
+      - name: No duplicated files
+        run: |
+          FOUND=$(git ls-files | grep -E ' [0-9]+\.[A-Za-z]+$' || true)
+          if [ -n "$FOUND" ]; then
+            echo "These look like Finder copies and should not be versioned:"
+            echo "$FOUND"
+            exit 1
+          fi
+
       - name: Typecheck
         run: pnpm typecheck
 
