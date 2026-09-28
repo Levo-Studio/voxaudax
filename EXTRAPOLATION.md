@@ -1570,6 +1570,11 @@ beschrifteten Feldern.
 System, Hell, Dunkel; die Voreinstellung bleibt System. Die Fußzeile trägt ihn
 nicht mehr.
 
+→ Ein Schritt, der die Farben nicht ändert, wird übersprungen. Auf einem hellen
+Gerät sehen System und Hell gleich aus, auf einem dunklen Dunkel und System —
+ein Druck von dreien wechselte nur das Symbol, und man musste zweimal drücken,
+bis etwas geschah. Jetzt wechselt jeder Druck zwischen hell und dunkel.
+
 ### Artikeltext ohne Zeilenlängenbegrenzung
 
 Die Vorlage setzt den Artikeltext auf eine Spalte von rund 68 Zeichen.
@@ -1577,6 +1582,29 @@ Die Vorlage setzt den Artikeltext auf eine Spalte von rund 68 Zeichen.
 → Auf der veröffentlichten Seite läuft der Text über die volle Spaltenbreite.
 Im Editor bleibt die Begrenzung, weil eine schreibende Person ihre Absätze an
 einer stabilen Zeilenlänge misst.
+
+### „Source Code" statt „Quelltext"
+
+Auf Ansage. Der Abschnitt auf der Startseite heißt „Offener Source Code", der
+Knopf „Source Code ansehen", der Verweis im Fuß „Source Code auf GitHub". Das
+englische Wort ist das, das Schülerinnen und Schüler benutzen; „Quelltext" las
+sich wie aus dem Lehrbuch.
+
+### Das Archiv zeigt das Cover neben jeder Zeile
+
+Die Vorlage setzt das Archiv als Liste aus Metazeile und Schlagzeile.
+
+→ Auf Ansage steht links in jeder Zeile das Cover des Artikels, in der Form der
+Vorschau im Editor — 21:8, Raster, Kategorie, Wort und Cover-Zeile —, nur
+kleiner (240px breit), und unter der Schlagzeile der Teaser.
+
+→ Auf dem Telefon wird das Cover eine kleine Kachel von 112px, auf der nur das
+Wort bleibt: die Kategorie steht schon in der Metazeile, und eine Cover-Zeile
+in dieser Größe liest niemand. Schlagzeile und Teaser enden dort nach zwei
+Zeilen mit einer Ellipse.
+
+→ Das Cover ist für Screenreader ausgeblendet. Es wiederholt Kategorie und
+Wörter der Schlagzeile, und der Link hätte beides zweimal vorgelesen.
 
 ---
 

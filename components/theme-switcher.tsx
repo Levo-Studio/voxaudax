@@ -79,8 +79,22 @@ export function ThemeSwitcher() {
     setChoice(readStoredThemeChoice());
   }, []);
 
+  /**
+   * On a light device "System" and "Hell" look the same, and on a dark one
+   * "Dunkel" and "System" do — so one step of the cycle changed only the icon,
+   * and a reader had to press twice to see anything happen. A step that would
+   * not change the colours is skipped, so every press visibly switches
+   * between light and dark. Which of the two identical-looking choices is
+   * stored only matters once the device's own setting changes.
+   */
   const advance = () => {
-    const next = NEXT_CHOICE[choice];
+    const dark = (candidate: ThemeChoice) =>
+      candidate === "system"
+        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+        : candidate === "dark";
+
+    const step = NEXT_CHOICE[choice];
+    const next = dark(step) === dark(choice) ? NEXT_CHOICE[step] : step;
     setChoice(next);
     applyThemeChoice(next);
     try {

@@ -18,14 +18,14 @@ const LICENCE_URL = `${SOURCE_URL}/blob/main/LICENSE`;
 export function OpenSource() {
   return (
     <section
-      aria-labelledby="quelltext"
+      aria-labelledby="source-code"
       className="border-t border-bd bg-s2 px-[18px] py-6 md:px-10 md:py-9"
     >
       <h2
-        id="quelltext"
+        id="source-code"
         className="text-[11px] font-bold tracking-[0.14em] text-tm uppercase md:text-xs"
       >
-        Offener Quelltext
+        Offener Source Code
       </h2>
 
       <p className="mt-3 text-[16px] leading-[1.6] font-medium md:mt-3.5 md:max-w-[62ch] md:text-[17.5px] md:leading-[1.62]">
@@ -43,7 +43,7 @@ export function OpenSource() {
       </p>
 
       <p className="mt-2.5 text-[14px] leading-[1.6] font-medium text-tm md:max-w-[62ch] md:text-[15px]">
-        Offen ist der Quelltext, nicht die Zeitung. Artikel, Fotos und Memes
+        Offen ist der Source Code, nicht die Zeitung. Artikel, Fotos und Memes
         gehören denen, die sie gemacht haben, und bleiben es.
       </p>
 
@@ -53,7 +53,7 @@ export function OpenSource() {
           {...outward(SOURCE_URL)}
           className="inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] text-[13.5px] font-bold text-s1 transition-opacity hover:opacity-85"
         >
-          Quelltext ansehen
+          Source Code ansehen
         </a>
         <a
           href={LICENCE_URL}
