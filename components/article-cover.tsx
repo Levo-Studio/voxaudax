@@ -105,13 +105,14 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
    * The archive row. From `md` up it is the editor's preview shape — 21:8,
    * grid, category, word and line — at the width of a thumbnail. On a phone a
    * 21:8 strip beside the headline came out as a flat bar with the word
-   * squeezed into it, so there it is a square tile like the phone cards of 4a:
-   * the word at the bottom, allowed to break over lines, and nothing else —
-   * the category already stands in the row's own meta line.
+   * squeezed into it, so there it is a tile as tall as the text beside it —
+   * the grid is generated, so it fills whatever height the row has. The word
+   * sits at the bottom, may break over lines, and nothing else is drawn: the
+   * category already stands in the row's own meta line.
    */
   thumb: {
     panel:
-      "aspect-square rounded-[10px] p-2 [--cover-grid:20px] md:aspect-[21/8] md:px-3.5 md:py-3 md:[--cover-grid:24px]",
+      "h-full min-h-[84px] rounded-[10px] p-2 [--cover-grid:20px] md:h-auto md:min-h-0 md:aspect-[21/8] md:px-3.5 md:py-3 md:[--cover-grid:24px]",
     eyebrow: "hidden md:block top-2.5 left-3.5 text-[7.5px] tracking-[0.16em]",
     word: "line-clamp-3 text-[14px] leading-[0.98] tracking-[-0.03em] [overflow-wrap:anywhere] md:line-clamp-none md:max-w-full md:overflow-hidden md:text-ellipsis md:text-[21px] md:leading-[0.9] md:tracking-[-0.05em] md:[overflow-wrap:normal]",
     line: "hidden md:block mt-1 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[9px]",
