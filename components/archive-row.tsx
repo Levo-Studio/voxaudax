@@ -25,7 +25,7 @@ export function ArchiveRow({
   return (
     <Link
       href={articleHref(article.slug)}
-      className={`group grid grid-cols-[112px_1fr] items-start gap-3.5 border-t border-bd py-[17px] md:grid-cols-[240px_1fr] md:gap-6 md:py-5 ${last ? "border-b" : ""}`}
+      className={`group grid grid-cols-[84px_1fr] items-start gap-3.5 sm:grid-cols-[104px_1fr] sm:gap-4 border-t border-bd py-[17px] md:grid-cols-[240px_1fr] md:gap-6 md:py-5 ${last ? "border-b" : ""}`}
     >
       {/* The cover repeats the category and the headline's own words, so it is
           hidden from assistive technology: the link would otherwise read out
