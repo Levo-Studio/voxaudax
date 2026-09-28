@@ -9,7 +9,8 @@ export type ArticleCoverVariant =
   | "article"
   | "card"
   | "related"
-  | "preview";
+  | "preview"
+  | "thumb";
 
 type VariantStyles = {
   panel: string;
@@ -96,6 +97,22 @@ const VARIANTS: Record<ArticleCoverVariant, VariantStyles> = {
     eyebrow: "top-[13px] left-4 text-[8.5px] tracking-[0.16em]",
     word: "text-[26px] leading-[0.9] tracking-[-0.05em]",
     line: "mt-1.5 text-[10.5px]",
+    wrap: "whitespace-nowrap",
+    hasGrid: true,
+    eyebrowInFlow: false,
+  },
+  /**
+   * The archive row: the editor's preview shape — 21:8, grid, category, word
+   * and line — at the width of a thumbnail. On a phone it is a small tile
+   * beside the headline, and only the word stays; the category is already in
+   * the row's own meta line and a cover line at that size is unreadable.
+   */
+  thumb: {
+    panel:
+      "aspect-[21/8] rounded-[7px] px-2 py-1.5 [--cover-grid:14px] md:rounded-[10px] md:px-3.5 md:py-3 md:[--cover-grid:24px]",
+    eyebrow: "hidden md:block top-2.5 left-3.5 text-[7.5px] tracking-[0.16em]",
+    word: "max-w-full overflow-hidden text-ellipsis text-[13px] leading-[0.95] tracking-[-0.04em] md:text-[21px] md:leading-[0.9] md:tracking-[-0.05em]",
+    line: "hidden md:block mt-1 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[9px]",
     wrap: "whitespace-nowrap",
     hasGrid: true,
     eyebrowInFlow: false,
