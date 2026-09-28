@@ -37,7 +37,7 @@ In dieser Reihenfolge, das reicht für fast jede Aufgabe:
    listet, was noch entschieden werden muss.
 2. **`README.md`** — Stack, Umgebungsvariablen, wie man startet, wie deployt
    wird und die beiden Schritte, die vor dem ersten Start von Hand laufen.
-3. **`lib/roles.ts`** — wer was darf. Sieben Fähigkeiten, drei Rollen.
+3. **`lib/roles.ts`** — wer was darf. Acht Fähigkeiten, drei Rollen.
 4. **`lib/queries.ts`** — jede öffentliche Leseabfrage steht dort und nirgends
    sonst.
 5. **`lib/db/schema.ts`** — das Datenmodell.
@@ -190,7 +190,7 @@ Unterstützer. Nach jedem Test wieder dorthin zurück.
 
 ### Sichtbarkeit und Rechte
 
-`lib/roles.ts` hat sieben Fähigkeiten und drei Rollen — `autor`, `redakteur`,
+`lib/roles.ts` hat acht Fähigkeiten (sieben aus 11c, dazu `editEditorialPage`) und drei Rollen — `autor`, `redakteur`,
 `admin`. Die Bezeichnung von `admin` ist seit Kurzem **Redaktionsleitung** (der
 interne Begriff der Redaktion, geschlechtsneutral, deshalb für alle drei
 Anredeformen gleich).
@@ -203,6 +203,14 @@ vergessen wurde.
 der Zeitpunkt ist erreicht. Ein Artikel mit einem Datum in der Zukunft trägt den
 Status schon und ist bis dahin für niemanden zu sehen. Die Abfrage dafür heißt
 `live()` in `lib/queries.ts`.
+
+### Die Redaktionsseite und die Gruppen
+
+Text von `/redaktion` (Zeile `pages.redaktion`) und die Signal- und
+WhatsApp-Links (Tabelle `chat_groups`) ändert die Redaktionsleitung unter
+`/admin/redaktionsseite`. Ein festes Treffen gibt es nicht mehr — beigetreten
+wird über die Gruppen. Der Absatz unter der ersten Überschrift ist zugleich
+„Mitschreiben" auf der Startseite.
 
 ### Bilder
 
@@ -331,6 +339,11 @@ Damit es niemand ein zweites Mal tut:
   benannte Dateien jetzt ab (Schritt „No duplicated files"). Und: **vergleichen,
   bevor man löscht** — ich habe eine weggeworfen und erst danach nachgesehen,
   was drinstand.
+- **iCloud synchronisiert den Schreibtisch**, und damit `.next/`. Der
+  Dev-Server blieb bei „Starting…" stehen, und `rm -rf .next` kam nicht zu Ende,
+  weil iCloud die Dateien zurückschrieb, während sie gelöscht wurden. Abhilfe
+  lokal: `.next` als Symlink auf `.next.nosync` (iCloud lässt `.nosync` aus),
+  beides in `.git/info/exclude`.
 - **`[skip ci]` in der Commit-Botschaft** lässt GitHub den Workflow aus. Nützlich
   für reine Dokumentation; mit `gh workflow run deploy.yml --ref main` löst man
   ihn später von Hand aus.
