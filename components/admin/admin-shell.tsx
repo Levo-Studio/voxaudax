@@ -33,6 +33,9 @@ export async function AdminShell({
     { href: "/admin/memes", label: "Memes" },
     { href: "/admin/unterstuetzer", label: "Unterstützer" },
     ...(may(member.role, "manageUsers") ? [{ href: "/admin/nutzer", label: "Nutzer" } as const] : []),
+    ...(may(member.role, "editEditorialPage")
+      ? [{ href: "/admin/redaktionsseite", label: "Redaktionsseite" } as const]
+      : []),
     { href: "/admin/konto", label: "Konto" },
   ];
 
