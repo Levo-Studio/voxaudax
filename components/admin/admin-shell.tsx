@@ -33,6 +33,9 @@ export async function AdminShell({
     { href: "/admin/memes", label: "Memes" },
     { href: "/admin/unterstuetzer", label: "Unterstützer" },
     ...(may(member.role, "manageUsers") ? [{ href: "/admin/nutzer", label: "Nutzer" } as const] : []),
+    ...(may(member.role, "editEditorialPage")
+      ? [{ href: "/admin/redaktionsseite", label: "Redaktionsseite" } as const]
+      : []),
     { href: "/admin/konto", label: "Konto" },
   ];
 
@@ -49,12 +52,12 @@ export async function AdminShell({
             front of you. Below it they did not: the row scrolled sideways and
             showed three of six, with the review queue — the one entry that
             carries a number — usually among the hidden. */}
-        <div className="hidden min-w-0 flex-1 md:contents">
+        <div className="hidden min-w-0 flex-1 lg:contents">
           <AdminNav items={items} />
         </div>
 
-        <div className="ml-auto hidden items-center gap-2.5 text-[12.5px] font-semibold md:flex">
-          <span className="hidden rounded-full border border-bd bg-s2 px-2.5 py-[5px] text-tm sm:inline">
+        <div className="ml-auto hidden items-center gap-2.5 text-[12.5px] font-semibold lg:flex">
+          <span className="hidden rounded-full border border-bd bg-s2 px-2.5 py-[5px] text-tm xl:inline">
             Rolle {roleLabel(member.role, member.form)}
           </span>
           <span className="flex items-center gap-2">

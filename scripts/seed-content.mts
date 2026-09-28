@@ -596,11 +596,11 @@ export const PAGES: readonly {
     title: "Die Redaktion",
     body: [
       {
-        p: "Sechs Schülerinnen und Schüler aus den Klassen 9 bis 12. Wir treffen uns mittwochs in der siebten Stunde in Raum 214 und entscheiden dort, worüber geschrieben wird — redaktionell unabhängig von Schulleitung und Förderverein.",
+        p: "Wir entscheiden selbst, worüber geschrieben wird — redaktionell unabhängig von Schulleitung und Förderverein. Feste Treffen gibt es nicht: Abgesprochen wird in unserer Signal- und unserer WhatsApp-Gruppe, wann immer jemand etwas vorhat.",
       },
       { h2: "Mitmachen" },
       {
-        p: "Wer schreiben, fotografieren, recherchieren oder layouten will, kommt einfach mittwochs dazu. Vorkenntnisse braucht niemand, ein Thema reicht. redaktion@voxaudax.de",
+        p: "Du willst bei der Vox Audax mitmachen? Sprich uns einfach persönlich an, tritt unserer Signal-Gruppe bei oder schreibe uns eine Mail! Wir freuen uns auf dich!",
       },
       {
         p: "Betreuende Lehrkraft: Dr. Annika Halm. Sie liest keine Texte vor der Veröffentlichung gegen — die Verantwortung für die Inhalte liegt bei der Redaktion.",

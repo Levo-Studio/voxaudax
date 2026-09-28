@@ -183,6 +183,7 @@ const REQUIRED_GATE: Readonly<Record<string, Gate>> = {
   "(redaktion)/nutzer/actions.ts#removeMemberAction": "manageUsers",
   "(redaktion)/nutzer/actions.ts#changeRoleAction": "manageUsers",
   "(redaktion)/nutzer/[id]/passwort/actions.ts#setPasswordAction": "resetOthersPassword",
+  "(redaktion)/redaktionsseite/actions.ts#saveEditorialPageAction": "editEditorialPage",
 };
 
 /**
@@ -284,8 +285,8 @@ describe("the role matrix answers screen 11c row for row", () => {
     }
   });
 
-  it("keeps the two admin-only rows admin-only", () => {
-    for (const capability of ["resetOthersPassword", "manageUsers"] as const) {
+  it("keeps the three admin-only rows admin-only", () => {
+    for (const capability of ["resetOthersPassword", "manageUsers", "editEditorialPage"] as const) {
       assert.equal(may("autor", capability), false, capability);
       assert.equal(may("redakteur", capability), false, capability);
       assert.equal(may("admin", capability), true, capability);
@@ -298,8 +299,8 @@ describe("the role matrix answers screen 11c row for row", () => {
     assert.equal(approvalMailScope("admin"), "always");
   });
 
-  it("covers the seven rows the screen draws and no more", () => {
-    assert.equal(CAPABILITIES.length, 7);
+  it("covers the seven rows the screen draws, the editorial page, and no more", () => {
+    assert.equal(CAPABILITIES.length, 8);
   });
 
   it("names a role the way screen 8a's Bezeichnung does", () => {

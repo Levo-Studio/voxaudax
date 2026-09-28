@@ -4,9 +4,11 @@ export type Role = (typeof userRole.enumValues)[number];
 export type Form = (typeof userForm.enumValues)[number];
 
 /**
- * Screen 11c, row for row. Every route and every action asks this table through
- * `may()`; nothing decides a permission by comparing a role inline, so a row
- * changed here changes every place that reads it.
+ * Screen 11c, row for row, plus one row the screen does not draw: the text of
+ * the editorial page and the join links under it, which the editorial team
+ * asked to change themselves. Every route and every action asks this table
+ * through `may()`; nothing decides a permission by comparing a role inline, so
+ * a row changed here changes every place that reads it.
  */
 export const CAPABILITIES = [
   "writeOwnArticles",
@@ -16,6 +18,7 @@ export const CAPABILITIES = [
   "manageSponsors",
   "resetOthersPassword",
   "manageUsers",
+  "editEditorialPage",
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number];
@@ -28,6 +31,7 @@ export const ROLE_MATRIX: Record<Capability, readonly Role[]> = {
   manageSponsors: ["redakteur", "admin"],
   resetOthersPassword: ["admin"],
   manageUsers: ["admin"],
+  editEditorialPage: ["admin"],
 };
 
 export const may = (role: Role, capability: Capability) =>

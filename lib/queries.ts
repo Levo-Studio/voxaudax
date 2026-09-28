@@ -7,6 +7,7 @@ import { db } from "@/lib/db/client";
 import {
   articles,
   categories,
+  chatGroups,
   images,
   memes,
   pages,
@@ -472,6 +473,13 @@ export const editorialMembers = (): Promise<EditorialMember[]> =>
     .from(users)
     .where(eq(users.status, "aktiv"))
     .orderBy(desc(users.role), asc(users.name));
+
+/** The join links under the invitation, Signal first — the enum's order. */
+export const chatGroupLinks = () =>
+  db
+    .select({ kind: chatGroups.kind, url: chatGroups.url })
+    .from(chatGroups)
+    .orderBy(asc(chatGroups.kind));
 
 export const pageBySlug = async (slug: string) => {
   const [page] = await db

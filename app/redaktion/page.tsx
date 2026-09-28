@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { Avatar, toneForPosition } from "@/components/avatar";
+import { ChatGroupLinks } from "@/components/chat-group-links";
 import { Inline } from "@/components/prose";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -10,7 +11,12 @@ import { splitEditorialPage } from "@/lib/editorial-page";
 import { editorialAddress } from "@/lib/env";
 import { toSlug } from "@/lib/format";
 import { alternates } from "@/lib/metadata";
-import { editorialMembers, orNoneAtBuildTime, pageBySlug } from "@/lib/queries";
+import {
+  chatGroupLinks,
+  editorialMembers,
+  orNoneAtBuildTime,
+  pageBySlug,
+} from "@/lib/queries";
 import { roleTitle } from "@/lib/roles";
 import { archiveHref } from "@/lib/routes";
 
@@ -48,9 +54,10 @@ export default function EditorialPage() {
 }
 
 async function EditorialContent() {
-  const [page, members] = await Promise.all([
+  const [page, members, groups] = await Promise.all([
     orNoneAtBuildTime(pageBySlug("redaktion"), undefined),
     orNoneAtBuildTime(editorialMembers(), []),
+    orNoneAtBuildTime(chatGroupLinks(), []),
   ]);
 
   const { intro, invitation, note } = splitEditorialPage(page?.body.content ?? []);
@@ -124,10 +131,17 @@ async function EditorialContent() {
             <p className="mt-2.5 text-[15.5px] leading-[1.6] font-medium md:mt-3 md:max-w-[56ch] md:text-[17px] md:leading-[1.65]">
               <Inline node={invitation.text} />
             </p>
+            {/* The groups lead: there is no meeting to come to, so joining one
+                of them is how somebody starts. Contact stays beside them for
+                whoever would rather write. */}
             <div className="mt-3.5 flex flex-wrap gap-2.5 md:mt-4">
+              <ChatGroupLinks
+                groups={groups}
+                className="inline-flex min-h-11 items-center rounded-[10px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 md:min-h-0"
+              />
               <a
                 href="/kontakt"
-                className="inline-flex min-h-11 items-center rounded-[10px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 md:min-h-0"
+                className="inline-flex min-h-11 items-center rounded-[10px] border border-bd px-[18px] py-[11px] text-[13.5px] font-bold md:min-h-0"
               >
                 Kontakt aufnehmen
               </a>

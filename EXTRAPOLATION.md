@@ -1583,6 +1583,61 @@ Die Vorlage setzt den Artikeltext auf eine Spalte von rund 68 Zeichen.
 Im Editor bleibt die Begrenzung, weil eine schreibende Person ihre Absätze an
 einer stabilen Zeilenlänge misst.
 
+### Kein festes Treffen mehr, beigetreten wird über Signal und WhatsApp
+
+**9a** und **3a** laden zu einem Treffen ein: mittwochs, siebte Stunde, Raum 214.
+Das Treffen gibt es nicht mehr; die Redaktion spricht sich in einer Signal- und
+einer WhatsApp-Gruppe ab, wann immer jemand etwas vorhat.
+
+→ Die beiden Absätze über das Treffen sind ersetzt, die Einladung trägt den
+Wortlaut der Redaktion. Migration 0011 tauscht sie in einer bestehenden
+Datenbank aus, **aber nur, wo sie noch wörtlich so dastehen** — eine von Hand
+geänderte Seite bleibt, wie sie ist. Die Schlussnotiz fasst sie nicht an.
+
+→ Unter der Einladung stehen auf **9a** und im Kasten „Mitschreiben" auf **3a**
+jetzt je ein Knopf pro Gruppe, in der Akzentfarbe. „Kontakt aufnehmen" rückt
+daneben als umrandeter zweiter Knopf: Wer beitreten will, soll zuerst die
+Gruppe sehen. Die Links öffnen ein neues Fenster, wie jeder Link, der die
+Zeitung verlässt.
+
+→ Die Links stehen in einer eigenen Tabelle `chat_groups`, eine Zeile je
+Messenger. Eine Zeile fehlt, heißt: kein Knopf.
+
+### Die Redaktionsseite bearbeitet die Redaktionsleitung selbst
+
+Der Text von **9a** stand nur in der Datenbank; ändern konnte ihn, wer an die
+Datenbank kam. Die Vorlage sieht dafür keinen Schirm vor.
+
+→ `/admin/redaktionsseite`, nur für `admin`, über eine eigene Fähigkeit
+`editEditorialPage` — die achte Zeile der Rollentabelle, die **11c** nicht
+zeichnet. Titel, Einleitung, Überschrift und Text der Einladung, Schlussnotiz
+und die beiden Gruppenlinks. Text und Links werden in einer Transaktion
+gespeichert, weil sie auf der Seite ein Abschnitt sind.
+
+→ **Reiner Text, kein Editor.** Eine Leerzeile beginnt einen Absatz, ein
+einfacher Zeilenumbruch wird zum Leerzeichen — beim Einfügen umgebrochener
+Text würde sonst in der schmalen Spalte der Startseite an zufälligen Stellen
+brechen. Formatierungen und Links im Fließtext, die bisher niemand gesetzt hat,
+gehen beim Speichern verloren.
+
+→ Ein Gruppenlink muss eine https-Einladung auf `signal.group` oder
+`chat.whatsapp.com` sein. Ein Link auf einen anderen Host ist ein Tippfehler
+oder die Gruppe von jemand anderem, und der Knopf trägt den Namen der Zeitung.
+
+→ Mit dem siebten Eintrag passte die Navigation des Backoffice bei 768px nicht
+mehr in die Zeile (schon mit sechs lief sie über). Der Hamburger gilt jetzt bis
+`lg`, und die Rollen-Pille neben dem Namen erscheint erst ab `xl`.
+
+### „Teilen" schickt Teaser und Link
+
+**13a** zeichnet nur den Knopf. Er übergab dem Teilen-Menü Titel, Teaser und
+Adresse in getrennten Feldern — Signal, WhatsApp und andere Ziele behalten davon
+eines und verwerfen den Rest, und so kam der Teaser ohne Link an.
+
+→ Der Link steht jetzt im Text, in einer eigenen Zeile unter dem Teaser. Ohne
+Teilen-Menü (meist am Desktop) landet dieselbe Nachricht in der Zwischenablage;
+„Link kopieren" kopiert weiter nur die Adresse.
+
 ### „Source Code" statt „Quelltext"
 
 Auf Ansage. Der Abschnitt auf der Startseite heißt „Offener Source Code", der
