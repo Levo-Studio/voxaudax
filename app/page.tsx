@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { ArticleBrief, ArticleCard } from "@/components/article-card";
 import { ArticleCover } from "@/components/article-cover";
 import { Avatar, toneForPosition } from "@/components/avatar";
+import { ChatGroupLinks } from "@/components/chat-group-links";
 import { FormerTag } from "@/components/former-tag";
 import { OpenSource } from "@/components/open-source";
 import { Inline } from "@/components/prose";
@@ -24,6 +25,7 @@ import { HOMEPAGE_MEMBERS } from "@/lib/limits";
 import { alternates } from "@/lib/metadata";
 import {
   activeSponsors,
+  chatGroupLinks,
   editorialMembers,
   homepageArticles,
   orNoneAtBuildTime,
@@ -71,12 +73,13 @@ export default function HomePage() {
 }
 
 async function HomeContent() {
-  const [articles, total, supporters, members, editorialPage] = await Promise.all([
+  const [articles, total, supporters, members, editorialPage, groups] = await Promise.all([
     orNoneAtBuildTime(homepageArticles(), []),
     orNoneAtBuildTime(publishedArticleCount(), 0),
     orNoneAtBuildTime(activeSponsors(), []),
     orNoneAtBuildTime(editorialMembers(), []),
     orNoneAtBuildTime(pageBySlug("redaktion"), undefined),
+    orNoneAtBuildTime(chatGroupLinks(), []),
   ]);
 
   const { invitation } = splitEditorialPage(editorialPage?.body.content ?? []);
@@ -263,12 +266,18 @@ async function HomeContent() {
                 <Inline node={invitation.text} />
               </p>
             )}
-            <Link
-              href="/kontakt"
-              className="mt-3.5 inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 transition-opacity hover:opacity-85 md:mt-4 md:min-h-0"
-            >
-              Kontakt aufnehmen
-            </Link>
+            <div className="mt-3.5 flex flex-wrap gap-2.5 md:mt-4">
+              <ChatGroupLinks
+                groups={groups}
+                className="inline-flex min-h-11 items-center rounded-[9px] bg-ac px-[18px] py-[11px] text-[13.5px] font-bold text-s1 transition-opacity hover:opacity-85 md:min-h-0"
+              />
+              <Link
+                href="/kontakt"
+                className="inline-flex min-h-11 items-center rounded-[9px] border border-bd px-[18px] py-[11px] text-[13.5px] font-bold transition-colors hover:border-ac md:min-h-0"
+              >
+                Kontakt aufnehmen
+              </Link>
+            </div>
           </div>
       </section>
 
