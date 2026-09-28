@@ -65,7 +65,7 @@ export function AdminMobileNav({
         aria-expanded={open}
         aria-controls="redaktionsnavigation-mobil"
         aria-label={open ? "Menü schließen" : "Menü öffnen"}
-        className="relative z-60 -mr-1 ml-auto inline-flex size-11 items-center justify-center text-tx md:hidden"
+        className="relative z-60 -mr-1 ml-auto inline-flex size-11 items-center justify-center text-tx lg:hidden"
       >
         <span aria-hidden className="relative block h-[15px] w-[22px]">
           {[
@@ -85,7 +85,7 @@ export function AdminMobileNav({
         id="redaktionsnavigation-mobil"
         ref={panel}
         inert={!open}
-        className={`fixed inset-0 z-50 flex flex-col bg-s1 transition-[opacity,visibility,translate] duration-300 ease-out md:hidden ${
+        className={`fixed inset-0 z-50 flex flex-col bg-s1 transition-[opacity,visibility,translate] duration-300 ease-out lg:hidden ${
           open ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"
         }`}
       >
