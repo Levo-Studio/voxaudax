@@ -1653,11 +1653,12 @@ Die Vorlage setzt das Archiv als Liste aus Metazeile und Schlagzeile.
 Vorschau im Editor — 21:8, Raster, Kategorie, Wort und Cover-Zeile —, nur
 kleiner (240px breit), und unter der Schlagzeile der Teaser.
 
-→ Auf dem Telefon ist das Cover eine quadratische Kachel (84px, ab `sm` 104px)
-wie die Karten auf **4a**: das Wort unten, darf umbrechen, sonst nichts — die
-Kategorie steht schon in der Metazeile. Ein 21:8-Streifen in dieser Breite war
-ein flacher Balken, in den das Wort gequetscht war. Schlagzeile und Teaser
-enden dort nach zwei Zeilen mit einer Ellipse.
+→ Auf dem Telefon ist das Cover eine Kachel (84px breit, ab `sm` 104px), die
+so hoch ist wie Metazeile, Schlagzeile und Teaser daneben — das Raster ist
+generiert und füllt jede Höhe. Das Wort steht unten und darf umbrechen, sonst
+nichts; die Kategorie steht schon in der Metazeile. Ein 21:8-Streifen in dieser
+Breite war ein flacher Balken, eine quadratische Kachel endete mitten im Text.
+Schlagzeile und Teaser enden nach zwei Zeilen mit einer Ellipse.
 
 → Das Cover ist für Screenreader ausgeblendet. Es wiederholt Kategorie und
 Wörter der Schlagzeile, und der Link hätte beides zweimal vorgelesen.
