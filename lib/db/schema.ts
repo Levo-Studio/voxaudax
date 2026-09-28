@@ -354,6 +354,22 @@ export const pages = pgTable("pages", {
     .defaultNow(),
 });
 
+/**
+ * The editorial team has no fixed meeting. Whoever wants to join comes in
+ * through one of these group chats, so the join links are editorial content an
+ * admin changes like the text around them — one row per messenger, and a
+ * messenger without a row has no button.
+ */
+export const chatGroupKind = pgEnum("chat_group_kind", ["signal", "whatsapp"]);
+
+export const chatGroups = pgTable("chat_groups", {
+  kind: chatGroupKind("kind").primaryKey(),
+  url: text("url").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const invitations = pgTable(
   "invitations",
   {
