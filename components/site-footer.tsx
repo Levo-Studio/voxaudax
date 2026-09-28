@@ -75,7 +75,7 @@ export function SiteFooter() {
           rel="me noopener noreferrer"
           className="mt-2 inline-flex min-h-11 items-center font-medium transition-colors hover:text-tx md:mt-0 md:ml-auto md:min-h-0"
         >
-          Quelltext auf GitHub
+          Source Code auf GitHub
         </a>
       </div>
     </footer>
